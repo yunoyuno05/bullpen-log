@@ -46,7 +46,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
-    { id: 'hero', label: '메인 화면', icon: Home, desc: 'Bullpen Log 홈' },
     { id: 'dashboard', label: '라이브 대시보드', icon: LayoutDashboard, desc: '선수 종합 통계 & 통합 모니터링' },
     { id: 'calendar', label: '훈련 캘린더 & 종합 관리', icon: Calendar, desc: '일별 훈련, 루틴, 목표 관리' },
     { id: 'acwr', label: '부하 지수 (ACWR) 분석', icon: TrendingUp, desc: '7일/28일 과부하 및 부상 위험 경보' },
@@ -77,11 +76,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#1c1c1e]/80 backdrop-blur-2xl border-b border-white/10 px-4 sm:px-8 py-3 text-white shadow-xl">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Left Brand Logo - Clicking returns to Hero main page */}
+        {/* Left Brand Logo */}
         <div
-          onClick={() => handleSelectTab('hero')}
+          onClick={() => handleSelectTab(currentUser ? 'dashboard' : 'hero')}
           className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity shrink-0 group"
-          title="메인 화면으로 이동"
+          title={currentUser ? "대시보드로 이동" : "메인 화면으로 이동"}
         >
           <div className="w-9 h-9 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center border border-white/20 shadow-sm transition-all">
             <BaseballIcon className="w-5 h-5 text-white" />

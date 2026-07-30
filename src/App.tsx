@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { supabase } from './lib/supabase';
 import { Pitcher, PitchSession, ROMRecord, PitchVideo, DailyLog, PitchSequence, GoalRoadmap, UserAccount } from './types';
 import {
   INITIAL_PITCHERS,
@@ -134,6 +135,58 @@ export default function App() {
     }
   }, [currentUser]);
 
+  // Sync Supabase Auth Session on mount
+  useEffect(() => {
+    const checkSupabaseAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const sbUser = session.user;
+          const metadata = sbUser.user_metadata || {};
+          const syncedUser: UserAccount = {
+            id: sbUser.id,
+            email: sbUser.email || '',
+            name: metadata.name || '김투수',
+            number: typeof metadata.number === 'number' ? metadata.number : 18,
+            team: metadata.team || '서울 자이언츠',
+            throwingArm: metadata.throwingArm || 'RHP',
+            role: metadata.role || '선발 (SP)',
+            joinedDate: sbUser.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            maxVelocity: metadata.maxVelocity || 153.2,
+          };
+          setCurrentUser(syncedUser);
+        }
+      } catch (e) {
+        console.log('Supabase session check:', e);
+      }
+    };
+
+    checkSupabaseAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const sbUser = session.user;
+        const metadata = sbUser.user_metadata || {};
+        const syncedUser: UserAccount = {
+          id: sbUser.id,
+          email: sbUser.email || '',
+          name: metadata.name || '김투수',
+          number: typeof metadata.number === 'number' ? metadata.number : 18,
+          team: metadata.team || '서울 자이언츠',
+          throwingArm: metadata.throwingArm || 'RHP',
+          role: metadata.role || '선발 (SP)',
+          joinedDate: sbUser.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          maxVelocity: metadata.maxVelocity || 153.2,
+        };
+        setCurrentUser(syncedUser);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const handleOpenAuth = (mode: 'login' | 'signup') => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
@@ -141,6 +194,9 @@ export default function App() {
 
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUser(user);
+    // Automatically navigate to live dashboard upon login
+    setActiveTab('dashboard');
+
     // Also create or sync with pitcher profile
     const existingPitcher = pitchers.find((p) => p.name === user.name || p.number === user.number);
     if (!existingPitcher) {
@@ -164,9 +220,23 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.log('Signout error:', e);
+    }
     setCurrentUser(null);
+    setActiveTab('hero');
   };
+
+  // Auth Guard: Unauthenticated users cannot view functional tabs and stay on hero
+  useEffect(() => {
+    if (!currentUser && activeTab !== 'hero') {
+      setActiveTab('hero');
+      setIsAuthModalOpen(true);
+    }
+  }, [currentUser, activeTab]);
 
   const currentPitcher: Pitcher = currentUser
     ? {

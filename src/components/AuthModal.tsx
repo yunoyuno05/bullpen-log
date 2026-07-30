@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { BaseballIcon } from './BaseballIcon';
 import { UserAccount } from '../types';
-import { Lock, Mail, User, ShieldCheck, ArrowRight, X } from 'lucide-react';
+import { Lock, Mail, User, ArrowRight, X, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [emailSentNotice, setEmailSentNotice] = useState<string | null>(null);
   
   // Sign up fields
   const [name, setName] = useState('');
@@ -29,28 +33,141 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+    setEmailSentNotice(null);
+
     if (!email.trim() || !password.trim()) {
-      alert('이메일과 비밀번호를 입력해주세요.');
+      setErrorMessage('이메일과 비밀번호를 입력해주세요.');
       return;
     }
 
-    const userData: UserAccount = {
-      id: 'usr_' + Date.now(),
-      email: email.trim(),
-      name: mode === 'signup' ? (name.trim() || '투수') : (name.trim() || '김투수'),
-      number: typeof number === 'number' ? number : 18,
-      team: team || 'Bullpen Stars',
-      throwingArm,
-      role,
-      joinedDate: new Date().toISOString().split('T')[0],
-      maxVelocity: 151,
-    };
+    setIsLoading(true);
 
-    onLoginSuccess(userData);
-    onClose();
+    try {
+      if (mode === 'signup') {
+        // Supabase Sign Up
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password: password.trim(),
+          options: {
+            data: {
+              name: name.trim() || '투수',
+              number: typeof number === 'number' ? number : 18,
+              team: team.trim() || 'Bullpen Stars',
+              throwingArm,
+              role,
+              maxVelocity: 151,
+            },
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        const sbUser = data.user;
+        const session = data.session;
+        const metadata = sbUser?.user_metadata || {};
+
+        const userData: UserAccount = {
+          id: sbUser?.id || 'usr_' + Date.now(),
+          email: sbUser?.email || email.trim(),
+          name: metadata.name || name.trim() || '투수',
+          number: typeof metadata.number === 'number' ? metadata.number : (typeof number === 'number' ? number : 18),
+          team: metadata.team || team || 'Bullpen Stars',
+          throwingArm: metadata.throwingArm || throwingArm,
+          role: metadata.role || role,
+          joinedDate: new Date().toISOString().split('T')[0],
+          maxVelocity: metadata.maxVelocity || 151,
+        };
+
+        // Try to insert into profiles table in Supabase if exists
+        try {
+          await supabase.from('profiles').upsert({
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            number: userData.number,
+            team: userData.team,
+            throwing_arm: userData.throwingArm,
+            role: userData.role,
+            max_velocity: userData.maxVelocity,
+            updated_at: new Date().toISOString(),
+          });
+        } catch (tblErr) {
+          console.log('Supabase profiles table upsert notice:', tblErr);
+        }
+
+        // If session is null, email confirmation is enabled in Supabase!
+        if (!session) {
+          setEmailSentNotice(`[${email.trim()}] 주소로 인증 확인 이메일을 발송했습니다.\n이메일 수신함에서 인증 링크를 클릭한 후 로그인해 주세요!`);
+          setMode('login');
+        } else {
+          onLoginSuccess(userData);
+          onClose();
+        }
+      } else {
+        // Supabase Sign In
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim(),
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        const sbUser = data.user;
+        const metadata = sbUser?.user_metadata || {};
+
+        // Try reading from profiles table if present
+        let profileData = null;
+        try {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', sbUser?.id)
+            .single();
+          if (prof) profileData = prof;
+        } catch (pErr) {
+          console.log('Profile select notice:', pErr);
+        }
+
+        const userData: UserAccount = {
+          id: sbUser?.id || 'usr_' + Date.now(),
+          email: sbUser?.email || email.trim(),
+          name: profileData?.name || metadata.name || '투수',
+          number: profileData?.number || metadata.number || 18,
+          team: profileData?.team || metadata.team || 'Bullpen Stars',
+          throwingArm: profileData?.throwing_arm || metadata.throwingArm || 'RHP',
+          role: profileData?.role || metadata.role || '선발 (SP)',
+          joinedDate: sbUser?.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          maxVelocity: profileData?.max_velocity || metadata.maxVelocity || 151,
+        };
+
+        onLoginSuccess(userData);
+        onClose();
+      }
+    } catch (err: any) {
+      console.error('Supabase Auth error:', err);
+      let msg = err?.message || '인증 중 오류가 발생했습니다.';
+      if (msg.includes('Invalid login credentials')) {
+        msg = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      } else if (msg.includes('Email not confirmed')) {
+        msg = '이메일 인증이 완료되지 않았습니다. 수신함에서 발송된 인증 링크를 먼저 클릭해 주세요.';
+      } else if (msg.includes('User already registered')) {
+        msg = '이미 가입된 이메일 주소입니다. 로그인 버튼을 눌러 로그인해 주세요.';
+      } else if (msg.includes('Password should be at least')) {
+        msg = '비밀번호는 최소 6자 이상이어야 합니다.';
+      }
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
@@ -187,12 +304,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           </div>
 
+          {emailSentNotice && (
+            <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 font-medium whitespace-pre-line animate-in fade-in leading-relaxed">
+              ✉️ {emailSentNotice}
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-xs text-rose-300 font-medium animate-in fade-in">
+              {errorMessage}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-white hover:bg-gray-200 text-black font-extrabold py-3.5 rounded-full text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 mt-2"
+            disabled={isLoading}
+            className="w-full bg-white hover:bg-gray-200 disabled:opacity-50 text-black font-extrabold py-3.5 rounded-full text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 mt-2"
           >
-            <span>{mode === 'login' ? '로그인하기' : '회원가입 완료'}</span>
-            <ArrowRight className="w-4 h-4" />
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                <span>처리 중...</span>
+              </>
+            ) : (
+              <>
+                <span>{mode === 'login' ? '로그인하기' : 'Supabase 회원가입'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

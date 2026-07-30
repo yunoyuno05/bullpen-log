@@ -34,7 +34,10 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
       <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center text-center space-y-8">
         
         {/* Large Central Liquid Glass Bullpen Log Emblem */}
-        <div className="relative group cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+        <div 
+          className="relative group cursor-pointer" 
+          onClick={() => currentUser ? setActiveTab('dashboard') : onOpenAuth('login')}
+        >
           {/* Subtle Outer Glow Aura */}
           <div className="absolute inset-0 rounded-full bg-white/20 blur-2xl group-hover:bg-white/30 transition-all duration-500" />
           
@@ -58,36 +61,24 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
               onClick={() => setActiveTab('dashboard')}
               className="w-full bg-white hover:bg-gray-100 text-black px-8 py-3.5 rounded-full font-extrabold text-sm transition-all duration-200 shadow-[0_4px_20px_rgba(255,255,255,0.25)] flex items-center justify-center gap-2 cursor-pointer active:scale-95 group"
             >
-              <span>시작하기</span>
+              <span>시작하기 (대시보드)</span>
               <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-0.5 transition-transform" />
             </button>
           ) : (
-            <>
-              {/* Login Button */}
-              <button
-                onClick={() => onOpenAuth('login')}
-                className="w-full sm:w-1/2 bg-white hover:bg-gray-200 text-black px-8 py-3.5 rounded-full font-extrabold text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-              >
-                <LogIn className="w-4 h-4 text-black" />
-                <span>로그인하기</span>
-              </button>
-
-              {/* Sign Up Button */}
-              <button
-                onClick={() => onOpenAuth('signup')}
-                className="w-full sm:w-1/2 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl px-8 py-3.5 rounded-full font-bold text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-              >
-                <UserPlus className="w-4 h-4 text-white" />
-                <span>회원가입</span>
-              </button>
-            </>
+            <button
+              onClick={() => onOpenAuth('login')}
+              className="w-full bg-white hover:bg-gray-200 text-black px-8 py-3.5 rounded-full font-extrabold text-sm transition-all duration-200 shadow-[0_4px_20px_rgba(255,255,255,0.25)] flex items-center justify-center gap-2 cursor-pointer active:scale-95 group"
+            >
+              <span>시작하기 (로그인 / 회원가입)</span>
+              <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-0.5 transition-transform" />
+            </button>
           )}
         </div>
 
         {/* Minimal 3-Feature Shortcuts Bar */}
         <div className="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
           <button
-            onClick={() => setActiveTab('acwr')}
+            onClick={() => currentUser ? setActiveTab('acwr') : onOpenAuth('login')}
             className="p-3.5 rounded-2xl bg-[#1c1c1e]/60 hover:bg-[#2c2c2e]/80 border border-white/10 backdrop-blur-xl transition-all text-left flex items-center gap-3 cursor-pointer group shadow-sm"
           >
             <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
@@ -100,7 +91,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('rom')}
+            onClick={() => currentUser ? setActiveTab('rom') : onOpenAuth('login')}
             className="p-3.5 rounded-2xl bg-[#1c1c1e]/60 hover:bg-[#2c2c2e]/80 border border-white/10 backdrop-blur-xl transition-all text-left flex items-center gap-3 cursor-pointer group shadow-sm"
           >
             <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
@@ -113,7 +104,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('ai-report')}
+            onClick={() => currentUser ? setActiveTab('ai-report') : onOpenAuth('login')}
             className="p-3.5 rounded-2xl bg-[#1c1c1e]/60 hover:bg-[#2c2c2e]/80 border border-white/10 backdrop-blur-xl transition-all text-left flex items-center gap-3 cursor-pointer group shadow-sm"
           >
             <div className="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
