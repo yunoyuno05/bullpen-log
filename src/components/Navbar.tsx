@@ -98,53 +98,34 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Right Section: Pitcher Selector + User Profile + Program Menu Dropdown + Quick Action (Shown only when NOT on hero screen) */}
+        {/* Right Section: User Profile + Quick Action + Program Menu Dropdown (Shown only when NOT on hero screen) */}
         {activeTab !== 'hero' && (
           <div className="flex items-center gap-2 sm:gap-3" ref={menuRef}>
-            {/* Pitcher Selector Pill */}
-            <div className="relative">
-              <select
-                value={selectedPitcherId}
-                onChange={(e) => onSelectPitcher(e.target.value)}
-                className="bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-semibold rounded-full px-3 py-1.5 pr-7 focus:outline-none focus:ring-1 focus:ring-white/30 transition-colors cursor-pointer appearance-none max-w-[120px] sm:max-w-[160px] truncate shadow-sm"
-              >
-                {pitchers.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-[#1c1c1e] text-white">
-                    #{p.number} {p.name}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[9px]">
-                ▼
-              </span>
-            </div>
-
             {/* Quick Session Logger Pill */}
             <button
               onClick={onOpenLogger}
-              className="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
+              className="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
-              <span className="hidden md:inline">피칭 기록</span>
+              <span className="hidden sm:inline">피칭 기록</span>
             </button>
 
             {/* User Profile Info Badge Button */}
             {currentUser ? (
               <button
                 onClick={onOpenProfile}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
                 title="회원 정보 보기"
               >
                 <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">
-                  <User className="w-3 h-3 text-white" />
+                  <User className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span className="hidden sm:inline font-bold">#{currentUser.number} {currentUser.name}</span>
-                <span className="sm:hidden font-bold">{currentUser.name}</span>
+                <span className="font-bold">#{currentUser.number} {currentUser.name}</span>
               </button>
             ) : (
               <button
                 onClick={() => onOpenAuth('login')}
-                className="bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+                className="bg-white hover:bg-gray-200 text-black px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>로그인</span>

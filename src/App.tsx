@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Pitcher, PitchSession, ROMRecord, PitchVideo, DailyLog, PitchSequence, GoalRoadmap, UserAccount } from './types';
 import {
   INITIAL_PITCHERS,
@@ -167,7 +168,21 @@ export default function App() {
     setCurrentUser(null);
   };
 
-  const currentPitcher = pitchers.find((p) => p.id === selectedPitcherId) || pitchers[0];
+  const currentPitcher: Pitcher = currentUser
+    ? {
+        id: currentUser.id,
+        name: currentUser.name,
+        number: currentUser.number,
+        team: currentUser.team,
+        throwingArm: currentUser.throwingArm,
+        role: currentUser.role,
+        age: 24,
+        heightWeight: '185cm / 84kg',
+        maxVelocity: currentUser.maxVelocity || 151,
+        currentAcwr: 1.15,
+        email: currentUser.email,
+      }
+    : (pitchers.find((p) => p.id === selectedPitcherId) || pitchers[0]);
 
   // Handler to save new pitching session
   const handleSaveSession = (newSessionData: Omit<PitchSession, 'id'>) => {
@@ -235,6 +250,11 @@ export default function App() {
     setPitchSequences((prev) => [newSeq, ...prev]);
   };
 
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans antialiased">
       {/* Top Fixed Navbar */}
@@ -250,82 +270,92 @@ export default function App() {
         onOpenAuth={handleOpenAuth}
       />
 
-      {/* Main Active Tab Content */}
-      <main>
-        {activeTab === 'hero' && (
-          <HeroLanding
-            currentPitcher={currentPitcher}
-            setActiveTab={setActiveTab}
-            onOpenLogger={() => setIsLoggerOpen(true)}
-            currentUser={currentUser}
-            onOpenAuth={handleOpenAuth}
-          />
-        )}
+      {/* Main Active Tab Content with Smooth Transitions */}
+      <main className="relative">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {activeTab === 'hero' && (
+              <HeroLanding
+                currentPitcher={currentPitcher}
+                setActiveTab={setActiveTab}
+                onOpenLogger={() => setIsLoggerOpen(true)}
+                currentUser={currentUser}
+                onOpenAuth={handleOpenAuth}
+              />
+            )}
 
-        {activeTab === 'dashboard' && (
-          <Dashboard
-            pitcher={currentPitcher}
-            sessions={sessions}
-            romRecords={romRecords}
-            setActiveTab={setActiveTab}
-            onOpenLogger={() => setIsLoggerOpen(true)}
-          />
-        )}
+            {activeTab === 'dashboard' && (
+              <Dashboard
+                pitcher={currentPitcher}
+                sessions={sessions}
+                romRecords={romRecords}
+                setActiveTab={setActiveTab}
+                onOpenLogger={() => setIsLoggerOpen(true)}
+              />
+            )}
 
-        {activeTab === 'calendar' && (
-          <TrainingCalendar
-            pitcher={currentPitcher}
-            sessions={sessions}
-            dailyLogs={dailyLogs}
-            onSaveDailyLog={handleSaveDailyLog}
-            pitchSequences={pitchSequences}
-            onAddPitchSequence={handleAddPitchSequence}
-            goalRoadmap={goalRoadmap}
-          />
-        )}
+            {activeTab === 'calendar' && (
+              <TrainingCalendar
+                pitcher={currentPitcher}
+                sessions={sessions}
+                dailyLogs={dailyLogs}
+                onSaveDailyLog={handleSaveDailyLog}
+                pitchSequences={pitchSequences}
+                onAddPitchSequence={handleAddPitchSequence}
+                goalRoadmap={goalRoadmap}
+              />
+            )}
 
-        {activeTab === 'acwr' && (
-          <ACWRAnalytics
-            pitcher={currentPitcher}
-            sessions={sessions}
-            setActiveTab={setActiveTab}
-            onOpenLogger={() => setIsLoggerOpen(true)}
-          />
-        )}
+            {activeTab === 'acwr' && (
+              <ACWRAnalytics
+                pitcher={currentPitcher}
+                sessions={sessions}
+                setActiveTab={setActiveTab}
+                onOpenLogger={() => setIsLoggerOpen(true)}
+              />
+            )}
 
-        {activeTab === 'rom' && (
-          <ROMTracker
-            pitcher={currentPitcher}
-            romRecords={romRecords}
-            onAddROMRecord={handleAddROMRecord}
-            setActiveTab={setActiveTab}
-          />
-        )}
+            {activeTab === 'rom' && (
+              <ROMTracker
+                pitcher={currentPitcher}
+                romRecords={romRecords}
+                onAddROMRecord={handleAddROMRecord}
+                setActiveTab={setActiveTab}
+              />
+            )}
 
-        {activeTab === 'video' && (
-          <VideoArchive
-            pitcher={currentPitcher}
-            videos={videos}
-            onAddVideo={handleAddVideo}
-          />
-        )}
+            {activeTab === 'video' && (
+              <VideoArchive
+                pitcher={currentPitcher}
+                videos={videos}
+                onAddVideo={handleAddVideo}
+              />
+            )}
 
-        {activeTab === 'ai-report' && (
-          <AICareReport
-            pitcher={currentPitcher}
-            sessions={sessions}
-            romRecords={romRecords}
-          />
-        )}
+            {activeTab === 'ai-report' && (
+              <AICareReport
+                pitcher={currentPitcher}
+                sessions={sessions}
+                romRecords={romRecords}
+              />
+            )}
 
-        {activeTab === 'logs' && (
-          <PitchLogsTable
-            pitcher={currentPitcher}
-            sessions={sessions}
-            onDeleteSession={handleDeleteSession}
-            onOpenLogger={() => setIsLoggerOpen(true)}
-          />
-        )}
+            {activeTab === 'logs' && (
+              <PitchLogsTable
+                pitcher={currentPitcher}
+                sessions={sessions}
+                onDeleteSession={handleDeleteSession}
+                onOpenLogger={() => setIsLoggerOpen(true)}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Pitch Logger Modal */}
