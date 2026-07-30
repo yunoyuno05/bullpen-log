@@ -38,17 +38,17 @@ export default function App() {
   // User Account state
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     const saved = localStorage.getItem('bullpen_user_account');
-    return saved ? JSON.parse(saved) : {
-      id: 'usr_default',
-      email: 'pitcher18@bullpen.com',
-      name: '김투수',
-      number: 18,
-      team: '서울 자이언츠',
-      throwingArm: 'RHP',
-      role: '선발 (SP)',
-      joinedDate: '2026-01-15',
-      maxVelocity: 153.2,
-    };
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.id !== 'usr_default' && parsed.id !== 'usr_demo') {
+          return parsed;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return null;
   });
 
   // Auth & Profile Modal states
@@ -357,6 +357,7 @@ export default function App() {
                 onOpenLogger={() => setIsLoggerOpen(true)}
                 currentUser={currentUser}
                 onOpenAuth={handleOpenAuth}
+                onLoginSuccess={handleLoginSuccess}
               />
             )}
 

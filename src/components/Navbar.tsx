@@ -122,13 +122,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-bold">#{currentUser.number} {currentUser.name}</span>
               </button>
             ) : (
-              <button
-                onClick={() => onOpenAuth('login')}
-                className="bg-white hover:bg-gray-200 text-black px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>로그인</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onOpenAuth('login')}
+                  className="bg-white hover:bg-gray-200 text-black px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>로그인</span>
+                </button>
+                <button
+                  onClick={() => onOpenAuth('signup')}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md hidden sm:flex"
+                >
+                  <span>회원가입</span>
+                </button>
+              </div>
             )}
 
             {/* Top-Right Program Menu Button (Main Nav Trigger) */}

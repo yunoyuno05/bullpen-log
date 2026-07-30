@@ -3,6 +3,7 @@ import { BaseballIcon } from './BaseballIcon';
 import { UserAccount } from '../types';
 import { Lock, Mail, User, ArrowRight, X, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -170,15 +171,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#1c1c1e]/95 border border-white/20 rounded-[28px] p-6 md:p-8 max-w-md w-full text-white shadow-2xl my-8 space-y-6 backdrop-blur-3xl animate-in zoom-in-95 duration-200 relative">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer transition-colors"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto"
         >
-          <X className="w-4 h-4" />
-        </button>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-[#1c1c1e]/95 border border-white/20 rounded-[28px] p-6 md:p-8 max-w-md w-full text-white shadow-2xl my-8 space-y-6 backdrop-blur-3xl relative"
+          >
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
 
         {/* Modal Header */}
         <div className="text-center space-y-2 pt-2">
@@ -334,31 +348,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
           </button>
         </form>
-
-        {/* Guest shortcut / Demo Fast Login */}
-        <div className="border-t border-white/10 pt-4 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              onLoginSuccess({
-                id: 'usr_demo',
-                email: 'pitcher18@bullpen.com',
-                name: '김투수',
-                number: 18,
-                team: '서울 자이언츠',
-                throwingArm: 'RHP',
-                role: '선발 (SP)',
-                joinedDate: '2026-01-15',
-                maxVelocity: 153.2,
-              });
-              onClose();
-            }}
-            className="text-xs text-gray-400 hover:text-white transition-colors underline font-mono cursor-pointer"
-          >
-            체험용 데모 계정으로 빠르게 로그인하기
-          </button>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
