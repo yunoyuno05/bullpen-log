@@ -1,0 +1,6 @@
+{
+  "name": "Bullpen Log",
+  "description": "투수의 팔꿈치·어깨 케어, ACWR 부하 추적, ROM 측정, 메커니즘 영상 분석 및 AI 맞춤형 훈련 리포트를 제공하는 지능형 야구 선수 관리 시스템",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
