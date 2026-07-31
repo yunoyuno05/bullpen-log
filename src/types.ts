@@ -19,6 +19,14 @@ export interface Pitcher {
   email?: string;
 }
 
+export interface AthleteAssessment {
+  painStatus?: string;
+  seasonGoal?: string;
+  weeklyTrainingFreq?: string;
+  preferredTrainingFocus?: string;
+  mainPitchTypes?: string[];
+}
+
 export interface UserAccount {
   id: string;
   email: string;
@@ -35,6 +43,7 @@ export interface UserAccount {
   joinedDate: string;
   maxVelocity?: number;
   avatarUrl?: string;
+  assessment?: AthleteAssessment;
 }
 
 export interface PitchSession {
@@ -115,6 +124,20 @@ export interface AIChatMessage {
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
+}
+
+export interface TrainingScheduleItem {
+  id: string;
+  pitcherId: string;
+  date: string; // YYYY-MM-DD
+  time?: string; // HH:mm
+  category: 'WEIGHT' | 'BULLPEN' | 'LONG_TOSS' | 'CONDITIONING' | 'RECOVERY' | 'TACTICAL' | 'REST' | 'CUSTOM';
+  title: string;
+  intensity: 'HIGH' | 'MEDIUM' | 'LOW';
+  details?: string;
+  durationMinutes?: number;
+  completed: boolean;
+  autoArchived?: boolean;
 }
 
 export interface RoutineItem {

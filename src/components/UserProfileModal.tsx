@@ -29,6 +29,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [number, setNumber] = useState<number>(18);
   const [team, setTeam] = useState('');
   const [throwingArm, setThrowingArm] = useState<'RHP' | 'LHP' | 'SWITCH'>('RHP');
+  const [role, setRole] = useState<string>('미정 (Unassigned)');
   const [maxVelocity, setMaxVelocity] = useState<number>(150);
   const [height, setHeight] = useState<number>(185);
   const [weight, setWeight] = useState<number>(85);
@@ -43,6 +44,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       setNumber(user.number || 18);
       setTeam(user.team || '');
       setThrowingArm(user.throwingArm || 'RHP');
+      setRole(user.role || '미정 (Unassigned)');
       setMaxVelocity(user.maxVelocity || 151.5);
       setHeight(user.height || 185);
       setWeight(user.weight || 85);
@@ -88,6 +90,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       number: Number(number) || 0,
       team: team.trim() || '소속 없음',
       throwingArm,
+      role: role || '미정 (Unassigned)',
       maxVelocity: Number(maxVelocity) || 145,
       height: Number(height) || 0,
       weight: Number(weight) || 0,
@@ -202,16 +205,18 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </span>
                     <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">{user.name}</h2>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1 flex items-center justify-center gap-1.5">
+                  <p className="text-xs text-gray-400 mt-1 flex items-center justify-center gap-1.5 flex-wrap">
                     <span>{user.team}</span>
                     <span>•</span>
                     <span className="font-semibold text-emerald-400">{getThrowingArmLabel(user.throwingArm)}</span>
+                    <span>•</span>
+                    <span className="text-gray-300 font-medium">{user.role || '미정 (Unassigned)'}</span>
                   </p>
                 </div>
               ) : (
                 <div>
                   <h2 className="text-lg font-bold text-white">선수 프로필 정보 수정</h2>
-                  <p className="text-xs text-gray-400">사진, 생년월일, 신체 스펙, 최고 구속 및 투구 손을 변경합니다.</p>
+                  <p className="text-xs text-gray-400">사진, 생년월일, 신체 정보, 최고 구속 및 투구 손을 변경합니다.</p>
                 </div>
               )}
             </div>
@@ -229,7 +234,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 {/* Physical Metrics Grid */}
                 <div className="bg-black/40 border border-white/10 rounded-2xl p-4 space-y-3.5 backdrop-blur-md">
                   <div className="text-xs font-bold text-gray-400 uppercase tracking-wider pb-1 border-b border-white/10 flex items-center justify-between">
-                    <span>선수 야구 신체 스펙 (Physical Spec)</span>
+                    <span>선수 정보</span>
                     <span className="text-emerald-400 flex items-center gap-1 text-[10px]">
                       <CheckCircle2 className="w-3 h-3" /> 검증됨
                     </span>
@@ -409,11 +414,25 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   </div>
                 </div>
 
+                {/* Pitcher Role Select */}
+                <div className="space-y-1">
+                  <label className="text-gray-400 font-medium">투수 보직 (Role)</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white transition-colors cursor-pointer"
+                  >
+                    <option value="선발 (SP)">선발 (SP)</option>
+                    <option value="불펜 (RP)">불펜 (RP)</option>
+                    <option value="미정 (Unassigned)">미정 (Unassigned)</option>
+                  </select>
+                </div>
+
                 {/* Personal & Physical Baseball Metrics */}
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
                   <div className="text-[11px] font-bold text-gray-300 flex items-center gap-1">
                     <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>선수 생년월일 & 신체 데이터 (Personal Metrics)</span>
+                    <span>선수 상세 정보</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">

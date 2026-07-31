@@ -83,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div
           onClick={() => handleSelectTab(currentUser ? 'dashboard' : 'hero')}
           className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity shrink-0 group"
-          title={currentUser ? "대시보드로 이동" : "메인 화면으로 이동"}
+          title={currentUser ? "대시보드로 이동" : "Bullpen Log 홈"}
         >
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center border border-white/20 shadow-sm transition-all shrink-0">
             <BaseballIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -102,20 +102,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Section Container */}
         <div className="flex items-center gap-2" ref={menuRef}>
-          {/* DESKTOP NAV BAR CONTROLS (Hidden on mobile sm) */}
-          {activeTab !== 'hero' && (
-            <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-              {/* Quick Session Logger Pill */}
-              <button
-                onClick={onOpenLogger}
-                className="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
-              >
-                <Plus className="w-3.5 h-3.5 text-white" />
-                <span>피칭 기록</span>
-              </button>
+          {/* DESKTOP NAV BAR CONTROLS */}
+          <div className="hidden sm:flex items-center gap-2 sm:gap-3">
+            {currentUser ? (
+              <>
+                {/* Quick Session Logger Pill */}
+                <button
+                  onClick={onOpenLogger}
+                  className="bg-white/15 hover:bg-white/25 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
+                >
+                  <Plus className="w-3.5 h-3.5 text-white" />
+                  <span>피칭 기록</span>
+                </button>
 
-              {/* User Profile Info Badge Button */}
-              {currentUser ? (
+                {/* User Profile Info Badge Button */}
                 <button
                   onClick={onOpenProfile}
                   className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
@@ -130,41 +130,47 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                   <span className="font-bold">#{currentUser.number} {currentUser.name}</span>
                 </button>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => onOpenAuth('login')}
-                    className="bg-white hover:bg-gray-200 text-black px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
-                  >
-                    <LogIn className="w-3.5 h-3.5" />
-                    <span>로그인</span>
-                  </button>
-                  <button
-                    onClick={() => onOpenAuth('signup')}
-                    className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
-                  >
-                    <span>회원가입</span>
-                  </button>
-                </div>
-              )}
+              </>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onOpenAuth('login')}
+                  className="bg-white hover:bg-gray-200 text-black px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>로그인</span>
+                </button>
 
-              {/* Desktop Program Menu Button */}
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border shadow-sm backdrop-blur-xl ${
-                  isMenuOpen
-                    ? 'bg-white text-black border-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
-                }`}
-              >
-                <Menu className="w-4 h-4" />
-                <span>프로그램 메뉴</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => onOpenAuth('signup')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs transition-all shadow-sm flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md ${
+                    activeTab === 'signup'
+                      ? 'bg-emerald-400 text-black font-extrabold shadow-emerald-500/20'
+                      : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>회원가입</span>
+                </button>
+              </div>
+            )}
 
-          {/* MOBILE HAMBURGER BUTTON (Visible on mobile, replaces full bar) */}
+            {/* Desktop Program Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border shadow-sm backdrop-blur-xl ${
+                isMenuOpen
+                  ? 'bg-white text-black border-white'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+              }`}
+            >
+              <Menu className="w-4 h-4" />
+              <span>프로그램 메뉴</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* MOBILE HAMBURGER BUTTON */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`sm:hidden w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer shadow-md ${
@@ -260,26 +266,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* Nav Items List */}
                 <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-0.5">
-                  <button
-                    onClick={() => handleSelectTab(currentUser ? 'dashboard' : 'hero')}
-                    className={`w-full text-left p-2.5 rounded-2xl transition-all flex items-center gap-3 cursor-pointer ${
-                      activeTab === 'hero'
-                        ? 'bg-white text-black font-bold shadow-md'
-                        : 'hover:bg-white/10 text-gray-200'
-                    }`}
-                  >
-                    <div className={`p-2 rounded-xl border shrink-0 ${
-                      activeTab === 'hero' ? 'bg-black/10 border-black/10 text-black' : 'bg-white/10 border-white/10 text-gray-300'
-                    }`}>
-                      <Home className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-xs font-bold block">메인 화면</span>
-                      <p className={`text-[10px] truncate ${activeTab === 'hero' ? 'text-gray-700' : 'text-gray-400'}`}>
-                        Bullpen Log 소개 및 안내
-                      </p>
-                    </div>
-                  </button>
+                  {!currentUser && (
+                    <button
+                      onClick={() => {
+                        onOpenAuth('signup');
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full text-left p-2.5 rounded-2xl transition-all flex items-center gap-3 cursor-pointer bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    >
+                      <div className="p-2 rounded-xl border shrink-0 bg-emerald-500/20 border-emerald-500/30 text-emerald-300">
+                        <UserPlus className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-bold block">선수 등록 회원가입</span>
+                        <p className="text-[10px] truncate text-emerald-400/80">
+                          신규 선수 등록 및 투수 프로필 생성
+                        </p>
+                      </div>
+                    </button>
+                  )}
 
                   {navItems.map((item) => {
                     const IconComp = item.icon;

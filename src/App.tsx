@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { supabase } from './lib/supabase';
-import { Pitcher, PitchSession, ROMRecord, PitchVideo, DailyLog, PitchSequence, GoalRoadmap, UserAccount } from './types';
+import { Pitcher, PitchSession, ROMRecord, PitchVideo, DailyLog, PitchSequence, GoalRoadmap, UserAccount, TrainingScheduleItem } from './types';
 import {
   INITIAL_PITCHERS,
   INITIAL_SESSIONS,
@@ -9,7 +9,8 @@ import {
   INITIAL_VIDEOS,
   INITIAL_DAILY_LOGS,
   INITIAL_PITCH_SEQUENCES,
-  INITIAL_GOAL_ROADMAP
+  INITIAL_GOAL_ROADMAP,
+  INITIAL_TRAINING_SCHEDULES
 } from './data/initialData';
 import { Navbar } from './components/Navbar';
 import { HeroLanding } from './components/HeroLanding';
@@ -22,6 +23,7 @@ import { AICareReport } from './components/AICareReport';
 import { PitchLogsTable } from './components/PitchLogsTable';
 import { PitchLoggerModal } from './components/PitchLoggerModal';
 import { AuthModal } from './components/AuthModal';
+import { SignUpPage } from './components/SignUpPage';
 import { UserProfileModal } from './components/UserProfileModal';
 import { BaseballIcon } from './components/BaseballIcon';
 import { Twitter, Instagram, Mail } from 'lucide-react';
@@ -92,6 +94,18 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_GOAL_ROADMAP;
   });
 
+  // Training Schedules state
+  const [trainingSchedules, setTrainingSchedules] = useState<TrainingScheduleItem[]>(() => {
+    const saved = localStorage.getItem('bullpen_training_schedules');
+    return saved ? JSON.parse(saved) : INITIAL_TRAINING_SCHEDULES;
+  });
+
+  // Auto-Archive passed schedules setting state
+  const [autoArchivePassedSchedules, setAutoArchivePassedSchedules] = useState<boolean>(() => {
+    const saved = localStorage.getItem('bullpen_auto_archive');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
   // Active Tab View State ('hero' | 'dashboard' | 'calendar' | 'acwr' | 'rom' | 'video' | 'ai-report' | 'logs')
   const [activeTab, setActiveTab] = useState<string>('hero');
 
@@ -126,6 +140,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('bullpen_goal_roadmap', JSON.stringify(goalRoadmap));
   }, [goalRoadmap]);
+
+  useEffect(() => {
+    localStorage.setItem('bullpen_training_schedules', JSON.stringify(trainingSchedules));
+  }, [trainingSchedules]);
+
+  useEffect(() => {
+    localStorage.setItem('bullpen_auto_archive', JSON.stringify(autoArchivePassedSchedules));
+  }, [autoArchivePassedSchedules]);
 
   useEffect(() => {
     if (currentUser) {
@@ -397,6 +419,31 @@ export default function App() {
     setPitchSequences((prev) => [newSeq, ...prev]);
   };
 
+  // Handler to add or update Training Schedule
+  const handleSaveSchedule = (schedule: TrainingScheduleItem) => {
+    setTrainingSchedules((prev) => {
+      const idx = prev.findIndex((s) => s.id === schedule.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = schedule;
+        return next;
+      }
+      return [schedule, ...prev];
+    });
+  };
+
+  // Handler to delete Training Schedule
+  const handleDeleteSchedule = (scheduleId: string) => {
+    setTrainingSchedules((prev) => prev.filter((s) => s.id !== scheduleId));
+  };
+
+  // Handler to toggle Training Schedule completion
+  const handleToggleScheduleCompleted = (scheduleId: string) => {
+    setTrainingSchedules((prev) =>
+      prev.map((s) => (s.id === scheduleId ? { ...s, completed: !s.completed } : s))
+    );
+  };
+
   // Scroll to top when tab changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -457,6 +504,12 @@ export default function App() {
                 pitchSequences={pitchSequences}
                 onAddPitchSequence={handleAddPitchSequence}
                 goalRoadmap={goalRoadmap}
+                schedules={trainingSchedules}
+                onSaveSchedule={handleSaveSchedule}
+                onDeleteSchedule={handleDeleteSchedule}
+                onToggleScheduleCompleted={handleToggleScheduleCompleted}
+                autoArchivePassedSchedules={autoArchivePassedSchedules}
+                onToggleAutoArchive={() => setAutoArchivePassedSchedules((prev) => !prev)}
               />
             )}
 
@@ -502,6 +555,17 @@ export default function App() {
                 onOpenLogger={() => setIsLoggerOpen(true)}
               />
             )}
+
+            {activeTab === 'signup' && (
+              <SignUpPage
+                onReturnHome={() => setActiveTab('hero')}
+                onOpenLogin={() => setIsAuthModalOpen(true)}
+                onLoginSuccess={(user) => {
+                  handleLoginSuccess(user);
+                  setActiveTab('dashboard');
+                }}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -514,7 +578,7 @@ export default function App() {
         onSaveSession={handleSaveSession}
       />
 
-      {/* Auth Modal (Login / Sign Up) */}
+      {/* Auth Modal (Login & Sign Up) */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

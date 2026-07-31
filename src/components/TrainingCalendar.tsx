@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
-import { Pitcher, PitchSession, DailyLog, PitchSequence, GoalRoadmap, RoutineItem } from '../types';
+import React, { useState, useEffect } from 'react';
+import {
+  Pitcher,
+  PitchSession,
+  DailyLog,
+  PitchSequence,
+  GoalRoadmap,
+  RoutineItem,
+  TrainingScheduleItem
+} from '../types';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Plus,
   CheckCircle2,
   Circle,
@@ -12,11 +22,18 @@ import {
   AlertCircle,
   FileText,
   Target,
-  Trophy,
-  Activity,
   Flame,
   Zap,
-  Check
+  Check,
+  Clock,
+  Trash2,
+  Tag,
+  Sparkles,
+  ArrowRight,
+  SlidersHorizontal,
+  RotateCcw,
+  Activity,
+  ChevronDown
 } from 'lucide-react';
 
 interface TrainingCalendarProps {
@@ -27,6 +44,12 @@ interface TrainingCalendarProps {
   pitchSequences: PitchSequence[];
   onAddPitchSequence: (seq: Omit<PitchSequence, 'id'>) => void;
   goalRoadmap: GoalRoadmap;
+  schedules: TrainingScheduleItem[];
+  onSaveSchedule: (schedule: TrainingScheduleItem) => void;
+  onDeleteSchedule: (id: string) => void;
+  onToggleScheduleCompleted: (id: string) => void;
+  autoArchivePassedSchedules: boolean;
+  onToggleAutoArchive: () => void;
 }
 
 export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
@@ -37,19 +60,97 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   pitchSequences,
   onAddPitchSequence,
   goalRoadmap,
+  schedules,
+  onSaveSchedule,
+  onDeleteSchedule,
+  onToggleScheduleCompleted,
+  autoArchivePassedSchedules,
+  onToggleAutoArchive,
 }) => {
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(7); // July (0-indexed 6)
-  const [selectedDate, setSelectedDate] = useState<string>('2026-07-29');
-  const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'game' | 'roadmap'>('calendar');
+  const todayObj = new Date();
+  const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
-  // Filter logs & sessions for selected pitcher
+  const [currentYear, setCurrentYear] = useState<number>(todayObj.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState<number>(todayObj.getMonth() + 1); // 1-12
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  
+  // Subtab navigation: 'main' (Main summary calendar), 'schedule' (Schedule planning), 'history' (Past logs & records), 'game' (Game sequence), 'roadmap' (Goal roadmap)
+  const [activeSubTab, setActiveSubTab] = useState<'main' | 'schedule' | 'history' | 'game' | 'roadmap'>('main');
+
+  // Schedule creation form states
+  const [schedDate, setSchedDate] = useState<string>(todayStr);
+  const [schedTime, setSchedTime] = useState<string>('14:00');
+  const [schedCategory, setSchedCategory] = useState<TrainingScheduleItem['category']>('WEIGHT');
+  const [schedTitle, setSchedTitle] = useState<string>('');
+  const [schedIntensity, setSchedIntensity] = useState<TrainingScheduleItem['intensity']>('HIGH');
+  const [schedDetails, setSchedDetails] = useState<string>('');
+  const [schedDuration, setSchedDuration] = useState<number>(60);
+  const [schedFilterCategory, setSchedFilterCategory] = useState<string>('ALL');
+
+  // Auto-Archive effect: when turned ON, automatically mark passed schedules as completed
+  useEffect(() => {
+    if (autoArchivePassedSchedules && schedules.length > 0) {
+      schedules.forEach((sch) => {
+        if (sch.date < todayStr && !sch.completed) {
+          onToggleScheduleCompleted(sch.id);
+        }
+      });
+    }
+  }, [autoArchivePassedSchedules, schedules, todayStr]);
+
+  // Calendar calculations
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+  const startDayOfWeek = new Date(currentYear, currentMonth - 1, 1).getDay(); // 0: Sun, 1: Mon...
+
+  const calendarCells: (string | null)[] = [];
+  for (let i = 0; i < startDayOfWeek; i++) {
+    calendarCells.push(null);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const formattedDay = d < 10 ? `0${d}` : `${d}`;
+    const formattedMonth = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+    calendarCells.push(`${currentYear}-${formattedMonth}-${formattedDay}`);
+  }
+
+  // Navigation handlers
+  const handlePrevYear = () => setCurrentYear((y) => y - 1);
+  const handleNextYear = () => setCurrentYear((y) => y + 1);
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear((y) => y - 1);
+    } else {
+      setCurrentMonth((m) => m - 1);
+    }
+  };
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear((y) => y + 1);
+    } else {
+      setCurrentMonth((m) => m + 1);
+    }
+  };
+  const handleToday = () => {
+    const now = new Date();
+    setCurrentYear(now.getFullYear());
+    setCurrentMonth(now.getMonth() + 1);
+    setSelectedDate(todayStr);
+  };
+
+  // Pitcher filtered items
   const pitcherSessions = sessions.filter((s) => s.pitcherId === pitcher.id);
   const pitcherDailyLogs = dailyLogs.filter((l) => l.pitcherId === pitcher.id);
   const pitcherSequences = pitchSequences.filter((s) => s.pitcherId === pitcher.id);
+  const pitcherSchedules = schedules.filter((s) => s.pitcherId === pitcher.id);
 
-  // Get selected day log or default
-  const currentDayLog = pitcherDailyLogs.find((l) => l.date === selectedDate) || {
+  // Selected date items
+  const selectedDateSchedules = pitcherSchedules.filter((s) => s.date === selectedDate);
+  const selectedDateSessions = pitcherSessions.filter((s) => s.date === selectedDate);
+  const selectedDateLog = pitcherDailyLogs.find((l) => l.date === selectedDate);
+
+  // Record Form States for History subtab
+  const currentDayLog = selectedDateLog || {
     id: `dl-${selectedDate}`,
     pitcherId: pitcher.id,
     date: selectedDate,
@@ -68,24 +169,24 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
     weightVolumeKg: 0,
   };
 
-  const currentDaySessions = pitcherSessions.filter((s) => s.date === selectedDate);
-
-  // Form states for selected day log editing
   const [editPainScore, setEditPainScore] = useState<number>(currentDayLog.painScore);
   const [editPainLocation, setEditPainLocation] = useState<string>(currentDayLog.painLocation || '');
   const [editSleepHours, setEditSleepHours] = useState<number>(currentDayLog.sleepHours);
   const [editDiary, setEditDiary] = useState<string>(currentDayLog.diary);
   const [editWeightVolume, setEditWeightVolume] = useState<number>(currentDayLog.weightVolumeKg);
+  const [editTrainingType, setEditTrainingType] = useState<DailyLog['trainingType']>(currentDayLog.trainingType);
   const [routinesState, setRoutinesState] = useState<RoutineItem[]>(currentDayLog.routines);
 
-  // New Pitch Sequence state
-  const [newSeqOpponent, setNewSeqOpponent] = useState('라이벌 A팀');
-  const [newSeqInning, setNewSeqInning] = useState(1);
-  const [newSeqBatter, setNewSeqBatter] = useState('1번 타자');
-  const [newSeqBallCount, setNewSeqBallCount] = useState('0-0');
-  const [newSeqPitchType, setNewSeqPitchType] = useState('포심 직구');
-  const [newSeqVelocity, setNewSeqVelocity] = useState(150);
-  const [newSeqResult, setNewSeqResult] = useState<PitchSequence['result']>('STRIKE_SWINGING');
+  // Update record form state when selectedDate changes
+  useEffect(() => {
+    setEditPainScore(currentDayLog.painScore);
+    setEditPainLocation(currentDayLog.painLocation || '');
+    setEditSleepHours(currentDayLog.sleepHours);
+    setEditDiary(currentDayLog.diary);
+    setEditWeightVolume(currentDayLog.weightVolumeKg);
+    setEditTrainingType(currentDayLog.trainingType);
+    setRoutinesState(currentDayLog.routines);
+  }, [selectedDate, selectedDateLog]);
 
   // Handle routine toggle
   const toggleRoutine = (rId: string) => {
@@ -94,10 +195,11 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
     );
   };
 
-  // Handle saving daily log
+  // Handle saving past daily record log
   const handleSaveDayLog = () => {
     const updatedLog: DailyLog = {
       ...currentDayLog,
+      trainingType: editTrainingType,
       painScore: editPainScore,
       painLocation: editPainLocation,
       sleepHours: editSleepHours,
@@ -106,10 +208,45 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
       routines: routinesState,
     };
     onSaveDailyLog(updatedLog);
-    alert(`${selectedDate} 일지와 루틴이 저장되었습니다!`);
+    alert(`${selectedDate} 과거 훈련 기록이 성공적으로 저장되었습니다!`);
   };
 
-  // Handle adding new pitch sequence
+  // Schedule Submit Handler
+  const handleCreateSchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!schedTitle.trim()) {
+      alert('훈련 제목을 입력해주세요.');
+      return;
+    }
+
+    const newSch: TrainingScheduleItem = {
+      id: `ts-${Date.now()}`,
+      pitcherId: pitcher.id,
+      date: schedDate,
+      time: schedTime,
+      category: schedCategory,
+      title: schedTitle.trim(),
+      intensity: schedIntensity,
+      details: schedDetails.trim(),
+      durationMinutes: Number(schedDuration),
+      completed: false,
+    };
+
+    onSaveSchedule(newSch);
+    setSchedTitle('');
+    setSchedDetails('');
+    alert(`${schedDate} 훈련 스케줄이 성공적으로 등록되었습니다!`);
+  };
+
+  // New Pitch Sequence form state
+  const [newSeqOpponent, setNewSeqOpponent] = useState('라이벌 A팀');
+  const [newSeqInning, setNewSeqInning] = useState(1);
+  const [newSeqBatter, setNewSeqBatter] = useState('1번 타자');
+  const [newSeqBallCount, setNewSeqBallCount] = useState('0-0');
+  const [newSeqPitchType, setNewSeqPitchType] = useState('포심 직구');
+  const [newSeqVelocity, setNewSeqVelocity] = useState(150);
+  const [newSeqResult, setNewSeqResult] = useState<PitchSequence['result']>('STRIKE_SWINGING');
+
   const handleCreateSequence = (e: React.FormEvent) => {
     e.preventDefault();
     onAddPitchSequence({
@@ -126,27 +263,36 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
     alert('새 투구 시퀀스가 기록되었습니다!');
   };
 
-  // Calendar math (July 2026 has 31 days)
-  const daysInMonth = 31;
-  const startDayOfWeek = 3; // Wednesday for July 1 2026
-
-  const calendarCells = [];
-  for (let i = 0; i < startDayOfWeek; i++) {
-    calendarCells.push(null);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const formattedDay = d < 10 ? `0${d}` : `${d}`;
-    calendarCells.push(`2026-07-${formattedDay}`);
-  }
+  // Category labels and badges helper
+  const getCategoryBadge = (cat: TrainingScheduleItem['category']) => {
+    switch (cat) {
+      case 'WEIGHT':
+        return { label: '웨이트', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' };
+      case 'BULLPEN':
+        return { label: '불펜피칭', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
+      case 'LONG_TOSS':
+        return { label: '롱토스', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' };
+      case 'CONDITIONING':
+        return { label: '컨디셔닝', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30' };
+      case 'RECOVERY':
+        return { label: '리커버리', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' };
+      case 'TACTICAL':
+        return { label: '전술훈련', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' };
+      case 'REST':
+        return { label: '휴식', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30' };
+      default:
+        return { label: '맞춤훈련', color: 'bg-pink-500/20 text-pink-300 border-pink-500/30' };
+    }
+  };
 
   return (
     <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
-      {/* Top Title & View Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      {/* Top Header & Navigation Segmented Control */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-[#34C759]/20 text-[#34C759] border border-[#34C759]/30 tracking-wider">
-              ATHLETE LOG SYSTEM
+              ATHLETE TRAINER HUB
             </span>
             <span className="text-gray-400 text-xs">#{pitcher.number} {pitcher.name} 선수</span>
           </div>
@@ -154,512 +300,1058 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             훈련 캘린더 & 종합 선수 관리
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">
-            일별 훈련 데이터, 통증 모니터링, 루틴 체크, 볼카운트 시퀀스, 목표 로드맵을 통합 관리합니다.
+            메인 요약, 세부 훈련 스케줄 계획, 과거 피칭/웨이트 기록 및 볼카운트 분석 시스템
           </p>
         </div>
 
-        {/* Apple Segmented Control */}
-        <div className="flex items-center bg-black/40 border border-white/10 p-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-inner">
+        {/* Navigation Sub-Tabs */}
+        <div className="flex flex-wrap items-center bg-black/50 border border-white/10 p-1.5 rounded-2xl text-xs font-semibold backdrop-blur-md gap-1">
           <button
-            onClick={() => setActiveSubTab('calendar')}
-            className={`px-4 py-2 rounded-full transition cursor-pointer flex items-center gap-1.5 ${
-              activeSubTab === 'calendar' ? 'bg-white text-black font-bold shadow-md' : 'text-gray-400 hover:text-white'
+            onClick={() => setActiveSubTab('main')}
+            className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'main' ? 'bg-white text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
             <CalendarIcon className="w-4 h-4" />
-            <span>월간 캘린더</span>
+            <span>메인 캘린더</span>
           </button>
+
+          <button
+            onClick={() => setActiveSubTab('schedule')}
+            className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'schedule' ? 'bg-white text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>일정 계획 탭</span>
+            {pitcherSchedules.filter((s) => !s.completed).length > 0 && (
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500 text-black font-black">
+                {pitcherSchedules.filter((s) => !s.completed).length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('history')}
+            className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'history' ? 'bg-white text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>기록 탭</span>
+          </button>
+
           <button
             onClick={() => setActiveSubTab('game')}
-            className={`px-4 py-2 rounded-full transition cursor-pointer flex items-center gap-1.5 ${
-              activeSubTab === 'game' ? 'bg-white text-black font-bold shadow-md' : 'text-gray-400 hover:text-white'
+            className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'game' ? 'bg-white text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Flame className="w-4 h-4" />
+            <Flame className="w-4 h-4 text-amber-500" />
             <span>게임로그 시퀀스</span>
           </button>
+
           <button
             onClick={() => setActiveSubTab('roadmap')}
-            className={`px-4 py-2 rounded-full transition cursor-pointer flex items-center gap-1.5 ${
-              activeSubTab === 'roadmap' ? 'bg-white text-black font-bold shadow-md' : 'text-gray-400 hover:text-white'
+            className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'roadmap' ? 'bg-white text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Target className="w-4 h-4" />
+            <Target className="w-4 h-4 text-cyan-400" />
             <span>목표 로드맵</span>
           </button>
         </div>
       </div>
 
-      {/* SUBTAB 1: MONTHLY CALENDAR */}
-      {activeSubTab === 'calendar' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left 2 Cols: Monthly Calendar Grid */}
-          <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl">
-            {/* Month Nav Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#34C759]/20 flex items-center justify-center border border-[#34C759]/30">
-                  <CalendarIcon className="w-4 h-4 text-[#34C759]" />
+      {/* ========================================================= */}
+      {/* SUBTAB 1: MAIN CALENDAR TAB */}
+      {/* ========================================================= */}
+      {activeSubTab === 'main' && (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left 2 Cols: Monthly Calendar Grid */}
+            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-5 sm:p-7 shadow-2xl space-y-6">
+              {/* Year & Month Navigation Header */}
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="w-5 h-5 text-emerald-400" />
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    {currentYear}년 {currentMonth}월 캘린더
+                  </h2>
                 </div>
-                <h2 className="text-xl font-bold tracking-tight">2026년 7월 훈련 일정표</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="p-2 rounded-full bg-white/10 border border-white/10 text-gray-300 hover:text-white hover:bg-white/20 transition">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 border border-white/10">2026. 07</span>
-                <button className="p-2 rounded-full bg-white/10 border border-white/10 text-gray-300 hover:text-white hover:bg-white/20 transition">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
 
-            {/* Weekday Labels */}
-            <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-gray-400 mb-3 border-b border-white/10 pb-2">
-              <span className="text-rose-400">일</span>
-              <span>월</span>
-              <span>화</span>
-              <span>수</span>
-              <span>목</span>
-              <span>금</span>
-              <span className="text-blue-400">토</span>
-            </div>
-
-            {/* Calendar Days Grid */}
-            <div className="grid grid-cols-7 gap-2">
-              {calendarCells.map((dateStr, idx) => {
-                if (!dateStr) {
-                  return <div key={`empty-${idx}`} className="h-24 rounded-2xl bg-white/[0.02]" />;
-                }
-
-                const isSelected = dateStr === selectedDate;
-                const dayNum = parseInt(dateStr.slice(-2), 10);
-                const daySessions = pitcherSessions.filter((s) => s.date === dateStr);
-                const dayLog = pitcherDailyLogs.find((l) => l.date === dateStr);
-                const totalPitches = daySessions.reduce((acc, s) => acc + s.totalPitches, 0);
-
-                return (
-                  <div
-                    key={dateStr}
-                    onClick={() => {
-                      setSelectedDate(dateStr);
-                      if (dayLog) {
-                        setEditPainScore(dayLog.painScore);
-                        setEditPainLocation(dayLog.painLocation || '');
-                        setEditSleepHours(dayLog.sleepHours);
-                        setEditDiary(dayLog.diary);
-                        setEditWeightVolume(dayLog.weightVolumeKg);
-                        setRoutinesState(dayLog.routines);
-                      }
-                    }}
-                    className={`h-24 p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
-                      isSelected
-                        ? 'bg-emerald-500/20 border-emerald-500 ring-2 ring-emerald-500/50 shadow-lg'
-                        : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10'
-                    }`}
+                {/* Navigation Controls: Prev/Next Month & Year */}
+                <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-2xl p-1 backdrop-blur-md">
+                  <button
+                    onClick={handlePrevYear}
+                    title="이전 년도"
+                    className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs font-extrabold ${isSelected ? 'text-emerald-300' : 'text-gray-300'}`}>
-                        {dayNum}
-                      </span>
-                      {dayLog?.painScore && dayLog.painScore > 0 ? (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/30 text-rose-300 border border-rose-500/40">
-                          통증 {dayLog.painScore}
-                        </span>
-                      ) : null}
-                    </div>
+                    <ChevronsLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handlePrevMonth}
+                    title="이전 달"
+                    className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
 
-                    <div className="space-y-1">
-                      {totalPitches > 0 && (
-                        <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 truncate">
-                          피칭 {totalPitches}구
-                        </div>
-                      )}
-                      {dayLog?.weightVolumeKg && dayLog.weightVolumeKg > 0 ? (
-                        <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 truncate">
-                          웨이트 {dayLog.weightVolumeKg}kg
-                        </div>
-                      ) : null}
-                      {!totalPitches && (!dayLog || dayLog.weightVolumeKg === 0) && (
-                        <div className="text-[9px] text-gray-500 italic">휴식/기록대기</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  <button
+                    onClick={handleToday}
+                    className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer"
+                  >
+                    오늘
+                  </button>
 
-            {/* Monthly Summary Footer */}
-            <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                  <span className="text-gray-300">투구 세션</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-gray-300">웨이트 볼륨</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                  <span className="text-gray-300">통증 감지</span>
+                  <button
+                    onClick={handleNextMonth}
+                    title="다음 달"
+                    className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleNextYear}
+                    title="다음 년도"
+                    className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="text-gray-400 font-medium">
-                7월 총 투구수: <strong className="text-white">313구</strong> • 평균 통증: <strong className="text-emerald-400">0.8/10</strong>
+              {/* Day of week headers */}
+              <div className="grid grid-cols-7 text-center text-xs font-extrabold text-gray-400">
+                <div className="text-rose-400 py-1">일</div>
+                <div className="py-1">월</div>
+                <div className="py-1">화</div>
+                <div className="py-1">수</div>
+                <div className="py-1">목</div>
+                <div className="py-1">금</div>
+                <div className="text-blue-400 py-1">토</div>
+              </div>
+
+              {/* Days Grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {calendarCells.map((dateStr, idx) => {
+                  if (!dateStr) {
+                    return <div key={`empty-${idx}`} className="h-24 sm:h-28 rounded-2xl bg-white/[0.02]" />;
+                  }
+
+                  const dayNum = parseInt(dateStr.split('-')[2]);
+                  const isToday = dateStr === todayStr;
+                  const isSelected = dateStr === selectedDate;
+
+                  const daySchedules = pitcherSchedules.filter((s) => s.date === dateStr);
+                  const daySessions = pitcherSessions.filter((s) => s.date === dateStr);
+                  const dayLog = pitcherDailyLogs.find((l) => l.date === dateStr);
+
+                  const upcomingCount = daySchedules.filter((s) => !s.completed).length;
+                  const completedSchedCount = daySchedules.filter((s) => s.completed).length;
+
+                  return (
+                    <button
+                      key={dateStr}
+                      onClick={() => {
+                        setSelectedDate(dateStr);
+                        setSchedDate(dateStr);
+                      }}
+                      className={`h-24 sm:h-28 rounded-2xl p-2 border text-left transition-all relative flex flex-col justify-between cursor-pointer group ${
+                        isSelected
+                          ? 'bg-white/15 border-white shadow-lg ring-2 ring-white/50 z-10'
+                          : isToday
+                          ? 'bg-emerald-500/10 border-emerald-500/40 hover:bg-emerald-500/20'
+                          : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10'
+                      }`}
+                    >
+                      {/* Day number & Today badge */}
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`text-xs sm:text-sm font-extrabold ${
+                            isToday
+                              ? 'text-emerald-400'
+                              : isSelected
+                              ? 'text-white'
+                              : 'text-gray-300 group-hover:text-white'
+                          }`}
+                        >
+                          {dayNum}
+                        </span>
+
+                        {isToday && (
+                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500 text-black">
+                            오늘
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Day summary badges */}
+                      <div className="space-y-1 w-full overflow-hidden">
+                        {/* Upcoming Schedules Badge */}
+                        {upcomingCount > 0 && (
+                          <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30 truncate flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                            <span>일정 {upcomingCount}건</span>
+                          </div>
+                        )}
+
+                        {/* Completed Records Badge */}
+                        {(completedSchedCount > 0 || daySessions.length > 0 || (dayLog && dayLog.diary)) && (
+                          <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 truncate flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            <span>
+                              기록 {completedSchedCount + daySessions.length + (dayLog?.diary ? 1 : 0)}건
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Soreness warning badge */}
+                        {dayLog && dayLog.painScore > 0 && (
+                          <div className="text-[10px] px-1 py-0.2 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 truncate">
+                            ⚠️ 통증 {dayLog.painScore}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right 1 Col: Selected Date Quick Overview Card */}
+            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl flex flex-col justify-between space-y-6">
+              <div className="space-y-5">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <span className="text-xs text-gray-400 font-bold">선택한 날짜 요약</span>
+                    <h3 className="text-xl font-extrabold text-white">{selectedDate}</h3>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setSchedDate(selectedDate);
+                        setActiveSubTab('schedule');
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-bold border border-blue-500/40 transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>일정 추가</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveSubTab('history')}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold border border-emerald-500/40 transition cursor-pointer flex items-center gap-1"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>기록 입력</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 1. Schedule Summary section */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black uppercase text-blue-400 tracking-wider flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>📅 해당 일자 예정 훈련 ({selectedDateSchedules.filter((s) => !s.completed).length})</span>
+                    </h4>
+                  </div>
+
+                  {selectedDateSchedules.filter((s) => !s.completed).length === 0 ? (
+                    <div className="p-3 bg-white/5 border border-white/5 rounded-2xl text-xs text-gray-400 text-center">
+                      예정된 훈련 스케줄이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                      {selectedDateSchedules
+                        .filter((s) => !s.completed)
+                        .map((sch) => {
+                          const badge = getCategoryBadge(sch.category);
+                          return (
+                            <div
+                              key={sch.id}
+                              className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-1.5 hover:bg-white/10 transition"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${badge.color}`}>
+                                  {badge.label}
+                                </span>
+                                <span className="text-[11px] text-gray-400">{sch.time || '시간 미지정'}</span>
+                              </div>
+                              <div className="text-xs font-extrabold text-white">{sch.title}</div>
+                              {sch.details && (
+                                <div className="text-[11px] text-gray-400 line-clamp-2">{sch.details}</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Record Summary section */}
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <h4 className="text-xs font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>📋 완료된 기록 요약</span>
+                  </h4>
+
+                  <div className="space-y-2">
+                    {/* Pitching session history */}
+                    {selectedDateSessions.length > 0 && (
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl space-y-1">
+                        <div className="text-xs font-extrabold text-emerald-300">
+                          ⚾ 투구 세션: 총 {selectedDateSessions.reduce((acc, s) => acc + s.totalPitches, 0)}구
+                        </div>
+                        <div className="text-[11px] text-gray-300">
+                          최고 구속: {Math.max(...selectedDateSessions.map((s) => s.maxVel))} km/h | RPE:{' '}
+                          {selectedDateSessions[0]?.rpe}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Weight volume history */}
+                    {selectedDateLog && selectedDateLog.weightVolumeKg > 0 && (
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-xs font-extrabold text-blue-300">
+                        🏋️‍♂️ 웨이트 볼륨: {selectedDateLog.weightVolumeKg.toLocaleString()} kg
+                      </div>
+                    )}
+
+                    {/* Diary */}
+                    {selectedDateLog && selectedDateLog.diary ? (
+                      <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-xs text-gray-300 leading-relaxed italic">
+                        "{selectedDateLog.diary}"
+                      </div>
+                    ) : (
+                      selectedDateSessions.length === 0 &&
+                      (!selectedDateLog || selectedDateLog.weightVolumeKg === 0) && (
+                        <div className="p-3 bg-white/5 border border-white/5 rounded-2xl text-xs text-gray-400 text-center">
+                          완료된 훈련 기록이 아직 없습니다.
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Quick Nav Banner */}
+              <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-white/10 rounded-2xl text-xs space-y-2">
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>스케줄 관리 팁</span>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed">
+                  '일정 계획 탭'에서 웨이트, 불펜, 롱토스 등 세부 계획을 추가하면 선택한 일자에 자동 표시됩니다.
+                </p>
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Right Col: Selected Date Detail Editor */}
-          <div className="bg-gradient-to-b from-gray-900 to-black border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">DAILY ATHLETE LOG</span>
-                <h3 className="text-lg font-extrabold">{selectedDate} 상세 일지</h3>
+      {/* ========================================================= */}
+      {/* SUBTAB 2: SCHEDULE PLANNING TAB */}
+      {/* ========================================================= */}
+      {activeSubTab === 'schedule' && (
+        <div className="space-y-8">
+          {/* Header Banner with Auto-Archive Toggle Switch */}
+          <div className="bg-[#1c1c1e]/90 border border-white/15 rounded-[28px] p-6 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 backdrop-blur-2xl">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-blue-400" />
+                <h2 className="text-xl font-extrabold text-white">야구 & 웨이트 훈련 스케줄 계획 및 세분화</h2>
               </div>
+              <p className="text-xs sm:text-sm text-gray-400">
+                웨이트 트레이닝, 불펜 피칭, 롱토스, 컨디셔닝, 리커버리 등 모든 야구 훈련 일정을 체계적으로 계획하세요.
+              </p>
+            </div>
+
+            {/* Auto-Move Passed Schedules Toggle */}
+            <div className="flex items-center gap-3 bg-black/40 border border-white/10 p-3 rounded-2xl backdrop-blur-md">
+              <div className="text-right">
+                <div className="text-xs font-bold text-white">지나간 일정 자동 기록 전환</div>
+                <div className="text-[10px] text-gray-400">날짜가 지나면 자동으로 기록 탭으로 백업</div>
+              </div>
+
               <button
-                onClick={handleSaveDayLog}
-                className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-3.5 py-2 rounded-xl transition shadow-md flex items-center gap-1 cursor-pointer"
+                type="button"
+                onClick={onToggleAutoArchive}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  autoArchivePassedSchedules ? 'bg-emerald-500' : 'bg-gray-700'
+                }`}
               >
-                <Check className="w-4 h-4" />
-                <span>저장</span>
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    autoArchivePassedSchedules ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
               </button>
             </div>
+          </div>
 
-            {/* Pitching Summary on selected day */}
-            <div className="bg-white/5 border border-white/10 p-3.5 rounded-2xl space-y-2">
-              <div className="text-xs font-bold text-gray-300 flex items-center justify-between">
-                <span>오늘의 피칭 기록</span>
-                <span className="text-emerald-400">{currentDaySessions.length}개 세션</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left 1 Col: Schedule Creation Form */}
+            <form
+              onSubmit={handleCreateSchedule}
+              className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+                <Plus className="w-5 h-5 text-blue-400" />
+                <h3 className="text-base font-extrabold text-white">새 훈련 일정 추가</h3>
               </div>
-              {currentDaySessions.length > 0 ? (
-                currentDaySessions.map((s) => (
-                  <div key={s.id} className="text-xs text-gray-300 bg-black/40 p-2.5 rounded-xl border border-white/5 flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-white">{s.sessionType}</span> • {s.totalPitches}구 (최고 {s.maxVel}km/h)
-                    </div>
-                    <span className="text-[10px] font-semibold text-gray-400">RPE {s.rpe}/10</span>
-                  </div>
-                ))
+
+              {/* Date & Time */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-300">훈련 날짜</label>
+                  <input
+                    type="date"
+                    required
+                    value={schedDate}
+                    onChange={(e) => setSchedDate(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-white/40"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-300">시간</label>
+                  <input
+                    type="time"
+                    value={schedTime}
+                    onChange={(e) => setSchedTime(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-white/40"
+                  />
+                </div>
+              </div>
+
+              {/* Category selector */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">훈련 분류</label>
+                <select
+                  value={schedCategory}
+                  onChange={(e) => setSchedCategory(e.target.value as any)}
+                  className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-white/40 cursor-pointer"
+                >
+                  <option value="WEIGHT">🏋️‍♂️ 웨이트 트레이닝 (Weight)</option>
+                  <option value="BULLPEN">⚾ 불펜 피칭 (Bullpen)</option>
+                  <option value="LONG_TOSS">🎯 롱토스 & 캐치볼 (Long Toss)</option>
+                  <option value="CONDITIONING">🏃‍♂️ 러닝 & 컨디셔닝 (Conditioning)</option>
+                  <option value="RECOVERY">🧊 리커버리 & 보강운동 (Recovery)</option>
+                  <option value="TACTICAL">📋 전술 & 수비 훈련 (Tactical)</option>
+                  <option value="REST">💤 휴식 & 멘탈 (Rest)</option>
+                  <option value="CUSTOM">⚙️ 기타 맞춤 훈련 (Custom)</option>
+                </select>
+              </div>
+
+              {/* Title */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">훈련 제목</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="예: 하체 폭발력 스쿼트 & 회전 코어 세션"
+                  value={schedTitle}
+                  onChange={(e) => setSchedTitle(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-white/40"
+                />
+              </div>
+
+              {/* Intensity & Duration */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-300">운동 강도</label>
+                  <select
+                    value={schedIntensity}
+                    onChange={(e) => setSchedIntensity(e.target.value as any)}
+                    className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-3 py-2 text-xs text-white cursor-pointer"
+                  >
+                    <option value="HIGH">고강도 (High)</option>
+                    <option value="MEDIUM">중강도 (Medium)</option>
+                    <option value="LOW">저강도 (Low)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-300">소요 시간(분)</label>
+                  <input
+                    type="number"
+                    value={schedDuration}
+                    onChange={(e) => setSchedDuration(Number(e.target.value))}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Details & Notes */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">세부 종목 / 세트 / 노트</label>
+                <textarea
+                  rows={3}
+                  placeholder="예: 하프 스쿼트 120kg 5x5, 데드리프트 140kg 3x5, 어깨 밴드 보강 3세트"
+                  value={schedDetails}
+                  onChange={(e) => setSchedDetails(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-white/40 resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>훈련 스케줄 등록하기</span>
+              </button>
+            </form>
+
+            {/* Right 2 Cols: Schedule List with Filters */}
+            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <h3 className="text-lg font-black text-white">등록된 훈련 스케줄 목록</h3>
+                  <p className="text-xs text-gray-400">체크박스를 눌러 완료 여부를 토글할 수 있습니다.</p>
+                </div>
+
+                {/* Filter Selector */}
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+                  <select
+                    value={schedFilterCategory}
+                    onChange={(e) => setSchedFilterCategory(e.target.value)}
+                    className="bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white cursor-pointer"
+                  >
+                    <option value="ALL">전체 보기</option>
+                    <option value="WEIGHT">웨이트 트레이닝</option>
+                    <option value="BULLPEN">불펜 피칭</option>
+                    <option value="LONG_TOSS">롱토스</option>
+                    <option value="CONDITIONING">컨디셔닝</option>
+                    <option value="RECOVERY">리커버리</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Schedule cards list */}
+              {pitcherSchedules.length === 0 ? (
+                <div className="p-12 text-center text-gray-400 space-y-2 bg-white/5 rounded-2xl border border-white/5">
+                  <Clock className="w-10 h-10 mx-auto text-gray-500" />
+                  <p className="text-sm font-bold">등록된 훈련 스케줄이 없습니다.</p>
+                  <p className="text-xs">왼쪽 폼에서 첫 야구/웨이트 훈련 일정을 등록해보세요.</p>
+                </div>
               ) : (
-                <div className="text-xs text-gray-500 italic py-1">이 날짜의 상기 투구 기록이 없습니다.</div>
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                  {pitcherSchedules
+                    .filter((s) => schedFilterCategory === 'ALL' || s.category === schedFilterCategory)
+                    .map((sch) => {
+                      const badge = getCategoryBadge(sch.category);
+                      const isPast = sch.date < todayStr;
+
+                      return (
+                        <div
+                          key={sch.id}
+                          className={`p-4 border rounded-2xl transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                            sch.completed
+                              ? 'bg-white/5 border-emerald-500/30 opacity-80'
+                              : isPast
+                              ? 'bg-amber-500/5 border-amber-500/30'
+                              : 'bg-white/5 border-white/10 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <button
+                              onClick={() => onToggleScheduleCompleted(sch.id)}
+                              className="mt-1 cursor-pointer hover:scale-110 transition"
+                            >
+                              {sch.completed ? (
+                                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                              ) : (
+                                <Circle className="w-5 h-5 text-gray-400 hover:text-white" />
+                              )}
+                            </button>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${badge.color}`}>
+                                  {badge.label}
+                                </span>
+
+                                <span className="text-xs font-bold text-gray-300">📅 {sch.date}</span>
+                                {sch.time && <span className="text-xs text-gray-400">⏰ {sch.time}</span>}
+
+                                {sch.intensity && (
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/10 text-gray-300">
+                                    강도: {sch.intensity}
+                                  </span>
+                                )}
+
+                                {isPast && !sch.completed && (
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                    지나간 일정
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className={`text-sm font-extrabold ${sch.completed ? 'line-through text-gray-400' : 'text-white'}`}>
+                                {sch.title}
+                              </div>
+
+                              {sch.details && (
+                                <div className="text-xs text-gray-400 leading-relaxed whitespace-pre-line">
+                                  {sch.details}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                            <button
+                              onClick={() => onDeleteSchedule(sch.id)}
+                              className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                              title="삭제"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Pain Score Slider */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-gray-300 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-                  통증/뻐근함 수치 (0-10)
-                </span>
-                <span className={`px-2 py-0.5 rounded font-extrabold ${editPainScore > 3 ? 'bg-rose-500 text-white' : 'bg-white/10 text-emerald-300'}`}>
-                  {editPainScore}점
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={10}
-                value={editPainScore}
-                onChange={(e) => setEditPainScore(Number(e.target.value))}
-                className="w-full accent-rose-500 cursor-pointer"
-              />
-              <input
-                type="text"
-                placeholder="통증 부위 (예: 팔꿈치 내측, 어깨 후면)"
-                value={editPainLocation}
-                onChange={(e) => setEditPainLocation(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30"
-              />
+      {/* ========================================================= */}
+      {/* SUBTAB 3: RECORD & HISTORY TAB */}
+      {/* ========================================================= */}
+      {activeSubTab === 'history' && (
+        <div className="space-y-8">
+          <div className="bg-[#1c1c1e]/90 border border-white/15 rounded-[28px] p-6 shadow-2xl space-y-2 backdrop-blur-2xl">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-xl font-extrabold text-white">과거 훈련 기록 및 피드백 일지 입력</h2>
             </div>
+            <p className="text-xs sm:text-sm text-gray-400">
+              선택한 날짜 ({selectedDate})의 훈련 종목, 통증 점수, 수면 시간, 웨이트 중량 및 세부 일지를 남기고 관리하세요.
+            </p>
+          </div>
 
-            {/* Sleep & Weight Volume */}
-            <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left 1 Col: Record Input Form for Selected Date */}
+            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-base font-extrabold text-white">📝 {selectedDate} 훈련 기록 남기기</h3>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="bg-black/50 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white"
+                />
+              </div>
+
+              {/* Training Type */}
               <div className="space-y-1">
-                <label className="text-[11px] text-gray-400 font-bold flex items-center gap-1">
-                  <Moon className="w-3 h-3 text-cyan-400" /> 수면 시간 (시간)
-                </label>
+                <label className="text-xs font-bold text-gray-300">메인 훈련 구체 유형</label>
+                <select
+                  value={editTrainingType}
+                  onChange={(e) => setEditTrainingType(e.target.value as any)}
+                  className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-3 py-2 text-xs text-white cursor-pointer"
+                >
+                  <option value="BULLPEN">불펜 피칭 (Bullpen)</option>
+                  <option value="GAME">실전 경기 (Game)</option>
+                  <option value="WEIGHT">웨이트 트레이닝 (Weight)</option>
+                  <option value="REHAB">재활 & 보강 (Rehab)</option>
+                  <option value="REST">휴식 (Rest)</option>
+                </select>
+              </div>
+
+              {/* Weight volume */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">총 웨이트 볼륨 (kg)</label>
+                <input
+                  type="number"
+                  placeholder="예: 7800"
+                  value={editWeightVolume}
+                  onChange={(e) => setEditWeightVolume(Number(e.target.value))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-white/40"
+                />
+              </div>
+
+              {/* Pain score & location */}
+              <div className="space-y-2 bg-rose-500/10 border border-rose-500/20 p-3.5 rounded-2xl">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-rose-300">관절/근육 통증 점수 (0-10)</span>
+                  <span className="text-rose-400 font-extrabold">{editPainScore}점</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  value={editPainScore}
+                  onChange={(e) => setEditPainScore(Number(e.target.value))}
+                  className="w-full accent-rose-500 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  placeholder="통증 부위 (예: 우측 팔꿈치 내측 UCL)"
+                  value={editPainLocation}
+                  onChange={(e) => setEditPainLocation(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500"
+                />
+              </div>
+
+              {/* Sleep Hours */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">수면 시간 (시간)</label>
                 <input
                   type="number"
                   step={0.5}
                   value={editSleepHours}
                   onChange={(e) => setEditSleepHours(Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-white/30"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              {/* Diary */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">오늘의 피드백 & 훈련 일지</label>
+                <textarea
+                  rows={4}
+                  placeholder="투구 밸런스, 하체 지면반발력 체감, 피로도 등을 자유롭게 남겨보세요."
+                  value={editDiary}
+                  onChange={(e) => setEditDiary(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-white/40 resize-none"
+                />
+              </div>
+
+              {/* Routine Checklist */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-300">보강 & 리커버리 루틴 체크</label>
+                <div className="space-y-1.5">
+                  {routinesState.map((r) => (
+                    <button
+                      type="button"
+                      key={r.id}
+                      onClick={() => toggleRoutine(r.id)}
+                      className={`w-full p-2.5 rounded-xl border text-left text-xs flex items-center justify-between transition cursor-pointer ${
+                        r.completed
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                          : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <span>{r.title}</span>
+                      {r.completed ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Circle className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveDayLog}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+              >
+                <Check className="w-4 h-4" />
+                <span>훈련 기록 저장하기</span>
+              </button>
+            </div>
+
+            {/* Right 2 Cols: Timeline of Recorded History */}
+            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-6">
+              <h3 className="text-lg font-black text-white border-b border-white/10 pb-4">
+                과거 기록 이력 타임라인
+              </h3>
+
+              {pitcherDailyLogs.length === 0 ? (
+                <div className="p-12 text-center text-gray-400 space-y-2 bg-white/5 rounded-2xl border border-white/5">
+                  <FileText className="w-10 h-10 mx-auto text-gray-500" />
+                  <p className="text-sm font-bold">저장된 기록 일지가 아직 없습니다.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                  {pitcherDailyLogs.map((log) => {
+                    const sessionForLog = pitcherSessions.filter((s) => s.date === log.date);
+
+                    return (
+                      <div
+                        key={log.id}
+                        className="p-5 bg-white/5 border border-white/10 hover:border-white/20 rounded-2xl space-y-3 transition"
+                      >
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-extrabold text-white">📅 {log.date}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/10 text-emerald-300">
+                              {log.trainingType}
+                            </span>
+                          </div>
+
+                          <span className="text-xs text-gray-400">수면 {log.sleepHours}시간</span>
+                        </div>
+
+                        {/* Pitching details if logged */}
+                        {sessionForLog.length > 0 && (
+                          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs space-y-1">
+                            <div className="font-extrabold text-emerald-300">
+                              ⚾ 피칭 세션: {sessionForLog.reduce((acc, s) => acc + s.totalPitches, 0)}구 완료 (최고{' '}
+                              {Math.max(...sessionForLog.map((s) => s.maxVel))}km/h)
+                            </div>
+                            <p className="text-gray-300 italic">{sessionForLog[0]?.notes}</p>
+                          </div>
+                        )}
+
+                        {/* Weight volume */}
+                        {log.weightVolumeKg > 0 && (
+                          <div className="text-xs font-bold text-blue-300">
+                            🏋️‍♂️ 수행 웨이트 볼륨: {log.weightVolumeKg.toLocaleString()} kg
+                          </div>
+                        )}
+
+                        {/* Diary feedback */}
+                        {log.diary && (
+                          <div className="text-xs text-gray-300 leading-relaxed bg-black/30 p-3 rounded-xl border border-white/5">
+                            "{log.diary}"
+                          </div>
+                        )}
+
+                        {/* Pain warning */}
+                        {log.painScore > 0 && (
+                          <div className="text-xs font-bold text-rose-400 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>
+                              통증 {log.painScore}점 ({log.painLocation || '부위 미기재'})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB 4: GAME LOG SEQUENCES */}
+      {/* ========================================================= */}
+      {activeSubTab === 'game' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Col: Sequence Input Form */}
+          <form
+            onSubmit={handleCreateSequence}
+            className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+              <Flame className="w-5 h-5 text-amber-500" />
+              <h3 className="text-base font-extrabold text-white">볼카운트 시퀀스 추가</h3>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-300">상대 팀명</label>
+              <input
+                type="text"
+                required
+                value={newSeqOpponent}
+                onChange={(e) => setNewSeqOpponent(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">이닝</label>
+                <input
+                  type="number"
+                  value={newSeqInning}
+                  onChange={(e) => setNewSeqInning(Number(e.target.value))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-gray-400 font-bold flex items-center gap-1">
-                  <Dumbbell className="w-3 h-3 text-emerald-400" /> 웨이트 볼륨 (kg)
-                </label>
-                <input
-                  type="number"
-                  step={100}
-                  value={editWeightVolume}
-                  onChange={(e) => setEditWeightVolume(Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-white/30"
-                />
-              </div>
-            </div>
-
-            {/* Daily Routine Checklist */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-gray-300 flex items-center justify-between">
-                <span>데일리 리커버리 루틴</span>
-                <span className="text-[10px] text-gray-400">
-                  {routinesState.filter((r) => r.completed).length} / {routinesState.length} 달성
-                </span>
-              </span>
-
-              <div className="space-y-1.5">
-                {routinesState.map((r) => (
-                  <div
-                    key={r.id}
-                    onClick={() => toggleRoutine(r.id)}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition flex items-center gap-2.5 ${
-                      r.completed
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
-                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    {r.completed ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-gray-500 shrink-0" />
-                    )}
-                    <span className={r.completed ? 'line-through opacity-80' : ''}>{r.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Training Diary */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-300 flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5 text-blue-400" /> 훈련일기 및 개인 소감
-              </label>
-              <textarea
-                rows={3}
-                placeholder="오늘 훈련 시 투구 폼, 피로도, 보강이 필요한 점을 자유롭게 기록하세요..."
-                value={editDiary}
-                onChange={(e) => setEditDiary(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-white/30 resize-none"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SUBTAB 2: GAME LOG SEQUENCES */}
-      {activeSubTab === 'game' && (
-        <div className="space-y-8">
-          {/* New Sequence Form Box */}
-          <div className="bg-gradient-to-r from-gray-900 via-gray-900/80 to-black border border-white/10 rounded-3xl p-6 shadow-2xl">
-            <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
-              <Flame className="w-5 h-5 text-amber-400" />
-              볼카운트별 실전 피칭 시퀀스 입력
-            </h2>
-            <p className="text-gray-400 text-xs mb-4">
-              실전 경기에서 상대 타자별 투구 구종, 구속, 구사 결과 및 피칭 시퀀스를 정밀하게 기록합니다.
-            </p>
-
-            <form onSubmit={handleCreateSequence} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
-              <div>
-                <label className="text-gray-400 block mb-1">상대 팀</label>
-                <input
-                  type="text"
-                  value={newSeqOpponent}
-                  onChange={(e) => setNewSeqOpponent(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="text-gray-400 block mb-1">이닝</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={12}
-                  value={newSeqInning}
-                  onChange={(e) => setNewSeqInning(Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="text-gray-400 block mb-1">타자 정보</label>
+                <label className="text-xs font-bold text-gray-300">타자 정보</label>
                 <input
                   type="text"
                   value={newSeqBatter}
                   onChange={(e) => setNewSeqBatter(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-semibold"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="text-gray-400 block mb-1">볼카운트</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">볼카운트 (B-S)</label>
                 <input
                   type="text"
+                  placeholder="e.g. 1-2"
                   value={newSeqBallCount}
                   onChange={(e) => setNewSeqBallCount(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-semibold"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
 
-              <div>
-                <label className="text-gray-400 block mb-1">구종</label>
-                <select
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">구종</label>
+                <input
+                  type="text"
                   value={newSeqPitchType}
                   onChange={(e) => setNewSeqPitchType(e.target.value)}
-                  className="w-full bg-gray-900 border border-white/10 rounded-xl p-2.5 text-white font-semibold"
-                >
-                  <option value="포심 직구">포심 직구</option>
-                  <option value="슬라이더">슬라이더</option>
-                  <option value="커브">커브</option>
-                  <option value="체인지업">체인지업</option>
-                  <option value="투심/커터">투심/커터</option>
-                </select>
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                />
               </div>
+            </div>
 
-              <div>
-                <label className="text-gray-400 block mb-1">구속 (km/h)</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">구속 (km/h)</label>
                 <input
                   type="number"
                   value={newSeqVelocity}
                   onChange={(e) => setNewSeqVelocity(Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-semibold"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
 
-              <div className="col-span-2 sm:col-span-1 flex items-end">
-                <button
-                  type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-400 text-black font-extrabold p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-lg"
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-300">결과</label>
+                <select
+                  value={newSeqResult}
+                  onChange={(e) => setNewSeqResult(e.target.value as any)}
+                  className="w-full bg-[#2c2c2e] border border-white/10 rounded-xl px-2 py-2 text-xs text-white cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>추가</span>
-                </button>
+                  <option value="STRIKE_SWINGING">헛스윙 스트라이크</option>
+                  <option value="STRIKE_CALLED">루킹 스트라이크</option>
+                  <option value="BALL">볼</option>
+                  <option value="FOUL">파울</option>
+                  <option value="IN_PLAY_OUT">범타 아웃</option>
+                  <option value="IN_PLAY_HIT">피안타</option>
+                </select>
               </div>
-            </form>
-          </div>
-
-          {/* Existing Sequences Table */}
-          <div className="bg-gradient-to-b from-gray-900 to-black border border-white/10 rounded-3xl p-6 shadow-2xl">
-            <h3 className="text-base font-bold mb-4">누적 경기 시퀀스 이력 ({pitcherSequences.length}건)</h3>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 text-gray-400 font-bold uppercase tracking-wider">
-                    <th className="py-3 px-3">날짜</th>
-                    <th className="py-3 px-3">상대팀</th>
-                    <th className="py-3 px-3">이닝/타자</th>
-                    <th className="py-3 px-3">볼카운트</th>
-                    <th className="py-3 px-3">구종</th>
-                    <th className="py-3 px-3">구속</th>
-                    <th className="py-3 px-3">결과</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {pitcherSequences.map((seq) => (
-                    <tr key={seq.id} className="hover:bg-white/5 transition">
-                      <td className="py-3 px-3 font-semibold text-gray-300">{seq.date}</td>
-                      <td className="py-3 px-3 font-bold text-white">{seq.opponent}</td>
-                      <td className="py-3 px-3 text-gray-300">{seq.inning}회 • {seq.batter}</td>
-                      <td className="py-3 px-3 font-mono text-amber-300 font-bold">{seq.ballCount}</td>
-                      <td className="py-3 px-3 font-bold text-blue-400">{seq.pitchType}</td>
-                      <td className="py-3 px-3 font-extrabold text-emerald-400">{seq.velocity} km/h</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2.5 py-1 rounded-full bg-white/10 font-bold text-[10px] text-gray-200">
-                          {seq.result}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
+
+            <button
+              type="submit"
+              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-extrabold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-md"
+            >
+              <Plus className="w-4 h-4" />
+              <span>투구 시퀀스 기록 저장</span>
+            </button>
+          </form>
+
+          {/* Right 2 Cols: Sequence Table */}
+          <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4">
+            <h3 className="text-lg font-black text-white border-b border-white/10 pb-3">
+              볼카운트별 투구 시퀀스 이력
+            </h3>
+
+            {pitcherSequences.length === 0 ? (
+              <div className="p-12 text-center text-gray-400 bg-white/5 rounded-2xl border border-white/5">
+                등록된 시퀀스가 없습니다.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 text-gray-400">
+                      <th className="py-2.5 px-3">날짜</th>
+                      <th className="py-2.5 px-3">상대</th>
+                      <th className="py-2.5 px-3">이닝/타자</th>
+                      <th className="py-2.5 px-3">카운트</th>
+                      <th className="py-2.5 px-3">구종/구속</th>
+                      <th className="py-2.5 px-3">결과</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {pitcherSequences.map((seq) => (
+                      <tr key={seq.id} className="hover:bg-white/5 transition">
+                        <td className="py-3 px-3 text-gray-300 font-bold">{seq.date}</td>
+                        <td className="py-3 px-3 text-white font-extrabold">{seq.opponent}</td>
+                        <td className="py-3 px-3 text-gray-300">
+                          {seq.inning}회 / {seq.batter}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-amber-400 font-bold">{seq.ballCount}</td>
+                        <td className="py-3 px-3 font-bold text-white">
+                          {seq.pitchType} ({seq.velocity}km/h)
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/10 text-white border border-white/10">
+                            {seq.result}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* SUBTAB 3: GOAL ROADMAP */}
+      {/* ========================================================= */}
+      {/* SUBTAB 5: GOAL ROADMAP */}
+      {/* ========================================================= */}
       {activeSubTab === 'roadmap' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Target Metrics Cards */}
-          <div className="bg-gradient-to-b from-gray-900 to-black border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-400" />
-              선수 단기/장기 목표 로드맵
-            </h2>
-
-            {/* Velocity Progress */}
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-gray-300">목표 구속 (Fastball Target)</span>
-                <span className="text-amber-400 font-extrabold">{goalRoadmap.currentVelocity} / {goalRoadmap.targetVelocity} km/h</span>
+        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 sm:p-8 shadow-2xl space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-xl sm:text-2xl font-black text-white">선수 목표 트레이닝 로드맵</h2>
               </div>
-              <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-white/10">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-500"
-                  style={{ width: `${(goalRoadmap.currentVelocity / goalRoadmap.targetVelocity) * 100}%` }}
-                />
-              </div>
-              <div className="text-[10px] text-gray-400 text-right">+4 km/h 구속 향상 목표 달성률 97%</div>
+              <p className="text-xs sm:text-sm text-gray-400 mt-1">
+                목표 구속 달성 및 체중 증량을 위한 단계별 구체적 트레이닝 마일스톤
+              </p>
             </div>
 
-            {/* Weight Progress */}
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-gray-300">목표 체중 (Body Weight Target)</span>
-                <span className="text-cyan-400 font-extrabold">{goalRoadmap.currentWeight} / {goalRoadmap.targetWeight} kg</span>
+            <div className="flex gap-4">
+              <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center">
+                <div className="text-[10px] text-gray-400 uppercase font-bold">목표 구속</div>
+                <div className="text-lg font-black text-emerald-400">{goalRoadmap.targetVelocity} km/h</div>
               </div>
-              <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-white/10">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500"
-                  style={{ width: `${(goalRoadmap.currentWeight / goalRoadmap.targetWeight) * 100}%` }}
-                />
-              </div>
-              <div className="text-[10px] text-gray-400 text-right">체중 벌크업 2kg 추가 목표</div>
-            </div>
 
-            <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl text-xs space-y-1">
-              <div className="font-bold text-emerald-300">목표 달성 예정일</div>
-              <div className="text-lg font-black text-white">{goalRoadmap.targetDate}</div>
-              <p className="text-gray-400 text-[11px]">바이오메카닉스 파워 분석을 기반으로 설정된 개별 타임라인입니다.</p>
+              <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center">
+                <div className="text-[10px] text-gray-400 uppercase font-bold">목표 체중</div>
+                <div className="text-lg font-black text-blue-400">{goalRoadmap.targetWeight} kg</div>
+              </div>
             </div>
           </div>
 
-          {/* Phase Roadmap Timeline */}
-          <div className="lg:col-span-2 bg-gradient-to-b from-gray-900 to-black border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
-            <h3 className="text-lg font-bold">단계별 훈련 로드맵 (Periodization)</h3>
-
-            <div className="space-y-4">
-              {goalRoadmap.phases.map((ph, idx) => (
-                <div
-                  key={ph.id}
-                  className={`p-5 rounded-2xl border transition ${
-                    ph.isCompleted
-                      ? 'bg-emerald-500/10 border-emerald-500/30'
-                      : 'bg-white/5 border-white/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-extrabold uppercase text-amber-300">PHASE 0{idx + 1}</span>
-                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                      ph.isCompleted ? 'bg-emerald-500 text-black' : 'bg-white/10 text-gray-300'
-                    }`}>
-                      {ph.duration}
+          {/* Phase cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {goalRoadmap.phases.map((ph, idx) => (
+              <div
+                key={ph.id}
+                className={`p-6 rounded-2xl border space-y-4 relative ${
+                  ph.isCompleted
+                    ? 'bg-emerald-500/10 border-emerald-500/30'
+                    : 'bg-white/5 border-white/10'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-gray-400 uppercase">PHASE 0{idx + 1}</span>
+                  {ph.isCompleted ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      달성 완료
                     </span>
-                  </div>
-                  <h4 className="text-sm font-bold text-white mb-1">{ph.phaseName}</h4>
-                  <p className="text-xs text-gray-400">{ph.focus}</p>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      진행 중
+                    </span>
+                  )}
                 </div>
-              ))}
-            </div>
+
+                <h4 className="text-base font-extrabold text-white">{ph.phaseName}</h4>
+                <p className="text-xs text-gray-300 leading-relaxed">{ph.focus}</p>
+
+                <div className="text-[11px] text-gray-400 pt-2 border-t border-white/10">
+                  기간: {ph.duration}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
