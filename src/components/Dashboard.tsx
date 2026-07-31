@@ -132,11 +132,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {pitcher.name}
                 </h1>
                 <span className="bg-white/10 text-gray-200 border border-white/15 px-2.5 py-0.5 rounded-full text-xs font-semibold">
-                  {pitcher.throwingArm}
+                  {pitcher.throwingArm === 'RHP' ? '우투 (RHP)' : pitcher.throwingArm === 'LHP' ? '좌투 (LHP)' : '양투 (Switch)'}
                 </span>
-                <span className="bg-[#34C759]/20 text-[#34C759] border border-[#34C759]/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">
-                  {pitcher.role}
-                </span>
+                {pitcher.role && (
+                  <span className="bg-[#34C759]/20 text-[#34C759] border border-[#34C759]/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                    {pitcher.role}
+                  </span>
+                )}
               </div>
               <p className="text-gray-400 text-xs md:text-sm">
                 {pitcher.team} • {pitcher.age}세 • {pitcher.heightWeight}
@@ -370,7 +372,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Quick Gemini AI Coach Trigger (Liquid Glass Card) */}
+        {/* Quick AI Bullpen Coach Trigger (Liquid Glass Card) */}
         <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/15 rounded-[28px] p-6 flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden">
           <div className="space-y-3 relative z-10">
             <div className="flex items-center justify-between">
@@ -378,7 +380,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <Sparkles className="w-5 h-5 text-rose-300" />
               </div>
               <span className="text-[10px] bg-white/10 text-gray-300 border border-white/15 px-2.5 py-0.5 rounded-full font-mono">
-                Gemini AI Coach
+                AI Bullpen Coach
               </span>
             </div>
 

@@ -5,10 +5,14 @@ export interface Pitcher {
   name: string;
   number: number;
   team: string;
-  throwingArm: 'RHP' | 'LHP'; // 우투 / 좌투
-  role: '선발 (SP)' | '구원 (RP)' | '마무리 (CP)';
+  throwingArm: 'RHP' | 'LHP' | 'SWITCH'; // 우투 / 좌투 / 양투
+  role?: string;
   age: number;
+  birthdate?: string;
   heightWeight: string;
+  height?: number;
+  weight?: number;
+  wingspan?: number;
   maxVelocity: number;
   currentAcwr: number;
   avatarUrl?: string;
@@ -21,10 +25,16 @@ export interface UserAccount {
   name: string;
   number: number;
   team: string;
-  throwingArm: 'RHP' | 'LHP';
-  role: '선발 (SP)' | '구원 (RP)' | '마무리 (CP)';
+  throwingArm: 'RHP' | 'LHP' | 'SWITCH'; // 우투 / 좌투 / 양투
+  role?: string;
+  height?: number; // cm
+  weight?: number; // kg
+  wingspan?: number; // cm
+  age?: number;
+  birthdate?: string;
   joinedDate: string;
   maxVelocity?: number;
+  avatarUrl?: string;
 }
 
 export interface PitchSession {

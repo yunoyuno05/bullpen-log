@@ -29,7 +29,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [name, setName] = useState('');
   const [number, setNumber] = useState<number | ''>(18);
   const [team, setTeam] = useState('Bullpen Stars');
-  const [throwingArm, setThrowingArm] = useState<'RHP' | 'LHP'>('RHP');
+  const [throwingArm, setThrowingArm] = useState<'RHP' | 'LHP' | 'SWITCH'>('RHP');
   const [role, setRole] = useState<'선발 (SP)' | '구원 (RP)' | '마무리 (CP)'>('선발 (SP)');
 
   if (!isOpen) return null;
@@ -184,25 +184,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-[#1c1c1e]/95 border border-white/20 rounded-[28px] p-6 md:p-8 max-w-md w-full text-white shadow-2xl my-8 space-y-6 backdrop-blur-3xl relative"
+            className="bg-[#1c1c1e]/95 border border-white/20 rounded-[24px] sm:rounded-[28px] p-5 sm:p-7 md:p-8 max-w-md w-full text-white shadow-2xl my-4 sm:my-8 space-y-5 sm:space-y-6 backdrop-blur-3xl relative"
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer transition-colors"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
 
         {/* Modal Header */}
-        <div className="text-center space-y-2 pt-2">
-          <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto shadow-md">
-            <BaseballIcon className="w-8 h-8 text-white" />
+        <div className="text-center space-y-1.5 sm:space-y-2 pt-1">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto shadow-md">
+            <BaseballIcon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-white">
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white break-keep">
             {mode === 'login' ? 'Bullpen Log 로그인' : 'Bullpen Log 회원가입'}
           </h2>
-          <p className="text-xs text-gray-400">
+          <p className="text-[11px] sm:text-xs text-gray-400 break-keep">
             {mode === 'login'
               ? '계정에 로그인하여 나만의 불펜 데이터와 분석을 확인하세요.'
               : '새로운 선수로 등록하고 체계적인 투구 부하 관리를 시작하세요.'}
@@ -266,11 +266,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <label className="text-xs font-semibold text-gray-300">투구 손</label>
                   <select
                     value={throwingArm}
-                    onChange={(e) => setThrowingArm(e.target.value as 'RHP' | 'LHP')}
+                    onChange={(e) => setThrowingArm(e.target.value as 'RHP' | 'LHP' | 'SWITCH')}
                     className="w-full bg-[#2c2c2e] border border-white/10 rounded-2xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/40 cursor-pointer"
                   >
                     <option value="RHP">우투 (RHP)</option>
                     <option value="LHP">좌투 (LHP)</option>
+                    <option value="SWITCH">양투 (Switch)</option>
                   </select>
                 </div>
               </div>

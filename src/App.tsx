@@ -150,9 +150,14 @@ export default function App() {
             number: typeof metadata.number === 'number' ? metadata.number : 18,
             team: metadata.team || '서울 자이언츠',
             throwingArm: metadata.throwingArm || 'RHP',
-            role: metadata.role || '선발 (SP)',
             joinedDate: sbUser.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
             maxVelocity: metadata.maxVelocity || 153.2,
+            height: metadata.height || 185,
+            weight: metadata.weight || 85,
+            wingspan: metadata.wingspan || 190,
+            age: metadata.age || 24,
+            birthdate: metadata.birthdate || '2000-01-15',
+            avatarUrl: metadata.avatarUrl || '',
           };
           setCurrentUser(syncedUser);
         }
@@ -174,9 +179,14 @@ export default function App() {
           number: typeof metadata.number === 'number' ? metadata.number : 18,
           team: metadata.team || '서울 자이언츠',
           throwingArm: metadata.throwingArm || 'RHP',
-          role: metadata.role || '선발 (SP)',
           joinedDate: sbUser.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
           maxVelocity: metadata.maxVelocity || 153.2,
+          height: metadata.height || 185,
+          weight: metadata.weight || 85,
+          wingspan: metadata.wingspan || 190,
+          age: metadata.age || 24,
+          birthdate: metadata.birthdate || '2000-01-15',
+          avatarUrl: metadata.avatarUrl || '',
         };
         setCurrentUser(syncedUser);
       }
@@ -217,6 +227,73 @@ export default function App() {
       setSelectedPitcherId(newPitcher.id);
     } else {
       setSelectedPitcherId(existingPitcher.id);
+    }
+  };
+
+  const handleUpdateProfile = async (updatedUser: UserAccount) => {
+    setCurrentUser(updatedUser);
+
+    // Update pitcher state so active pitching stats reflect changes
+    setPitchers((prev) =>
+      prev.map((p) =>
+        p.id === updatedUser.id || p.email === updatedUser.email
+          ? {
+              ...p,
+              name: updatedUser.name,
+              number: updatedUser.number,
+              team: updatedUser.team,
+              throwingArm: updatedUser.throwingArm,
+              maxVelocity: updatedUser.maxVelocity || p.maxVelocity,
+              height: updatedUser.height,
+              weight: updatedUser.weight,
+              wingspan: updatedUser.wingspan,
+              age: updatedUser.age || p.age,
+              birthdate: updatedUser.birthdate || p.birthdate,
+              avatarUrl: updatedUser.avatarUrl || p.avatarUrl,
+              heightWeight: updatedUser.height && updatedUser.weight
+                ? `${updatedUser.height}cm / ${updatedUser.weight}kg`
+                : p.heightWeight,
+            }
+          : p
+      )
+    );
+
+    // Sync with Supabase Auth user metadata & profile table if available
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          name: updatedUser.name,
+          number: updatedUser.number,
+          team: updatedUser.team,
+          throwingArm: updatedUser.throwingArm,
+          maxVelocity: updatedUser.maxVelocity,
+          height: updatedUser.height,
+          weight: updatedUser.weight,
+          wingspan: updatedUser.wingspan,
+          age: updatedUser.age,
+          birthdate: updatedUser.birthdate,
+          avatarUrl: updatedUser.avatarUrl,
+        },
+      });
+
+      await supabase.from('profiles').upsert({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwing_arm: updatedUser.throwingArm,
+        max_velocity: updatedUser.maxVelocity,
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        age: updatedUser.age,
+        birthdate: updatedUser.birthdate,
+        avatar_url: updatedUser.avatarUrl,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.log('Supabase profile sync note:', e);
     }
   };
 
@@ -451,6 +528,7 @@ export default function App() {
         onClose={() => setIsProfileModalOpen(false)}
         user={currentUser}
         onLogout={handleLogout}
+        onUpdateProfile={handleUpdateProfile}
       />
 
       {/* Footer */}

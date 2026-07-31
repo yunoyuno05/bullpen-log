@@ -251,12 +251,12 @@ export const AICareReport: React.FC<AICareReportProps> = ({
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-300 mb-1">
             <Sparkles className="w-4 h-4 text-rose-300" />
             <span className="font-bold text-white tracking-wide">
-              Gemini AI Powered Pitcher Care & Coaching
+              AI Bullpen Coach Pitcher Care & Coaching
             </span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">AI 맞춤형 케어 리포트 & 코칭</h1>
           <p className="text-gray-400 text-sm mt-1">
-            Gemini 3.6 Flash가 선수의 ACWR, ROM 가동범위, 투구 피로도를 종단 분석하여 완벽한 주간 훈련 스케줄을 수립합니다.
+            AI 불펜 코치가 선수의 ACWR, ROM 가동범위, 투구 피로도를 종합 분석하여 완벽한 주간 훈련 스케줄을 수립합니다.
           </p>
         </div>
 
@@ -268,7 +268,7 @@ export const AICareReport: React.FC<AICareReportProps> = ({
           {loadingReport ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin text-white" />
-              <span>Gemini AI 분석중...</span>
+              <span>AI 불펜 코치 분석 중...</span>
             </>
           ) : (
             <>
@@ -304,7 +304,7 @@ export const AICareReport: React.FC<AICareReportProps> = ({
           {loadingReport && (
             <div className="bg-white/[0.03] backdrop-blur-md border border-red-500/30 rounded-3xl p-12 text-center space-y-4 animate-pulse">
               <Loader2 className="w-10 h-10 text-rose-500 animate-spin mx-auto" />
-              <h3 className="text-lg font-bold text-white">Gemini AI가 바이오메카닉스 데이터를 정밀 진단 중입니다...</h3>
+              <h3 className="text-lg font-bold text-white">AI 불펜 코치가 바이오메카닉스 데이터를 정밀 진단 중입니다...</h3>
               <p className="text-xs text-gray-400">ACWR 부하 지수 계산 • 어깨 내회전 GIRD 결핍 분석 • 7일 맞춤 피칭 캡 수립</p>
             </div>
           )}
@@ -460,7 +460,7 @@ export const AICareReport: React.FC<AICareReportProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-sm text-white">AI 불펜 코치 (AI Bullpen Coach)</h3>
-                <p className="text-[10px] text-emerald-400">● 실시간 온라인 (Gemini 3.6)</p>
+                <p className="text-[10px] text-emerald-400">● 실시간 온라인 (AI 불펜 코치)</p>
               </div>
             </div>
           </div>

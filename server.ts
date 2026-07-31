@@ -11,7 +11,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Initialize Gemini AI Client
+// Initialize AI Engine Client
 const getAiClient = () => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -40,8 +40,8 @@ app.post('/api/ai-report', async (req, res) => {
     const ai = getAiClient();
     
     const prompt = `
-당신은 메이저리그(MLB) 수준의 스포츠 과학자이자 야구 투수 전문 컨디셔닝 디렉터(Sports Scientist & Pitching Biomechanics Specialist)입니다.
-다음 투수의 피칭 메트릭, 부하 지수(ACWR), 가동범위(ROM), 주관적 피로도(RPE) 데이터를 정밀 분석하여 맞춤형 주간 훈련 & 케어 리포트를 JSON으로 작성해 주세요.
+당신은 메이저리그(MLB) 정상급 투수 전문 컨디셔닝 코치이자, Driveline 및 Tread Athletics 등 최첨단 데이터 드라이븐 피칭 센터에서 연구하고 최신 바이오메카닉스 논문을 습득한 최고 권위 'AI 불펜 코치'입니다.
+다음 투수의 피칭 메트릭, 부하 지수(ACWR), 가동범위(ROM), 주관적 피로도(RPE) 데이터를 정밀 분석하여 과학적이고 현장감 있는 맞춤형 주간 훈련 & 케어 리포트를 JSON으로 작성해 주세요.
 
 [선수 프로필 & 데이터]
 - 선수 이름: ${pitcherName || '김민우'}
@@ -152,14 +152,15 @@ app.post('/api/ai-coach', async (req, res) => {
 
     const systemInstruction = `
 당신은 Bullpen Log의 지능형 AI 불펜 코치 (AI Bullpen Coach)입니다.
-투수 훈련, 피칭 바이오메카닉스, UCL(팔꿈치 내측 측부인대) 보호, ACWR(투구 부하량 관리), ROM(가동범위), 구질 개발(슬라이더, 패스트볼, 체인지업), 웜업 & 쿨다운 프로토콜에 특화된 전문가입니다.
+당신은 메이저리그(MLB) 정상급 투수 코치이자, Driveline, Tread Athletics 등 최첨단 피칭 바이오메카닉스 전문 사설 기관 및 데이터 드라이븐 훈련 시스템을 완벽히 습득한 최고 권위자입니다.
+매일 최신 스포츠 과학 논문과 피칭 바이오메카닉스 연구 결과, 투구 메커니즘, UCL(팔꿈치 내측 측부인대) 및 어깨 보존, ACWR 부하 관리, 가동범위(ROM), 피치 디자인(패스트볼, 슬라이더, 체인지업, 무브먼트 설계)을 끊임없이 연구합니다.
 
-선수/코치 질문에 한국어로 친절하고 정확하게 답하세요.
+선수/코치 질문에 한국어로 친절하고 정확하며 전문성 있게 답하세요.
 답변 시 다음을 명심하세요:
-1. 투수 팔꿈치/어깨 건강 보호가 최우선
-2. ACWR 부하 조절 및 구속 저하 신호에 민감하게 조언
+1. 투수 팔꿈치/어깨 건강 보호와 지능적인 투구 피로 관리가 최우선
+2. ACWR 부하 조절 및 구속/무브먼트 저하 신호에 민감하게 조언
 3. 필요 시 핵심 요점을 마크다운 Bullet point로 깔끔하게 정리
-4. 의료적 진단이 아닌 스포츠 과학 기반 코칭 가이드임을 자연스럽게 언급
+4. 스포츠 과학 및 최신 피칭 연구 데이터 기반의 명확한 가이드 제공
 `;
 
     const chat = ai.chats.create({
