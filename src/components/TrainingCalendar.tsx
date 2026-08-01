@@ -297,10 +297,10 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             <span className="text-gray-400 text-xs">#{pitcher.number} {pitcher.name} 선수</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black mt-2 tracking-tight text-white">
-            훈련 캘린더 & 종합 선수 관리
+            훈련 캘린더
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">
-            메인 요약, 세부 훈련 스케줄 계획, 과거 피칭/웨이트 기록 및 볼카운트 분석 시스템
+            훈련 스케줄 계획, 과거 피칭/웨이트 기록
           </p>
         </div>
 
@@ -323,7 +323,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             }`}
           >
             <Clock className="w-4 h-4" />
-            <span>일정 계획 탭</span>
+            <span>일정 계획</span>
             {pitcherSchedules.filter((s) => !s.completed).length > 0 && (
               <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500 text-black font-black">
                 {pitcherSchedules.filter((s) => !s.completed).length}
@@ -338,7 +338,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>기록 탭</span>
+            <span>기록</span>
           </button>
 
           <button
@@ -643,7 +643,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                   <span>스케줄 관리 팁</span>
                 </div>
                 <p className="text-[11px] text-gray-300 leading-relaxed">
-                  '일정 계획 탭'에서 웨이트, 불펜, 롱토스 등 세부 계획을 추가하면 선택한 일자에 자동 표시됩니다.
+                  '일정 계획'에서 웨이트, 불펜, 롱토스 등 세부 계획을 추가하면 선택한 일자에 자동 표시됩니다.
                 </p>
               </div>
             </div>
@@ -672,7 +672,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             <div className="flex items-center gap-3 bg-black/40 border border-white/10 p-3 rounded-2xl backdrop-blur-md">
               <div className="text-right">
                 <div className="text-xs font-bold text-white">지나간 일정 자동 기록 전환</div>
-                <div className="text-[10px] text-gray-400">날짜가 지나면 자동으로 기록 탭으로 백업</div>
+                <div className="text-[10px] text-gray-400">날짜가 지나면 자동으로 기록으로 백업</div>
               </div>
 
               <button

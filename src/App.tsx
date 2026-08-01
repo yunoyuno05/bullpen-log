@@ -28,22 +28,137 @@ import { UserProfileModal } from './components/UserProfileModal';
 import { BaseballIcon } from './components/BaseballIcon';
 import { Twitter, Instagram, Mail } from 'lucide-react';
 
+export function loadAccountData(user: UserAccount) {
+  if (!user || !user.email) {
+    return null;
+  }
+  const key = `bullpen_account_data_${user.email.trim().toLowerCase()}`;
+  const saved = localStorage.getItem(key);
+
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        const updatedUser: UserAccount = {
+          ...parsed.user,
+          ...user,
+          id: user.id || parsed.user?.id || 'usr_' + Date.now(),
+          email: user.email,
+        };
+
+        let pitchersList: Pitcher[] = Array.isArray(parsed.pitchers) ? parsed.pitchers : [];
+        const existingIdx = pitchersList.findIndex(
+          (p) => p.id === updatedUser.id || (p.email && p.email.toLowerCase() === updatedUser.email.toLowerCase())
+        );
+
+        const userPitcher: Pitcher = {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          number: updatedUser.number,
+          team: updatedUser.team,
+          throwingArm: updatedUser.throwingArm,
+          role: updatedUser.role || '미정 (Unassigned)',
+          age: updatedUser.age || 24,
+          birthdate: updatedUser.birthdate,
+          heightWeight: updatedUser.height && updatedUser.weight ? `${updatedUser.height}cm / ${updatedUser.weight}kg` : '185cm / 84kg',
+          height: updatedUser.height,
+          weight: updatedUser.weight,
+          wingspan: updatedUser.wingspan,
+          maxVelocity: updatedUser.maxVelocity || 151,
+          currentAcwr: existingIdx >= 0 ? pitchersList[existingIdx].currentAcwr : 1.15,
+          avatarUrl: updatedUser.avatarUrl || '',
+          email: updatedUser.email,
+        };
+
+        if (existingIdx >= 0) {
+          pitchersList[existingIdx] = { ...pitchersList[existingIdx], ...userPitcher };
+        } else {
+          pitchersList = [userPitcher, ...pitchersList];
+        }
+
+        return {
+          user: updatedUser,
+          pitchers: pitchersList,
+          sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+          romRecords: Array.isArray(parsed.romRecords) ? parsed.romRecords : [],
+          videos: Array.isArray(parsed.videos) ? parsed.videos : [],
+          dailyLogs: Array.isArray(parsed.dailyLogs) ? parsed.dailyLogs : [],
+          pitchSequences: Array.isArray(parsed.pitchSequences) ? parsed.pitchSequences : [],
+          goalRoadmap: parsed.goalRoadmap || { ...INITIAL_GOAL_ROADMAP, pitcherId: updatedUser.id },
+          trainingSchedules: Array.isArray(parsed.trainingSchedules) ? parsed.trainingSchedules : [],
+          autoArchivePassedSchedules: typeof parsed.autoArchivePassedSchedules === 'boolean' ? parsed.autoArchivePassedSchedules : true,
+        };
+      }
+    } catch (e) {
+      console.error('Error parsing stored account data:', e);
+    }
+  }
+
+  // Generate initial default data bound to user.id if key does not exist
+  const initialUserPitcher: Pitcher = {
+    id: user.id,
+    name: user.name || '투수',
+    number: typeof user.number === 'number' ? user.number : 18,
+    team: user.team || 'Bullpen Stars',
+    throwingArm: user.throwingArm || 'RHP',
+    role: user.role || '미정 (Unassigned)',
+    age: user.age || 24,
+    birthdate: user.birthdate,
+    heightWeight: user.height && user.weight ? `${user.height}cm / ${user.weight}kg` : '185cm / 84kg',
+    height: user.height || 185,
+    weight: user.weight || 84,
+    wingspan: user.wingspan || 190,
+    maxVelocity: user.maxVelocity || 151,
+    currentAcwr: 1.15,
+    avatarUrl: user.avatarUrl || '',
+    email: user.email,
+  };
+
+  const initialSessions = INITIAL_SESSIONS.map((s) => (s.pitcherId === 'p1' ? { ...s, pitcherId: user.id } : s));
+  const initialRomRecords = INITIAL_ROM_RECORDS.map((r) => (r.pitcherId === 'p1' ? { ...r, pitcherId: user.id } : r));
+  const initialVideos = INITIAL_VIDEOS.map((v) => (v.pitcherId === 'p1' ? { ...v, pitcherId: user.id } : v));
+  const initialDailyLogs = INITIAL_DAILY_LOGS.map((l) => (l.pitcherId === 'p1' ? { ...l, pitcherId: user.id } : l));
+  const initialPitchSequences = INITIAL_PITCH_SEQUENCES.map((ps) => (ps.pitcherId === 'p1' ? { ...ps, pitcherId: user.id } : ps));
+  const initialRoadmap: GoalRoadmap = {
+    ...INITIAL_GOAL_ROADMAP,
+    pitcherId: user.id,
+    targetVelocity: user.maxVelocity ? Math.round(user.maxVelocity + 4) : 155,
+    currentVelocity: user.maxVelocity || 151,
+    targetWeight: user.weight ? user.weight + 3 : 88,
+    currentWeight: user.weight || 84,
+  };
+  const initialSchedules = INITIAL_TRAINING_SCHEDULES.map((ts) => (ts.pitcherId === 'p1' ? { ...ts, pitcherId: user.id } : ts));
+
+  const accountData = {
+    user,
+    pitchers: [initialUserPitcher, ...INITIAL_PITCHERS.filter((p) => p.id !== 'p1')],
+    sessions: initialSessions,
+    romRecords: initialRomRecords,
+    videos: initialVideos,
+    dailyLogs: initialDailyLogs,
+    pitchSequences: initialPitchSequences,
+    goalRoadmap: initialRoadmap,
+    trainingSchedules: initialSchedules,
+    autoArchivePassedSchedules: true,
+  };
+
+  try {
+    localStorage.setItem(key, JSON.stringify(accountData));
+  } catch (e) {
+    console.error('Error saving new initial account data:', e);
+  }
+
+  return accountData;
+}
+
 export default function App() {
-  // Pitchers state
-  const [pitchers, setPitchers] = useState<Pitcher[]>(() => {
-    const saved = localStorage.getItem('bullpen_pitchers');
-    return saved ? JSON.parse(saved) : INITIAL_PITCHERS;
-  });
-
-  const [selectedPitcherId, setSelectedPitcherId] = useState<string>('p1');
-
   // User Account state
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     const saved = localStorage.getItem('bullpen_user_account');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.id !== 'usr_default' && parsed.id !== 'usr_demo') {
+        if (parsed && parsed.email) {
           return parsed;
         }
       } catch (e) {
@@ -53,6 +168,20 @@ export default function App() {
     return null;
   });
 
+  // Load account data if currentUser is present on initial mount
+  const initialAccountData = currentUser ? loadAccountData(currentUser) : null;
+
+  // Pitchers state
+  const [pitchers, setPitchers] = useState<Pitcher[]>(() => {
+    if (initialAccountData) return initialAccountData.pitchers;
+    const saved = localStorage.getItem('bullpen_pitchers');
+    return saved ? JSON.parse(saved) : INITIAL_PITCHERS;
+  });
+
+  const [selectedPitcherId, setSelectedPitcherId] = useState<string>(() => {
+    return currentUser ? currentUser.id : 'p1';
+  });
+
   // Auth & Profile Modal states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -60,102 +189,108 @@ export default function App() {
 
   // Sessions state
   const [sessions, setSessions] = useState<PitchSession[]>(() => {
+    if (initialAccountData) return initialAccountData.sessions;
     const saved = localStorage.getItem('bullpen_sessions');
     return saved ? JSON.parse(saved) : INITIAL_SESSIONS;
   });
 
   // ROM state
   const [romRecords, setRomRecords] = useState<ROMRecord[]>(() => {
+    if (initialAccountData) return initialAccountData.romRecords;
     const saved = localStorage.getItem('bullpen_rom_records');
     return saved ? JSON.parse(saved) : INITIAL_ROM_RECORDS;
   });
 
   // Videos state
   const [videos, setVideos] = useState<PitchVideo[]>(() => {
+    if (initialAccountData) return initialAccountData.videos;
     const saved = localStorage.getItem('bullpen_videos');
     return saved ? JSON.parse(saved) : INITIAL_VIDEOS;
   });
 
   // Daily Logs state
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(() => {
+    if (initialAccountData) return initialAccountData.dailyLogs;
     const saved = localStorage.getItem('bullpen_daily_logs');
     return saved ? JSON.parse(saved) : INITIAL_DAILY_LOGS;
   });
 
   // Pitch Sequences state
   const [pitchSequences, setPitchSequences] = useState<PitchSequence[]>(() => {
+    if (initialAccountData) return initialAccountData.pitchSequences;
     const saved = localStorage.getItem('bullpen_pitch_sequences');
     return saved ? JSON.parse(saved) : INITIAL_PITCH_SEQUENCES;
   });
 
   // Goal Roadmap state
   const [goalRoadmap, setGoalRoadmap] = useState<GoalRoadmap>(() => {
+    if (initialAccountData) return initialAccountData.goalRoadmap;
     const saved = localStorage.getItem('bullpen_goal_roadmap');
     return saved ? JSON.parse(saved) : INITIAL_GOAL_ROADMAP;
   });
 
   // Training Schedules state
   const [trainingSchedules, setTrainingSchedules] = useState<TrainingScheduleItem[]>(() => {
+    if (initialAccountData) return initialAccountData.trainingSchedules;
     const saved = localStorage.getItem('bullpen_training_schedules');
     return saved ? JSON.parse(saved) : INITIAL_TRAINING_SCHEDULES;
   });
 
   // Auto-Archive passed schedules setting state
   const [autoArchivePassedSchedules, setAutoArchivePassedSchedules] = useState<boolean>(() => {
+    if (initialAccountData) return initialAccountData.autoArchivePassedSchedules;
     const saved = localStorage.getItem('bullpen_auto_archive');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  // Active Tab View State ('hero' | 'dashboard' | 'calendar' | 'acwr' | 'rom' | 'video' | 'ai-report' | 'logs')
+  // Active Tab View State
   const [activeTab, setActiveTab] = useState<string>('hero');
 
   // Logger Modal State
   const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
 
-  // Sync to localStorage
+  // Auto-save account data whenever active state or logged-in user updates
   useEffect(() => {
-    localStorage.setItem('bullpen_pitchers', JSON.stringify(pitchers));
-  }, [pitchers]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_sessions', JSON.stringify(sessions));
-  }, [sessions]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_rom_records', JSON.stringify(romRecords));
-  }, [romRecords]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_videos', JSON.stringify(videos));
-  }, [videos]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_daily_logs', JSON.stringify(dailyLogs));
-  }, [dailyLogs]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_pitch_sequences', JSON.stringify(pitchSequences));
-  }, [pitchSequences]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_goal_roadmap', JSON.stringify(goalRoadmap));
-  }, [goalRoadmap]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_training_schedules', JSON.stringify(trainingSchedules));
-  }, [trainingSchedules]);
-
-  useEffect(() => {
-    localStorage.setItem('bullpen_auto_archive', JSON.stringify(autoArchivePassedSchedules));
-  }, [autoArchivePassedSchedules]);
-
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('bullpen_user_account', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('bullpen_user_account');
+    if (currentUser && currentUser.email) {
+      const key = `bullpen_account_data_${currentUser.email.trim().toLowerCase()}`;
+      const accountData = {
+        user: currentUser,
+        pitchers,
+        sessions,
+        romRecords,
+        videos,
+        dailyLogs,
+        pitchSequences,
+        goalRoadmap,
+        trainingSchedules,
+        autoArchivePassedSchedules,
+      };
+      try {
+        localStorage.setItem(key, JSON.stringify(accountData));
+        localStorage.setItem('bullpen_user_account', JSON.stringify(currentUser));
+        const regKey = `registered_user_${currentUser.email.trim().toLowerCase()}`;
+        const rawReg = localStorage.getItem(regKey);
+        if (rawReg) {
+          const regObj = JSON.parse(rawReg);
+          regObj.userData = currentUser;
+          localStorage.setItem(regKey, JSON.stringify(regObj));
+        }
+      } catch (e) {
+        console.error('Error auto-saving account data:', e);
+      }
     }
-  }, [currentUser]);
+  }, [
+    currentUser,
+    pitchers,
+    sessions,
+    romRecords,
+    videos,
+    dailyLogs,
+    pitchSequences,
+    goalRoadmap,
+    trainingSchedules,
+    autoArchivePassedSchedules,
+  ]);
 
   // Sync Supabase Auth Session on mount
   useEffect(() => {
@@ -225,60 +360,73 @@ export default function App() {
   };
 
   const handleLoginSuccess = (user: UserAccount) => {
-    setCurrentUser(user);
-    // Automatically navigate to live dashboard upon login
-    setActiveTab('dashboard');
-
-    // Also create or sync with pitcher profile
-    const existingPitcher = pitchers.find((p) => p.name === user.name || p.number === user.number);
-    if (!existingPitcher) {
-      const newPitcher: Pitcher = {
-        id: user.id,
-        name: user.name,
-        number: user.number,
-        team: user.team,
-        throwingArm: user.throwingArm,
-        role: user.role,
-        age: 24,
-        heightWeight: '185cm / 84kg',
-        maxVelocity: user.maxVelocity || 151,
-        currentAcwr: 1.15,
-        email: user.email,
-      };
-      setPitchers((prev) => [newPitcher, ...prev]);
-      setSelectedPitcherId(newPitcher.id);
+    const accData = loadAccountData(user);
+    if (accData) {
+      setCurrentUser(accData.user);
+      setPitchers(accData.pitchers);
+      setSelectedPitcherId(accData.user.id);
+      setSessions(accData.sessions);
+      setRomRecords(accData.romRecords);
+      setVideos(accData.videos);
+      setDailyLogs(accData.dailyLogs);
+      setPitchSequences(accData.pitchSequences);
+      setGoalRoadmap(accData.goalRoadmap);
+      setTrainingSchedules(accData.trainingSchedules);
+      setAutoArchivePassedSchedules(accData.autoArchivePassedSchedules);
+      localStorage.setItem('bullpen_user_account', JSON.stringify(accData.user));
     } else {
-      setSelectedPitcherId(existingPitcher.id);
+      setCurrentUser(user);
     }
+    setActiveTab('dashboard');
   };
 
   const handleUpdateProfile = async (updatedUser: UserAccount) => {
     setCurrentUser(updatedUser);
 
-    // Update pitcher state so active pitching stats reflect changes
-    setPitchers((prev) =>
-      prev.map((p) =>
-        p.id === updatedUser.id || p.email === updatedUser.email
-          ? {
-              ...p,
-              name: updatedUser.name,
-              number: updatedUser.number,
-              team: updatedUser.team,
-              throwingArm: updatedUser.throwingArm,
-              maxVelocity: updatedUser.maxVelocity || p.maxVelocity,
-              height: updatedUser.height,
-              weight: updatedUser.weight,
-              wingspan: updatedUser.wingspan,
-              age: updatedUser.age || p.age,
-              birthdate: updatedUser.birthdate || p.birthdate,
-              avatarUrl: updatedUser.avatarUrl || p.avatarUrl,
-              heightWeight: updatedUser.height && updatedUser.weight
-                ? `${updatedUser.height}cm / ${updatedUser.weight}kg`
-                : p.heightWeight,
-            }
-          : p
-      )
-    );
+    setPitchers((prev) => {
+      const existingIdx = prev.findIndex(
+        (p) => p.id === updatedUser.id || (p.email && p.email.toLowerCase() === updatedUser.email.toLowerCase())
+      );
+      const updatedPitcher: Pitcher = {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwingArm: updatedUser.throwingArm,
+        role: updatedUser.role || '미정 (Unassigned)',
+        age: updatedUser.age || 24,
+        birthdate: updatedUser.birthdate,
+        heightWeight: updatedUser.height && updatedUser.weight ? `${updatedUser.height}cm / ${updatedUser.weight}kg` : '185cm / 84kg',
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        maxVelocity: updatedUser.maxVelocity || 151,
+        currentAcwr: existingIdx >= 0 ? prev[existingIdx].currentAcwr : 1.15,
+        avatarUrl: updatedUser.avatarUrl || '',
+        email: updatedUser.email,
+      };
+
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], ...updatedPitcher };
+        return next;
+      }
+      return [updatedPitcher, ...prev];
+    });
+
+    try {
+      const regKey = `registered_user_${updatedUser.email.trim().toLowerCase()}`;
+      const rawReg = localStorage.getItem(regKey);
+      if (rawReg) {
+        const regObj = JSON.parse(rawReg);
+        regObj.userData = updatedUser;
+        localStorage.setItem(regKey, JSON.stringify(regObj));
+      }
+    } catch (e) {
+      console.error('Failed to update local reg record:', e);
+    }
+
+    localStorage.setItem('bullpen_user_account', JSON.stringify(updatedUser));
 
     // Sync with Supabase Auth user metadata & profile table if available
     try {
@@ -288,6 +436,7 @@ export default function App() {
           number: updatedUser.number,
           team: updatedUser.team,
           throwingArm: updatedUser.throwingArm,
+          role: updatedUser.role,
           maxVelocity: updatedUser.maxVelocity,
           height: updatedUser.height,
           weight: updatedUser.weight,
@@ -305,6 +454,7 @@ export default function App() {
         number: updatedUser.number,
         team: updatedUser.team,
         throwing_arm: updatedUser.throwingArm,
+        role: updatedUser.role,
         max_velocity: updatedUser.maxVelocity,
         height: updatedUser.height,
         weight: updatedUser.weight,
@@ -326,6 +476,7 @@ export default function App() {
       console.log('Signout error:', e);
     }
     setCurrentUser(null);
+    localStorage.removeItem('bullpen_user_account');
     setActiveTab('hero');
   };
 
@@ -344,14 +495,21 @@ export default function App() {
         number: currentUser.number,
         team: currentUser.team,
         throwingArm: currentUser.throwingArm,
-        role: currentUser.role,
-        age: 24,
-        heightWeight: '185cm / 84kg',
+        role: currentUser.role || '미정 (Unassigned)',
+        age: currentUser.age || 24,
+        birthdate: currentUser.birthdate,
+        heightWeight: currentUser.height && currentUser.weight
+          ? `${currentUser.height}cm / ${currentUser.weight}kg`
+          : '185cm / 84kg',
+        height: currentUser.height || 185,
+        weight: currentUser.weight || 84,
+        wingspan: currentUser.wingspan || 190,
         maxVelocity: currentUser.maxVelocity || 151,
-        currentAcwr: 1.15,
+        currentAcwr: pitchers.find((p) => p.id === currentUser.id)?.currentAcwr || 1.15,
+        avatarUrl: currentUser.avatarUrl || pitchers.find((p) => p.id === currentUser.id)?.avatarUrl || '',
         email: currentUser.email,
       }
-    : (pitchers.find((p) => p.id === selectedPitcherId) || pitchers[0]);
+    : (pitchers.find((p) => p.id === selectedPitcherId) || pitchers[0] || INITIAL_PITCHERS[0]);
 
   // Handler to save new pitching session
   const handleSaveSession = (newSessionData: Omit<PitchSession, 'id'>) => {

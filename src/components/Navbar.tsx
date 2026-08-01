@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems = [
     { id: 'dashboard', label: '라이브 대시보드', icon: LayoutDashboard, desc: '선수 종합 통계 & 통합 모니터링' },
-    { id: 'calendar', label: '훈련 캘린더 & 종합 관리', icon: Calendar, desc: '일별 훈련, 루틴, 목표 관리' },
+    { id: 'calendar', label: '훈련 캘린더', icon: Calendar, desc: '훈련 스케줄 계획, 과거 피칭/웨이트 기록' },
     { id: 'acwr', label: '부하 지수 (ACWR) 분석', icon: TrendingUp, desc: '7일/28일 과부하 및 부상 위험 경보' },
     { id: 'rom', label: '가동범위 (ROM) & GIRD', icon: Dumbbell, desc: '관절 가동성 및 통증 히트맵' },
     { id: 'video', label: '메커니즘 영상 아카이브', icon: Video, desc: 'Split-Screen 폼 비교 분석' },
