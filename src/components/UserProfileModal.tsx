@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UserAccount } from '../types';
+import { calculateAge } from '../lib/utils';
 import { BaseballIcon } from './BaseballIcon';
 import { Mail, Calendar, Award, LogOut, X, CheckCircle2, Edit3, Save, RotateCcw, Loader2, Camera, Trash2, Ruler, Weight, Activity, Cake } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -292,9 +293,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </div>
 
                     <div className="bg-white/5 border border-white/5 p-2.5 rounded-xl space-y-1">
-                      <div className="text-gray-400 text-[11px]">나이</div>
+                      <div className="text-gray-400 text-[11px]">나이 (만)</div>
                       <div className="font-extrabold text-white text-xs sm:text-sm">
-                        {user.age ? `${user.age} 세` : '24 세'}
+                        {user.age ? `만 ${user.age}세` : '만 24세'}
                       </div>
                     </div>
                   </div>
@@ -445,11 +446,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                           const val = e.target.value;
                           setBirthdate(val);
                           if (val) {
-                            const birthYear = new Date(val).getFullYear();
-                            const currentYear = new Date().getFullYear();
-                            if (birthYear && !isNaN(birthYear)) {
-                              setAge(Math.max(1, currentYear - birthYear + 1));
-                            }
+                            setAge(calculateAge(val));
                           }
                         }}
                         className="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-1.5 text-white font-mono focus:outline-none focus:border-white transition-colors"
@@ -493,7 +490,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-gray-400 text-[11px]">나이 (세)</label>
+                      <label className="text-gray-400 text-[11px]">나이 (만 세)</label>
                       <input
                         type="number"
                         value={age}

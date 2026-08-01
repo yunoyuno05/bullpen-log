@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pitcher, PitchSession, ROMRecord } from '../types';
+import { Pitcher, PitchSession, ROMRecord, TrainingScheduleItem, DailyLog } from '../types';
 import { BaseballIcon } from './BaseballIcon';
 import {
   TrendingUp,
@@ -11,7 +11,12 @@ import {
   Sparkles,
   ArrowUpRight,
   Plus,
-  Dumbbell
+  Dumbbell,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Check
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -33,6 +38,8 @@ interface DashboardProps {
   pitcher: Pitcher;
   sessions: PitchSession[];
   romRecords: ROMRecord[];
+  schedules?: TrainingScheduleItem[];
+  dailyLogs?: DailyLog[];
   setActiveTab: (tab: string) => void;
   onOpenLogger: () => void;
 }
@@ -41,12 +48,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
   pitcher,
   sessions,
   romRecords,
+  schedules = [],
+  dailyLogs = [],
   setActiveTab,
   onOpenLogger,
 }) => {
   const pitcherSessions = sessions.filter((s) => s.pitcherId === pitcher.id);
   const pitcherRom = romRecords.filter((r) => r.pitcherId === pitcher.id);
   const latestRom = pitcherRom[0];
+
+  const pitcherSchedules = schedules.filter((s) => s.pitcherId === pitcher.id);
+  const pitcherDailyLogs = dailyLogs.filter((l) => l.pitcherId === pitcher.id);
+
+  // Mini Calendar State
+  const [calMonthDate, setCalMonthDate] = useState<Date>(new Date());
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>(todayStr);
+
+  const year = calMonthDate.getFullYear();
+  const month = calMonthDate.getMonth(); // 0-indexed (0-11)
+
+  const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 (Sun) - 6 (Sat)
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const handlePrevMonth = () => setCalMonthDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCalMonthDate(new Date(year, month + 1, 1));
+
+  const categoryLabels: Record<string, { label: string; color: string }> = {
+    WEIGHT: { label: '웨이트', color: 'bg-[#FF9500]/20 text-[#FF9500] border-[#FF9500]/30' },
+    BULLPEN: { label: '불펜 피칭', color: 'bg-[#34C759]/20 text-[#34C759] border-[#34C759]/30' },
+    LONG_TOSS: { label: '롱토스', color: 'bg-[#32ADE6]/20 text-[#32ADE6] border-[#32ADE6]/30' },
+    CONDITIONING: { label: '컨디셔닝', color: 'bg-[#AF52DE]/20 text-[#AF52DE] border-[#AF52DE]/30' },
+    RECOVERY: { label: '리커버리', color: 'bg-[#FF2D55]/20 text-[#FF2D55] border-[#FF2D55]/30' },
+    TACTICAL: { label: '전술/수비', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+    REST: { label: '휴식', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30' },
+    CUSTOM: { label: '일반 훈련', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+  };
+
+  const upcomingSchedules = pitcherSchedules
+    .filter((s) => s.date >= todayStr && !s.completed)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const selectedDateSchedules = pitcherSchedules.filter((s) => s.date === selectedCalendarDate);
+  const selectedDateLog = pitcherDailyLogs.find((l) => l.date === selectedCalendarDate);
+  const selectedDateSessions = pitcherSessions.filter((s) => s.date === selectedCalendarDate);
 
   // Calculate 7-day Acute Load (sum of pitches in last 7 days) and Chronic Load (average weekly pitches over last 28 days)
   const totalPitchesLast7Days = pitcherSessions.reduce((acc, s) => acc + s.totalPitches, 0);
@@ -141,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
               </div>
               <p className="text-gray-400 text-xs md:text-sm">
-                {pitcher.team} • {pitcher.age}세 • {pitcher.heightWeight}
+                {pitcher.team} • 만 {pitcher.age}세 • {pitcher.heightWeight}
               </p>
               <div className="mt-2 flex items-center gap-4 text-xs font-mono text-gray-300">
                 <span>최고 구속: <strong className="text-white">{pitcher.maxVelocity} km/h</strong></span>
@@ -176,6 +221,286 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   ? '주의 단계. 피칭 수량 제한 권장.'
                   : '최적의 부하 상태. 훈련 지속 가능.'}
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mini Training Calendar & Schedule Summary Section */}
+      <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#34C759]/20 border border-[#34C759]/30 flex items-center justify-center text-[#34C759]">
+              <CalendarIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <span>훈련 캘린더 & 일정 요약</span>
+              </h2>
+              <p className="text-xs text-gray-400">
+                훈련 일정, 피칭/운동 기록
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className="self-start sm:self-auto bg-white/10 hover:bg-white/20 border border-white/15 text-white px-4 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-md active:scale-95"
+          >
+            <span>캘린더 열기</span>
+            <ArrowUpRight className="w-4 h-4 text-gray-300" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left: Mini Calendar Grid (5 cols on lg) */}
+          <div className="lg:col-span-5 bg-black/40 border border-white/10 rounded-[22px] p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-white flex items-center gap-2">
+                {year}년 {month + 1}월
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setSelectedCalendarDate(todayStr)}
+                  className="bg-white/10 hover:bg-white/20 text-gray-200 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors border border-white/10 mr-1 cursor-pointer"
+                >
+                  오늘
+                </button>
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Days of Week Header */}
+            <div className="grid grid-cols-7 text-center text-[11px] font-medium text-gray-400 border-b border-white/10 pb-2">
+              <span className="text-rose-400">일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span className="text-blue-400">토</span>
+            </div>
+
+            {/* Grid Days */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Empty leading slots */}
+              {Array.from({ length: firstDayOfWeek }).map((_, idx) => (
+                <div key={`empty-${idx}`} className="h-9" />
+              ))}
+
+              {/* Month Days */}
+              {Array.from({ length: daysInMonth }).map((_, idx) => {
+                const dayNum = idx + 1;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selectedCalendarDate;
+
+                // Check activities
+                const daySchedules = pitcherSchedules.filter((s) => s.date === dateStr);
+                const hasPendingSchedule = daySchedules.some((s) => !s.completed);
+                const hasCompletedSchedule = daySchedules.some((s) => s.completed);
+                const hasLog = pitcherDailyLogs.some((l) => l.date === dateStr);
+                const hasSession = pitcherSessions.some((s) => s.date === dateStr);
+
+                return (
+                  <button
+                    key={dateStr}
+                    onClick={() => setSelectedCalendarDate(dateStr)}
+                    className={`h-9 rounded-xl flex flex-col items-center justify-center relative text-xs font-mono transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-white text-black font-extrabold shadow-lg scale-105 z-10'
+                        : isToday
+                        ? 'bg-[#34C759]/20 text-[#34C759] border border-[#34C759]/40 font-bold'
+                        : 'hover:bg-white/10 text-gray-300'
+                    }`}
+                  >
+                    <span>{dayNum}</span>
+
+                    {/* Indicator dots */}
+                    <div className="flex items-center gap-0.5 mt-0.5">
+                      {hasSession && (
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-blue-600' : 'bg-blue-400'}`} />
+                      )}
+                      {hasLog && (
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-emerald-600' : 'bg-emerald-400'}`} />
+                      )}
+                      {hasPendingSchedule && (
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-amber-600' : 'bg-amber-400'}`} />
+                      )}
+                      {hasCompletedSchedule && !hasLog && (
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-gray-600' : 'bg-gray-400'}`} />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-4 text-[10px] text-gray-400 pt-2 border-t border-white/5">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-blue-400" /> 피칭
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" /> 운동일지
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-400" /> 예정 일정
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Selected Date Details & Upcoming Schedules (7 cols on lg) */}
+          <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Box 1: 앞으로의 운동 일정 (Upcoming Workout Schedule) */}
+            <div className="bg-black/40 border border-white/10 rounded-[22px] p-5 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-amber-400" />
+                    <span>앞으로의 운동 일정</span>
+                  </h3>
+                  <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-md font-mono border border-amber-500/30">
+                    {upcomingSchedules.length}건 예정
+                  </span>
+                </div>
+
+                {upcomingSchedules.length > 0 ? (
+                  <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                    {upcomingSchedules.slice(0, 4).map((sch) => {
+                      const cat = categoryLabels[sch.category] || categoryLabels.CUSTOM;
+                      return (
+                        <div
+                          key={sch.id}
+                          className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-start justify-between gap-2 hover:border-white/20 transition-all"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold text-gray-400">{sch.date}</span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border ${cat.color}`}>
+                                {cat.label}
+                              </span>
+                            </div>
+                            <h4 className="text-xs font-bold text-white line-clamp-1">{sch.title}</h4>
+                            {sch.details && <p className="text-[11px] text-gray-400 line-clamp-1">{sch.details}</p>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-gray-400 space-y-1">
+                    <CheckCircle2 className="w-8 h-8 text-gray-600 mx-auto mb-1" />
+                    <p className="text-xs">예정된 운동 일정이 없습니다.</p>
+                    <p className="text-[10px] text-gray-500">훈련 캘린더에서 새 일정을 등록해보세요.</p>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className="w-full bg-white/10 hover:bg-white/15 text-gray-200 border border-white/10 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+              >
+                <span>캘린더에서 일정 관리</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Box 2: Selected Date or Recent Workout Logs (선택일 / 최근 운동 기록) */}
+            <div className="bg-black/40 border border-white/10 rounded-[22px] p-5 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-emerald-400" />
+                    <span>선택일 / 최근 운동 기록</span>
+                  </h3>
+                  <span className="text-[10px] font-mono text-gray-400">{selectedCalendarDate}</span>
+                </div>
+
+                {/* Show details for selected date if exists */}
+                {selectedDateLog || selectedDateSessions.length > 0 || selectedDateSchedules.length > 0 ? (
+                  <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                    {selectedDateLog && (
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 space-y-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">
+                            운동일지: {selectedDateLog.trainingType}
+                          </span>
+                          <span className="text-gray-400 font-mono">수면 {selectedDateLog.sleepHours}시간</span>
+                        </div>
+                        {selectedDateLog.diary && (
+                          <p className="text-xs text-gray-200 line-clamp-2">"{selectedDateLog.diary}"</p>
+                        )}
+                        {selectedDateLog.weightVolumeKg > 0 && (
+                          <p className="text-[11px] text-amber-300 font-mono">웨이트 볼륨: {selectedDateLog.weightVolumeKg}kg</p>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedDateSessions.map((sess) => (
+                      <div key={sess.id} className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 space-y-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold">
+                            피칭: {sess.sessionType}
+                          </span>
+                          <span className="text-white font-mono font-bold">{sess.totalPitches}구 ({sess.maxVel}km/h)</span>
+                        </div>
+                        <p className="text-[11px] text-gray-300 line-clamp-1">{sess.notes || '특이사항 없음'}</p>
+                      </div>
+                    ))}
+
+                    {selectedDateSchedules.map((sch) => (
+                      <div key={sch.id} className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs">
+                        <span className="text-gray-200 font-medium">{sch.title}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${sch.completed ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                          {sch.completed ? '완료' : '예정'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Fallback to recent daily logs if selected date has no data */
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-gray-400 mb-2">선택한 날짜에 기록이 없습니다. 최근 작성된 운동일지:</p>
+                    {pitcherDailyLogs.length > 0 ? (
+                      pitcherDailyLogs.slice(0, 2).map((log) => (
+                        <div key={log.id} className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="font-mono text-gray-400">{log.date}</span>
+                            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold">
+                              {log.trainingType}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-200 line-clamp-1">{log.diary || '작성된 일지 내용 없음'}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-6 text-center text-gray-500 text-xs">
+                        작성된 운동 일지가 없습니다.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className="w-full bg-[#34C759]/20 hover:bg-[#34C759]/30 text-[#34C759] border border-[#34C759]/40 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+              >
+                <span>운동 일지 작성하기</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         </div>

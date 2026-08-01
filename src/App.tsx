@@ -648,6 +648,8 @@ export default function App() {
                 pitcher={currentPitcher}
                 sessions={sessions}
                 romRecords={romRecords}
+                schedules={trainingSchedules}
+                dailyLogs={dailyLogs}
                 setActiveTab={setActiveTab}
                 onOpenLogger={() => setIsLoggerOpen(true)}
               />

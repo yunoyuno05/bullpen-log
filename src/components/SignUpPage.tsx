@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserAccount, AthleteAssessment } from '../types';
+import { calculateAge } from '../lib/utils';
 import { BaseballIcon } from './BaseballIcon';
 import { supabase } from '../lib/supabase';
 import {
@@ -52,6 +53,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   const [weight, setWeight] = useState<number | ''>(82);
   const [wingspan, setWingspan] = useState<number | ''>(188);
   const [maxVelocity, setMaxVelocity] = useState<number | ''>(148);
+  const [birthdate, setBirthdate] = useState<string>('2002-01-15');
+  const [age, setAge] = useState<number | ''>(22);
   const [selectedPitchTypes, setSelectedPitchTypes] = useState<string[]>(['포심 직구', '슬라이더', '커브']);
 
   // Step 3: Athlete Assessment Questions with "Custom" (기타) options
@@ -148,6 +151,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
       height: typeof height === 'number' ? height : 183,
       weight: typeof weight === 'number' ? weight : 82,
       wingspan: typeof wingspan === 'number' ? wingspan : 188,
+      age: typeof age === 'number' ? age : calculateAge(birthdate),
+      birthdate: birthdate || '2002-01-15',
       maxVelocity: typeof maxVelocity === 'number' ? maxVelocity : 148,
       joinedDate: new Date().toISOString().split('T')[0],
       assessment: assessmentData,
@@ -432,6 +437,33 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                   placeholder="188"
                   value={wingspan}
                   onChange={(e) => setWingspan(e.target.value === '' ? '' : parseInt(e.target.value))}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-300">생년월일 (Birthdate)</label>
+                <input
+                  type="date"
+                  value={birthdate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setBirthdate(val);
+                    if (val) {
+                      setAge(calculateAge(val));
+                    }
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-300">나이 (만)</label>
+                <input
+                  type="number"
+                  placeholder="22"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value === '' ? '' : parseInt(e.target.value))}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-400"
                 />
               </div>

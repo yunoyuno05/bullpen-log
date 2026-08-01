@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BaseballIcon } from './BaseballIcon';
 import { UserAccount, AthleteAssessment } from '../types';
+import { calculateAge } from '../lib/utils';
 import {
   Lock,
   Mail,
@@ -83,6 +84,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [weight, setWeight] = useState<number | ''>(82);
   const [wingspan, setWingspan] = useState<number | ''>(188);
   const [maxVelocity, setMaxVelocity] = useState<number | ''>(148);
+  const [birthdate, setBirthdate] = useState<string>('2002-01-15');
   const [age, setAge] = useState<number | ''>(22);
 
   // Sign Up Step 2: Assessment Questions
@@ -312,7 +314,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       height: typeof height === 'number' ? height : 183,
       weight: typeof weight === 'number' ? weight : 82,
       wingspan: typeof wingspan === 'number' ? wingspan : 188,
-      age: typeof age === 'number' ? age : 22,
+      age: typeof age === 'number' ? age : calculateAge(birthdate),
+      birthdate: birthdate || '2002-01-15',
       joinedDate: new Date().toISOString().split('T')[0],
       maxVelocity: typeof maxVelocity === 'number' ? maxVelocity : 148,
       assessment: assessmentData,
@@ -800,8 +803,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                             />
                           </div>
 
+                          <div className="space-y-1 col-span-2">
+                            <label className="text-xs text-gray-300 font-medium">생년월일 (Birthdate)</label>
+                            <input
+                              type="date"
+                              value={birthdate}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setBirthdate(val);
+                                if (val) {
+                                  setAge(calculateAge(val));
+                                }
+                              }}
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 font-mono"
+                            />
+                          </div>
+
                           <div className="space-y-1">
-                            <label className="text-xs text-gray-300 font-medium">연령 (만 나이)</label>
+                            <label className="text-xs text-gray-300 font-medium">나이 (만)</label>
                             <input
                               type="number"
                               placeholder="22"
