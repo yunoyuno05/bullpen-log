@@ -224,14 +224,26 @@ export const FrameVideoPlayer: React.FC<FrameVideoPlayerProps> = ({ video, onOpe
 
       {/* Main Player Display Area with Canvas Overlay */}
       <div className="relative aspect-video bg-black rounded-2xl overflow-hidden border border-white/15 shadow-2xl group flex items-center justify-center">
-        <video
-          ref={videoRef}
-          src={video.videoUrl || undefined}
-          playsInline
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          className="w-full h-full object-contain pointer-events-none"
-        />
+        {video.videoUrl ? (
+          <video
+            ref={videoRef}
+            src={video.videoUrl}
+            playsInline
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onError={(e) => {
+              console.warn('Video failed to load:', e);
+              // Suppress error bubbling if possible
+              e.preventDefault();
+            }}
+            className="w-full h-full object-contain pointer-events-none"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+            <Film className="w-8 h-8 mb-2 opacity-50" />
+            <p className="text-xs">영상을 불러올 수 없습니다.</p>
+          </div>
+        )}
 
         {/* Canvas Annotation Layer */}
         <canvas

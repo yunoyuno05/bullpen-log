@@ -377,6 +377,7 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
                       autoPlay
                       playsInline
                       muted
+                      onError={(e) => { console.warn('Camera preview failed:', e); e.preventDefault(); }}
                       className={`w-full h-full object-cover ${!isCameraActive ? 'hidden' : 'block'}`}
                     />
 

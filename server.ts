@@ -10,8 +10,8 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 // Ensure server storage directories exist
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'videos');
@@ -76,13 +76,17 @@ app.post('/api/videos/upload', (req, res) => {
     let extension = 'webm';
     let base64String = fileData;
 
-    if (typeof fileData === 'string' && fileData.startsWith('data:')) {
-      const match = fileData.match(/^data:video\/([a-zA-Z0-9]+);base64,/);
-      if (match) {
-        extension = match[1] === 'mp4' ? 'mp4' : match[1] === 'quicktime' ? 'mov' : 'webm';
-        base64String = fileData.replace(/^data:video\/[a-zA-Z0-9]+;base64,/, '');
-      } else {
-        base64String = fileData.replace(/^data:[^;]+;base64,/, '');
+    if (typeof fileData === 'string' && fileData.includes('base64,')) {
+      const parts = fileData.split('base64,');
+      base64String = parts.pop() || '';
+      const header = parts[0] || '';
+      
+      if (header.includes('video/mp4')) {
+        extension = 'mp4';
+      } else if (header.includes('video/quicktime')) {
+        extension = 'mov';
+      } else if (header.includes('video/x-m4v')) {
+        extension = 'mp4';
       }
     }
 

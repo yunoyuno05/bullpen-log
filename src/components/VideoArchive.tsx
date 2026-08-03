@@ -241,14 +241,18 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
             </div>
 
             <div className="relative aspect-video bg-black rounded-2xl overflow-hidden border border-white/10 shadow-inner group">
-              {leftVideo ? (
+              {leftVideo && leftVideo.videoUrl ? (
                 <video
                   ref={leftRef}
-                  src={leftVideo.videoUrl || undefined}
+                  src={leftVideo.videoUrl}
                   className="w-full h-full object-cover"
                   loop
                   muted
                   playsInline
+                  onError={(e) => {
+                    console.warn('Left video load failed:', e);
+                    e.preventDefault();
+                  }}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-xs">
@@ -289,14 +293,18 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
             </div>
 
             <div className="relative aspect-video bg-black rounded-2xl overflow-hidden border border-white/10 shadow-inner group">
-              {rightVideo ? (
+              {rightVideo && rightVideo.videoUrl ? (
                 <video
                   ref={rightRef}
-                  src={rightVideo.videoUrl || undefined}
+                  src={rightVideo.videoUrl}
                   className="w-full h-full object-cover"
                   loop
                   muted
                   playsInline
+                  onError={(e) => {
+                    console.warn('Right video load failed:', e);
+                    e.preventDefault();
+                  }}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-xs">
