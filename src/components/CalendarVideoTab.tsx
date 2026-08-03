@@ -285,7 +285,7 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
         </div>
 
         {/* Right 8 Cols: High Precision Frame Video Player */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-8 space-y-4">
           {activeVideo ? (
             <FrameVideoPlayer video={activeVideo} onOpenArchive={onOpenArchive} />
           ) : (
@@ -294,6 +294,21 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
               <p className="text-sm">선택된 영상이 없습니다. 날짜 변경이나 저장 날짜 이동을 통해 영상을 선택하세요.</p>
             </div>
           )}
+
+          {/* Bottom Video Save & Add Button Bar */}
+          <div className="bg-black/60 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-gray-300 flex items-center gap-2">
+              <Video className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>새로운 투구 모션 영상이나 불펜 피칭 영상이 있나요?</span>
+            </div>
+            <button
+              onClick={() => setIsRecorderOpen(true)}
+              className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>💾 영상 촬영 / 저장하기</span>
+            </button>
+          </div>
         </div>
       </div>
 

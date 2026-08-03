@@ -330,9 +330,9 @@ export const PitchLoggerModal: React.FC<PitchLoggerModalProps> = ({
             </button>
             <button
               type="submit"
-              className="bg-white hover:bg-gray-200 text-black font-bold px-6 py-2.5 rounded-full transition-all cursor-pointer shadow-md active:scale-95"
+              className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold px-7 py-2.5 rounded-full transition-all cursor-pointer shadow-lg active:scale-95 flex items-center gap-1.5"
             >
-              피칭 세션 저장
+              <span>💾 피칭 기록 저장하기</span>
             </button>
           </div>
         </form>

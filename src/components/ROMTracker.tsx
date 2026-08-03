@@ -360,9 +360,9 @@ export const ROMTracker: React.FC<ROMTrackerProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-2 rounded-xl shadow-lg cursor-pointer"
+                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold px-6 py-2.5 rounded-xl shadow-lg cursor-pointer transition-all active:scale-95"
                 >
-                  저장하기
+                  💾 측정 기록 저장하기
                 </button>
               </div>
             </form>

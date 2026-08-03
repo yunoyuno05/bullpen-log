@@ -400,17 +400,26 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
                   )}
 
                   {recordedBlobUrl && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRecordedBlobUrl(null);
-                        startCamera();
-                      }}
-                      className="bg-white/10 hover:bg-white/20 text-white text-xs px-4 py-2 rounded-full transition-colors flex items-center gap-1.5 cursor-pointer border border-white/10"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>재촬영하기</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRecordedBlobUrl(null);
+                          startCamera();
+                        }}
+                        className="bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-2 rounded-full transition-colors flex items-center gap-1.5 cursor-pointer border border-white/10"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>재촬영하기</span>
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-5 py-2 rounded-full transition-all flex items-center gap-1.5 shadow-lg cursor-pointer active:scale-95"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>💾 영상 저장하기</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -456,8 +465,19 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
               )}
 
               {uploadUrl && (
-                <div className="aspect-video bg-black rounded-2xl overflow-hidden border border-white/15">
-                  <video src={uploadUrl || undefined} controls className="w-full h-full object-contain" />
+                <div className="space-y-3">
+                  <div className="aspect-video bg-black rounded-2xl overflow-hidden border border-white/15">
+                    <video src={uploadUrl || undefined} controls className="w-full h-full object-contain" />
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-5 py-2 rounded-full transition-all flex items-center gap-1.5 shadow-lg cursor-pointer active:scale-95"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>💾 업로드한 영상 저장하기</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -567,10 +587,10 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
 
               <button
                 type="submit"
-                className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                className="bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs sm:text-sm px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>날짜 ({date}) 에 영상 저장</span>
+                <span>💾 영상 저장하기 ({date} 날짜 기록)</span>
               </button>
             </div>
           </form>

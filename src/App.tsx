@@ -26,7 +26,7 @@ import { AuthModal } from './components/AuthModal';
 import { SignUpPage } from './components/SignUpPage';
 import { UserProfileModal } from './components/UserProfileModal';
 import { BaseballIcon } from './components/BaseballIcon';
-import { Twitter, Instagram, Mail } from 'lucide-react';
+import { Twitter, Instagram, Mail, CheckCircle2, Save } from 'lucide-react';
 
 export function loadAccountData(user: UserAccount) {
   if (!user || !user.email) {
@@ -1067,6 +1067,53 @@ export default function App() {
     });
   };
 
+  // Global Save All Records Handler
+  const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null);
+
+  const handleSaveAllRecords = () => {
+    try {
+      const accountData = {
+        user: currentUser,
+        pitchers,
+        sessions,
+        romRecords,
+        videos,
+        dailyLogs,
+        pitchSequences,
+        goalRoadmap,
+        trainingSchedules,
+        autoArchivePassedSchedules,
+        lastSavedAt: new Date().toLocaleString('ko-KR'),
+      };
+
+      if (currentUser && currentUser.email) {
+        const key = `bullpen_account_data_${currentUser.email.trim().toLowerCase()}`;
+        localStorage.setItem(key, JSON.stringify(accountData));
+        localStorage.setItem('bullpen_user_account', JSON.stringify(currentUser));
+      }
+
+      localStorage.setItem('bullpen_pitchers', JSON.stringify(pitchers));
+      localStorage.setItem('bullpen_sessions', JSON.stringify(sessions));
+      localStorage.setItem('bullpen_rom_records', JSON.stringify(romRecords));
+      localStorage.setItem('bullpen_videos', JSON.stringify(videos));
+      localStorage.setItem('bullpen_daily_logs', JSON.stringify(dailyLogs));
+      localStorage.setItem('bullpen_pitch_sequences', JSON.stringify(pitchSequences));
+      localStorage.setItem('bullpen_goal_roadmap', JSON.stringify(goalRoadmap));
+      localStorage.setItem('bullpen_training_schedules', JSON.stringify(trainingSchedules));
+
+      setSaveToastMessage('💾 모든 피칭, 훈련 스케줄, 가동범위 및 영상 기록이 안전하게 저장되었습니다!');
+      setTimeout(() => {
+        setSaveToastMessage(null);
+      }, 4000);
+    } catch (err) {
+      console.error('Error saving records:', err);
+      setSaveToastMessage('⚠️ 기록 저장 중 오류가 발생했습니다.');
+      setTimeout(() => {
+        setSaveToastMessage(null);
+      }, 3000);
+    }
+  };
+
   // Scroll to top when tab changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1074,6 +1121,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans antialiased">
+      {/* Save All Toast Alert Notification */}
+      <AnimatePresence>
+        {saveToastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-[99999] bg-emerald-950/90 border-2 border-emerald-500 text-white px-5 py-3.5 rounded-2xl shadow-[0_10px_30px_rgba(16,185,129,0.3)] flex items-center gap-3 backdrop-blur-2xl"
+          >
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 animate-pulse" />
+            <div className="flex flex-col">
+              <span className="text-xs font-black text-emerald-300">저장 완료</span>
+              <span className="text-xs font-bold text-white">{saveToastMessage}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Fixed Navbar */}
       <Navbar
         pitchers={pitchers}
@@ -1085,6 +1150,7 @@ export default function App() {
         currentUser={currentUser}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenAuth={handleOpenAuth}
+        onSaveAllRecords={handleSaveAllRecords}
       />
 
       {/* Main Active Tab Content with Smooth Transitions */}
