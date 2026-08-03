@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PitchVideo } from '../types';
+import { uploadVideoToServer } from '../lib/serverSync';
 import {
   X,
   Video,
@@ -15,7 +16,8 @@ import {
   AlertTriangle,
   Sliders,
   Sparkles,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -24,7 +26,8 @@ interface PitchVideoRecorderModalProps {
   onClose: () => void;
   pitcherId: string;
   defaultDate?: string;
-  onAddVideo: (video: Omit<PitchVideo, 'id'>) => void;
+  currentUserEmail?: string;
+  onAddVideo: (video: PitchVideo) => void;
 }
 
 export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = ({
@@ -32,6 +35,7 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
   onClose,
   pitcherId,
   defaultDate,
+  currentUserEmail,
   onAddVideo,
 }) => {
   const todayStr = new Date().toISOString().split('T')[0];
@@ -164,6 +168,13 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
     }
   };
 
+  // Upload & Save Progress State
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  // File / Blob Refs
+  const uploadedFileRef = useRef<File | null>(null);
+  const recordedBlobRef = useRef<Blob | null>(null);
+
   // Stop Recording
   const stopRecording = () => {
     if (timerIntervalRef.current) {
@@ -172,6 +183,14 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
     }
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.onstop = () => {
+        if (recordedChunksRef.current.length > 0) {
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          recordedBlobRef.current = blob;
+          const url = URL.createObjectURL(blob);
+          setRecordedBlobUrl(url);
+        }
+      };
       mediaRecorderRef.current.stop();
     }
 
@@ -184,6 +203,7 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
     const file = e.target.files?.[0];
     if (!file) return;
 
+    uploadedFileRef.current = file;
     setUploadFileName(file.name);
     const url = URL.createObjectURL(file);
     setUploadUrl(url);
@@ -204,30 +224,57 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
     }
   };
 
-  // Form Submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form Submission (Server Video Upload & Account Save)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading) return;
 
-    const finalVideoUrl =
-      mode === 'record'
-        ? recordedBlobUrl || 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4'
-        : uploadUrl || 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4';
+    setIsUploading(true);
 
     const defaultTitleName = `${date} ${pitchType} ${velocity}km/h 투구 메커니즘`;
-
-    onAddVideo({
+    const videoMetadata: Omit<PitchVideo, 'id'> = {
       pitcherId,
       title: title.trim() || defaultTitleName,
       date,
-      videoUrl: finalVideoUrl,
+      videoUrl: '',
       pitchType,
       velocity,
       cameraAngle,
       notes: notes.trim() || '15초 이내 고속 투구 메커니즘 녹화 영상.',
-    });
+    };
 
-    stopCameraStream();
-    onClose();
+    let videoSource: Blob | File | string = 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4';
+
+    if (mode === 'record') {
+      if (recordedBlobRef.current) {
+        videoSource = recordedBlobRef.current;
+      } else if (recordedBlobUrl) {
+        videoSource = recordedBlobUrl;
+      }
+    } else {
+      if (uploadedFileRef.current) {
+        videoSource = uploadedFileRef.current;
+      } else if (uploadUrl) {
+        videoSource = uploadUrl;
+      }
+    }
+
+    try {
+      const savedVideo = await uploadVideoToServer(videoSource, videoMetadata, currentUserEmail);
+      onAddVideo(savedVideo);
+    } catch (err) {
+      console.error('Error uploading video in modal:', err);
+      // Fallback
+      onAddVideo({
+        ...videoMetadata,
+        id: `vid_${Date.now()}`,
+        videoUrl: typeof videoSource === 'string' ? videoSource : URL.createObjectURL(videoSource as Blob),
+      });
+    } finally {
+      setIsUploading(false);
+      stopCameraStream();
+      onClose();
+    }
   };
 
   if (!isOpen) return null;
@@ -241,6 +288,17 @@ export const PitchVideoRecorderModal: React.FC<PitchVideoRecorderModalProps> = (
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="bg-[#121214] border border-white/15 rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl text-white space-y-5 relative overflow-hidden my-auto max-h-[92vh] overflow-y-auto scrollbar-thin"
         >
+          {/* Upload Progress Overlay */}
+          {isUploading && (
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl z-50 flex flex-col items-center justify-center space-y-4 p-6 text-center">
+              <Loader2 className="w-12 h-12 text-emerald-400 animate-spin" />
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-white">동영상 서버 저장 중...</h3>
+                <p className="text-xs text-gray-300 max-w-xs">다른 기기 및 계정 어디서든 접근할 수 있도록 동영상을 서버로 안전하게 업로드하고 있습니다.</p>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div className="flex items-center gap-2.5">

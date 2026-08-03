@@ -57,6 +57,8 @@ interface TrainingCalendarProps {
   videos?: PitchVideo[];
   onAddVideo?: (video: Omit<PitchVideo, 'id'>) => void;
   onOpenVideoArchive?: (videoId?: string) => void;
+  currentUserEmail?: string;
+  onSaveAllRecords?: () => void;
 }
 
 export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
@@ -76,6 +78,8 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   videos = [],
   onAddVideo = () => {},
   onOpenVideoArchive,
+  currentUserEmail,
+  onSaveAllRecords,
 }) => {
   const todayObj = new Date();
   const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
@@ -790,6 +794,8 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
           onOpenArchive={onOpenVideoArchive}
+          currentUserEmail={currentUserEmail}
+          onSaveAllRecords={onSaveAllRecords}
         />
       )}
 

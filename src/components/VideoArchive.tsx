@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Pitcher, PitchVideo } from '../types';
+import { uploadVideoToServer } from '../lib/serverSync';
 import {
   Video,
   Play,
@@ -12,19 +13,25 @@ import {
   Plus,
   Zap,
   Sliders,
-  Sparkles
+  Sparkles,
+  Loader2,
+  Upload
 } from 'lucide-react';
 
 interface VideoArchiveProps {
   pitcher: Pitcher;
   videos: PitchVideo[];
-  onAddVideo: (video: Omit<PitchVideo, 'id'>) => void;
+  onAddVideo: (video: PitchVideo) => void;
+  currentUserEmail?: string;
+  onSaveAllRecords?: () => void;
 }
 
 export const VideoArchive: React.FC<VideoArchiveProps> = ({
   pitcher,
   videos,
   onAddVideo,
+  currentUserEmail,
+  onSaveAllRecords,
 }) => {
   const pitcherVideos = videos.filter((v) => v.pitcherId === pitcher.id);
 
@@ -83,20 +90,49 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
   const [newVel, setNewVel] = useState<number>(148);
   const [newAngle, setNewAngle] = useState<'Behind Mound' | 'Side View' | 'High Home' | 'Slow-Mo 240fps'>('Behind Mound');
   const [newNotes, setNewNotes] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleAddVideoSubmit = (e: React.FormEvent) => {
+  const handleAddVideoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAddVideo({
+    if (isUploading) return;
+
+    setIsUploading(true);
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const videoMetadata: Omit<PitchVideo, 'id'> = {
       pitcherId: pitcher.id,
-      title: newTitle || '새 피칭 메커니즘 영상',
-      date: new Date().toISOString().split('T')[0],
-      videoUrl: newUrl || 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4',
+      title: newTitle.trim() || '새 피칭 메커니즘 영상',
+      date: dateStr,
+      videoUrl: '',
       pitchType: newPitchType,
       velocity: newVel,
       cameraAngle: newAngle,
       notes: newNotes,
-    });
-    setShowModal(false);
+    };
+
+    let videoSource: File | string = newUrl || 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4';
+    if (selectedFile) {
+      videoSource = selectedFile;
+    }
+
+    try {
+      const savedVideo = await uploadVideoToServer(videoSource, videoMetadata, currentUserEmail);
+      onAddVideo(savedVideo);
+    } catch (err) {
+      console.error('Error saving video in archive modal:', err);
+      onAddVideo({
+        ...videoMetadata,
+        id: `vid_${Date.now()}`,
+        videoUrl: typeof videoSource === 'string' ? videoSource : URL.createObjectURL(videoSource),
+      });
+    } finally {
+      setIsUploading(false);
+      setSelectedFile(null);
+      setNewTitle('');
+      setNewUrl('');
+      setShowModal(false);
+    }
   };
 
   return (
@@ -114,13 +150,24 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-white text-black hover:bg-gray-200 font-bold text-xs px-5 py-2.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ 영상 추가하기</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {onSaveAllRecords && (
+            <button
+              onClick={onSaveAllRecords}
+              className="bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 font-extrabold text-xs px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-md cursor-pointer active:scale-95"
+              title="저장된 영상과 기록을 서버로 동기화합니다."
+            >
+              <span>💾 서버에 영상 저장 (계정 동기화)</span>
+            </button>
+          )}
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-white text-black hover:bg-gray-200 font-bold text-xs px-5 py-2.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ 영상 추가하기</span>
+          </button>
+        </div>
       </div>
 
       {/* Split-Screen Dual Video Comparison Area */}
@@ -339,8 +386,36 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
                 />
               </div>
 
+              {/* Video File Upload */}
+              <div className="space-y-1.5">
+                <label className="block text-gray-400 font-bold">내 기기에서 영상 파일 직접 선택 (서버 저장)</label>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-3.5 py-2 rounded-xl cursor-pointer transition-all">
+                    <Upload className="w-4 h-4" />
+                    <span>파일 업로드</span>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedFile(file);
+                          if (!newTitle) {
+                            setNewTitle(file.name.replace(/\.[^/.]+$/, ""));
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-gray-400 font-mono text-[11px] truncate">
+                    {selectedFile ? selectedFile.name : '선택된 파일 없음'}
+                  </span>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-gray-400 mb-1">영상 파일 URL (또는 기본 예시 영상)</label>
+                <label className="block text-gray-400 mb-1">또는 영상 URL 입력 (URL 직접 입력시)</label>
                 <input
                   type="text"
                   value={newUrl}
@@ -411,9 +486,17 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold px-6 py-2.5 rounded-xl cursor-pointer shadow-md transition-all active:scale-95"
+                  disabled={isUploading}
+                  className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-800 text-black font-extrabold px-6 py-2.5 rounded-xl cursor-pointer shadow-md transition-all active:scale-95 flex items-center gap-2"
                 >
-                  💾 영상 저장하기
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-black" />
+                      <span>서버 업로드 중...</span>
+                    </>
+                  ) : (
+                    <span>💾 서버에 영상 저장하기</span>
+                  )}
                 </button>
               </div>
             </form>

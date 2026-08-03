@@ -686,13 +686,14 @@ export default function App() {
   };
 
   // Handler to add Video (Auto-syncs across PitchSessions, Pitchers, DailyLogs, Schedules, Roadmap)
-  const handleAddVideo = (newVideoData: Omit<PitchVideo, 'id'>) => {
+  const handleAddVideo = (newVideoData: PitchVideo | Omit<PitchVideo, 'id'>) => {
+    const videoId = (newVideoData as PitchVideo).id || `video-${Date.now()}`;
     const newVideo: PitchVideo = {
       ...newVideoData,
-      id: `video-${Date.now()}`,
+      id: videoId,
     };
 
-    setVideos((prev) => [newVideo, ...prev]);
+    setVideos((prev) => [newVideo, ...prev.filter((v) => v.id !== videoId)]);
 
     // 1. Sync Pitcher Max Velocity & Profile & Roadmap
     if (newVideo.velocity > 0) {
@@ -1205,6 +1206,8 @@ export default function App() {
                 videos={videos}
                 onAddVideo={handleAddVideo}
                 onOpenVideoArchive={() => setActiveTab('video')}
+                currentUserEmail={currentUser?.email}
+                onSaveAllRecords={handleSaveAllRecords}
               />
             )}
 
@@ -1231,6 +1234,8 @@ export default function App() {
                 pitcher={currentPitcher}
                 videos={videos}
                 onAddVideo={handleAddVideo}
+                currentUserEmail={currentUser?.email}
+                onSaveAllRecords={handleSaveAllRecords}
               />
             )}
 

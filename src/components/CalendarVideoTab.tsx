@@ -27,6 +27,8 @@ interface CalendarVideoTabProps {
   selectedDate: string;
   onSelectDate: (date: string) => void;
   onOpenArchive?: (videoId: string) => void;
+  currentUserEmail?: string;
+  onSaveAllRecords?: () => void;
 }
 
 export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
@@ -36,6 +38,8 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
   selectedDate,
   onSelectDate,
   onOpenArchive,
+  currentUserEmail,
+  onSaveAllRecords,
 }) => {
   const pitcherVideos = videos.filter((v) => v.pitcherId === pitcher.id);
 
@@ -122,13 +126,24 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setIsRecorderOpen(true)}
-          className="self-start md:self-auto bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-5 py-3 rounded-2xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(52,199,89,0.3)] cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ 투구 영상 촬영 / 저장</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          {onSaveAllRecords && (
+            <button
+              onClick={onSaveAllRecords}
+              className="bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 font-extrabold text-xs px-4 py-3 rounded-2xl transition-all flex items-center gap-2 shadow-md cursor-pointer active:scale-95"
+              title="현재 저장된 모든 영상 및 기록을 서버에 저장하여 다른 기기에서도 볼 수 있게 합니다."
+            >
+              <span>💾 서버에 영상 저장 (계정 동기화)</span>
+            </button>
+          )}
+          <button
+            onClick={() => setIsRecorderOpen(true)}
+            className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs px-5 py-3 rounded-2xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(52,199,89,0.3)] cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ 투구 영상 촬영 / 저장</span>
+          </button>
+        </div>
       </div>
 
       {/* Primary Date Navigation Toolbar */}
@@ -441,6 +456,7 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
         onClose={() => setIsRecorderOpen(false)}
         pitcherId={pitcher.id}
         defaultDate={selectedDate}
+        currentUserEmail={currentUserEmail}
         onAddVideo={onAddVideo}
       />
     </div>
