@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { UserAccount } from '../types';
 import { calculateAge } from '../lib/utils';
 import { BaseballIcon } from './BaseballIcon';
@@ -124,14 +125,16 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }
   };
 
-  return (
+  if (!isOpen) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -153,7 +156,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto group">
                 <div className="w-full h-full rounded-full bg-white/10 border-2 border-white/20 overflow-hidden flex items-center justify-center shadow-xl bg-[#2c2c2e]">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                    <img src={avatarUrl || undefined} alt={user.name} className="w-full h-full object-cover" />
                   ) : (
                     <BaseballIcon className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                   )}
@@ -560,6 +563,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

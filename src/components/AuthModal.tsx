@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { BaseballIcon } from './BaseballIcon';
 import { UserAccount, AthleteAssessment } from '../types';
 import { calculateAge } from '../lib/utils';
@@ -390,14 +391,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 overflow-hidden"
+          className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 overflow-hidden"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
@@ -1220,7 +1221,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

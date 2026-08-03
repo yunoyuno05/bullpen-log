@@ -6,7 +6,8 @@ import {
   PitchSequence,
   GoalRoadmap,
   RoutineItem,
-  TrainingScheduleItem
+  TrainingScheduleItem,
+  PitchVideo
 } from '../types';
 import {
   Calendar as CalendarIcon,
@@ -33,8 +34,11 @@ import {
   SlidersHorizontal,
   RotateCcw,
   Activity,
-  ChevronDown
+  ChevronDown,
+  Video,
+  Play
 } from 'lucide-react';
+import { CalendarVideoTab } from './CalendarVideoTab';
 
 interface TrainingCalendarProps {
   pitcher: Pitcher;
@@ -50,6 +54,9 @@ interface TrainingCalendarProps {
   onToggleScheduleCompleted: (id: string) => void;
   autoArchivePassedSchedules: boolean;
   onToggleAutoArchive: () => void;
+  videos?: PitchVideo[];
+  onAddVideo?: (video: Omit<PitchVideo, 'id'>) => void;
+  onOpenVideoArchive?: (videoId?: string) => void;
 }
 
 export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
@@ -66,6 +73,9 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   onToggleScheduleCompleted,
   autoArchivePassedSchedules,
   onToggleAutoArchive,
+  videos = [],
+  onAddVideo = () => {},
+  onOpenVideoArchive,
 }) => {
   const todayObj = new Date();
   const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
@@ -74,8 +84,8 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   const [currentMonth, setCurrentMonth] = useState<number>(todayObj.getMonth() + 1); // 1-12
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   
-  // Subtab navigation: 'main' (Main summary calendar), 'schedule' (Schedule planning), 'history' (Past logs & records), 'game' (Game sequence), 'roadmap' (Goal roadmap)
-  const [activeSubTab, setActiveSubTab] = useState<'main' | 'schedule' | 'history' | 'game' | 'roadmap'>('main');
+  // Subtab navigation: 'main' (Main summary calendar), 'calendar-video' (15s pitch video tab), 'schedule' (Schedule planning), 'history' (Past logs & records), 'game' (Game sequence), 'roadmap' (Goal roadmap)
+  const [activeSubTab, setActiveSubTab] = useState<'main' | 'calendar-video' | 'schedule' | 'history' | 'game' | 'roadmap'>('main');
 
   // Schedule creation form states
   const [schedDate, setSchedDate] = useState<string>(todayStr);
@@ -143,11 +153,13 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   const pitcherDailyLogs = dailyLogs.filter((l) => l.pitcherId === pitcher.id);
   const pitcherSequences = pitchSequences.filter((s) => s.pitcherId === pitcher.id);
   const pitcherSchedules = schedules.filter((s) => s.pitcherId === pitcher.id);
+  const pitcherVideos = (videos || []).filter((v) => v.pitcherId === pitcher.id);
 
   // Selected date items
   const selectedDateSchedules = pitcherSchedules.filter((s) => s.date === selectedDate);
   const selectedDateSessions = pitcherSessions.filter((s) => s.date === selectedDate);
   const selectedDateLog = pitcherDailyLogs.find((l) => l.date === selectedDate);
+  const selectedDateVideos = pitcherVideos.filter((v) => v.date === selectedDate);
 
   // Record Form States for History subtab
   const currentDayLog = selectedDateLog || {
@@ -317,6 +329,23 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveSubTab('calendar-video')}
+            className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'calendar-video' ? 'bg-emerald-500 text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Video className="w-4 h-4" />
+            <span>투구 영상 저장</span>
+            {pitcherVideos.length > 0 && (
+              <span className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+                activeSubTab === 'calendar-video' ? 'bg-black/20 text-black' : 'bg-emerald-500/20 text-emerald-400'
+              }`}>
+                {pitcherVideos.length}
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveSubTab('schedule')}
             className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === 'schedule' ? 'bg-white text-black font-extrabold shadow-md' : 'text-gray-400 hover:text-white'
@@ -374,24 +403,54 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
               {/* Year & Month Navigation Header */}
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5 text-emerald-400" />
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                    {currentYear}년 {currentMonth}월 캘린더
-                  </h2>
+                  <CalendarIcon className="w-6 h-6 text-emerald-400" />
+                  <div className="flex items-center gap-2">
+                    {/* Year Dropdown Select */}
+                    <div className="relative">
+                      <select
+                        value={currentYear}
+                        onChange={(e) => setCurrentYear(Number(e.target.value))}
+                        className="bg-black/60 border border-white/20 text-white text-lg sm:text-2xl font-black rounded-xl pl-3 pr-8 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
+                      >
+                        {Array.from({ length: 21 }, (_, i) => todayObj.getFullYear() - 10 + i).map((y) => (
+                          <option key={y} value={y} className="bg-[#1c1c1e] text-white">
+                            {y}년
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-gray-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" />
+                    </div>
+
+                    {/* Month Dropdown Select */}
+                    <div className="relative">
+                      <select
+                        value={currentMonth}
+                        onChange={(e) => setCurrentMonth(Number(e.target.value))}
+                        className="bg-black/60 border border-white/20 text-white text-lg sm:text-2xl font-black rounded-xl pl-3 pr-8 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
+                      >
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                          <option key={m} value={m} className="bg-[#1c1c1e] text-white">
+                            {m}월
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-gray-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Navigation Controls: Prev/Next Month & Year */}
                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-2xl p-1 backdrop-blur-md">
                   <button
                     onClick={handlePrevYear}
-                    title="이전 년도"
+                    title="1년 전"
                     className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
                   >
                     <ChevronsLeft className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handlePrevMonth}
-                    title="이전 달"
+                    title="1달 전"
                     className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -399,26 +458,48 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
 
                   <button
                     onClick={handleToday}
-                    className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer"
+                    className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer border border-white/10"
+                    title="오늘 날짜로 이동"
                   >
                     오늘
                   </button>
 
                   <button
                     onClick={handleNextMonth}
-                    title="다음 달"
+                    title="1달 후"
                     className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleNextYear}
-                    title="다음 년도"
+                    title="1년 후"
                     className="p-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
                   >
                     <ChevronsRight className="w-4 h-4" />
                   </button>
                 </div>
+              </div>
+
+              {/* Quick Month Selection Pills Bar */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                <span className="text-gray-400 text-[11px] font-bold mr-1 shrink-0">빠른 월 선택:</span>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                  const isCurrent = m === currentMonth;
+                  return (
+                    <button
+                      key={`main-m-pill-${m}`}
+                      onClick={() => setCurrentMonth(m)}
+                      className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        isCurrent
+                          ? 'bg-emerald-500 text-black shadow-md scale-105'
+                          : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-white/10'
+                      }`}
+                    >
+                      {m}월
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Day of week headers */}
@@ -446,6 +527,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                   const daySchedules = pitcherSchedules.filter((s) => s.date === dateStr);
                   const daySessions = pitcherSessions.filter((s) => s.date === dateStr);
                   const dayLog = pitcherDailyLogs.find((l) => l.date === dateStr);
+                  const dayVideos = pitcherVideos.filter((v) => v.date === dateStr);
 
                   const upcomingCount = daySchedules.filter((s) => !s.completed).length;
                   const completedSchedCount = daySchedules.filter((s) => s.completed).length;
@@ -488,6 +570,14 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
 
                       {/* Day summary badges */}
                       <div className="space-y-1 w-full overflow-hidden">
+                        {/* Pitch Video Badge */}
+                        {dayVideos.length > 0 && (
+                          <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 truncate flex items-center gap-1">
+                            <Video className="w-3 h-3 text-emerald-400 shrink-0" />
+                            <span>투구 영상 {dayVideos.length}개</span>
+                          </div>
+                        )}
+
                         {/* Upcoming Schedules Badge */}
                         {upcomingCount > 0 && (
                           <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30 truncate flex items-center gap-1">
@@ -619,6 +709,43 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       </div>
                     )}
 
+                    {/* Pitch Video Section */}
+                    <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
+                          <Video className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>🎥 투구 영상 ({selectedDateVideos.length}개)</span>
+                        </span>
+                        <button
+                          onClick={() => setActiveSubTab('calendar-video')}
+                          className="text-[10px] font-extrabold text-emerald-400 hover:underline cursor-pointer"
+                        >
+                          영상 탭 이동 ▶
+                        </button>
+                      </div>
+
+                      {selectedDateVideos.length === 0 ? (
+                        <p className="text-[11px] text-gray-400">
+                          이 날짜에 저장된 투구 영상이 없습니다.
+                        </p>
+                      ) : (
+                        <div className="space-y-1 pt-1">
+                          {selectedDateVideos.map((v) => (
+                            <div
+                              key={v.id}
+                              onClick={() => setActiveSubTab('calendar-video')}
+                              className="p-2 bg-black/60 rounded-xl flex items-center justify-between text-[11px] hover:bg-black transition cursor-pointer"
+                            >
+                              <span className="font-bold text-white truncate max-w-[150px]">{v.title}</span>
+                              <span className="text-emerald-400 font-mono font-bold flex items-center gap-1">
+                                {v.velocity}km/h <Play className="w-3 h-3 fill-emerald-400" />
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Diary */}
                     {selectedDateLog && selectedDateLog.diary ? (
                       <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-xs text-gray-300 leading-relaxed italic">
@@ -626,6 +753,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       </div>
                     ) : (
                       selectedDateSessions.length === 0 &&
+                      selectedDateVideos.length === 0 &&
                       (!selectedDateLog || selectedDateLog.weightVolumeKg === 0) && (
                         <div className="p-3 bg-white/5 border border-white/5 rounded-2xl text-xs text-gray-400 text-center">
                           완료된 훈련 기록이 아직 없습니다.
@@ -640,15 +768,29 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
               <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-white/10 rounded-2xl text-xs space-y-2">
                 <div className="font-bold text-white flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>스케줄 관리 팁</span>
+                  <span>스케줄 & 영상 관리 팁</span>
                 </div>
                 <p className="text-[11px] text-gray-300 leading-relaxed">
-                  '일정 계획'에서 웨이트, 불펜, 롱토스 등 세부 계획을 추가하면 선택한 일자에 자동 표시됩니다.
+                  '투구 영상 저장' 탭에서 웹캠으로 바로 투구 모션을 녹화하면 캘린더 해당 일자에 자동 저장 및 프레임 단위 분석이 가능합니다.
                 </p>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB: 15-SECOND CALENDAR PITCH VIDEO TAB */}
+      {/* ========================================================= */}
+      {activeSubTab === 'calendar-video' && (
+        <CalendarVideoTab
+          pitcher={pitcher}
+          videos={videos || []}
+          onAddVideo={onAddVideo || (() => {})}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          onOpenArchive={onOpenVideoArchive}
+        />
       )}
 
       {/* ========================================================= */}

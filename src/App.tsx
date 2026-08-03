@@ -511,7 +511,7 @@ export default function App() {
       }
     : (pitchers.find((p) => p.id === selectedPitcherId) || pitchers[0] || INITIAL_PITCHERS[0]);
 
-  // Handler to save new pitching session
+  // Handler to save new pitching session (Auto-syncs across Pitchers, DailyLogs, Schedules, Roadmap)
   const handleSaveSession = (newSessionData: Omit<PitchSession, 'id'>) => {
     const newSession: PitchSession = {
       ...newSessionData,
@@ -520,16 +520,92 @@ export default function App() {
 
     setSessions((prev) => [newSession, ...prev]);
 
-    // Update current pitcher's ACWR if needed
-    if (newSessionData.acwrImpact) {
-      setPitchers((prev) =>
-        prev.map((p) =>
-          p.id === newSessionData.pitcherId
-            ? { ...p, currentAcwr: newSessionData.acwrImpact! }
-            : p
-        )
-      );
+    // 1. Sync ACWR & Max Velocity for Pitcher & User Account & Roadmap
+    setPitchers((prev) =>
+      prev.map((p) => {
+        if (p.id === newSessionData.pitcherId) {
+          return {
+            ...p,
+            currentAcwr: newSessionData.acwrImpact || p.currentAcwr,
+            maxVelocity: Math.max(p.maxVelocity || 0, newSessionData.maxVel || 0),
+          };
+        }
+        return p;
+      })
+    );
+
+    if (currentUser && currentUser.id === newSessionData.pitcherId && newSessionData.maxVel > (currentUser.maxVelocity || 0)) {
+      handleUpdateProfile({ ...currentUser, maxVelocity: newSessionData.maxVel });
     }
+
+    setGoalRoadmap((prev) => {
+      if (prev.pitcherId === newSessionData.pitcherId && newSessionData.maxVel > prev.currentVelocity) {
+        return { ...prev, currentVelocity: newSessionData.maxVel };
+      }
+      return prev;
+    });
+
+    // 2. Auto-sync to Daily Logs
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === newSessionData.pitcherId && l.date === newSessionData.date
+      );
+      const sessionNote = `⚾ [피칭 세션 자동 연동] ${newSessionData.sessionType} ${newSessionData.totalPitches}구 완료 (최고 ${newSessionData.maxVel}km/h) ${newSessionData.notes || ''}`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          trainingType: existing.trainingType || (newSessionData.sessionType === 'GAME' ? 'GAME' : 'BULLPEN'),
+          diary: existing.diary ? `${existing.diary}\n${sessionNote}` : sessionNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: newSessionData.pitcherId,
+          date: newSessionData.date,
+          trainingType: newSessionData.sessionType === 'GAME' ? 'GAME' : 'BULLPEN',
+          painScore: newSessionData.armSoreness ? 4 : 0,
+          painLocation: newSessionData.sorenessLocation || '',
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: sessionNote,
+          routines: [
+            { id: 'r1', title: '불펜/경기 후 아이싱 및 어깨 보강', category: 'RECOVERY', completed: true },
+          ],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // 3. Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newSessionData.pitcherId && s.date === newSessionData.date && (s.category === 'BULLPEN' || s.category === 'TACTICAL')
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: newSessionData.pitcherId,
+          date: newSessionData.date,
+          time: '14:00',
+          category: 'BULLPEN',
+          title: `⚾ [자동 기록] ${newSessionData.sessionType} ${newSessionData.totalPitches}구 피칭`,
+          intensity: 'HIGH',
+          details: `최고 ${newSessionData.maxVel}km/h, RPE ${newSessionData.rpe}`,
+          durationMinutes: 45,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
   };
 
   // Handler to delete session
@@ -537,22 +613,234 @@ export default function App() {
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));
   };
 
-  // Handler to add ROM record
+  // Handler to add ROM record (Auto-syncs with DailyLog & Recovery Schedule)
   const handleAddROMRecord = (newRomData: Omit<ROMRecord, 'id'>) => {
     const newRom: ROMRecord = {
       ...newRomData,
       id: `rom-${Date.now()}`,
     };
     setRomRecords((prev) => [newRom, ...prev]);
+
+    // Auto-sync to Daily Log
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === newRomData.pitcherId && l.date === newRomData.date
+      );
+      const romNote = `🏥 [어깨 ROM 검사 자동 연동] 굴곡/신전/회전 측정 완료 (통증 ${newRomData.painScore}/10 - ${newRomData.painLocation || '이상 없음'})`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          painScore: newRomData.painScore,
+          painLocation: newRomData.painLocation || existing.painLocation,
+          diary: existing.diary ? `${existing.diary}\n${romNote}` : romNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: newRomData.pitcherId,
+          date: newRomData.date,
+          trainingType: 'REHAB',
+          painScore: newRomData.painScore,
+          painLocation: newRomData.painLocation || '',
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: romNote,
+          routines: [
+            { id: 'r1', title: '어깨 회전근개 가동성 모니터링', category: 'ARM_CARE', completed: true },
+          ],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newRomData.pitcherId && s.date === newRomData.date && (s.category === 'RECOVERY' || s.category === 'REST')
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: newRomData.pitcherId,
+          date: newRomData.date,
+          time: '10:00',
+          category: 'RECOVERY',
+          title: `🏥 [자동 기록] 어깨 가동범위(ROM) 측정 완료`,
+          intensity: 'LOW',
+          details: `통증 ${newRomData.painScore}/10`,
+          durationMinutes: 20,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
   };
 
-  // Handler to add Video
+  // Handler to add Video (Auto-syncs across PitchSessions, Pitchers, DailyLogs, Schedules, Roadmap)
   const handleAddVideo = (newVideoData: Omit<PitchVideo, 'id'>) => {
     const newVideo: PitchVideo = {
       ...newVideoData,
       id: `video-${Date.now()}`,
     };
+
     setVideos((prev) => [newVideo, ...prev]);
+
+    // 1. Sync Pitcher Max Velocity & Profile & Roadmap
+    if (newVideo.velocity > 0) {
+      setPitchers((prev) =>
+        prev.map((p) =>
+          p.id === newVideo.pitcherId
+            ? { ...p, maxVelocity: Math.max(p.maxVelocity || 0, newVideo.velocity) }
+            : p
+        )
+      );
+      if (currentUser && currentUser.id === newVideo.pitcherId) {
+        if (newVideo.velocity > (currentUser.maxVelocity || 0)) {
+          handleUpdateProfile({ ...currentUser, maxVelocity: newVideo.velocity });
+        }
+      }
+      setGoalRoadmap((prev) => {
+        if (prev.pitcherId === newVideo.pitcherId && newVideo.velocity > prev.currentVelocity) {
+          return { ...prev, currentVelocity: newVideo.velocity };
+        }
+        return prev;
+      });
+    }
+
+    // 2. Auto-sync to Pitch Sessions (투구 기록 시스템)
+    setSessions((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newVideo.pitcherId && s.date === newVideo.date
+      );
+
+      const typeKey = (newVideo.pitchType || '').toLowerCase();
+      const isFastball = typeKey.includes('포심') || typeKey.includes('직구') || typeKey.includes('fastball');
+      const isSlider = typeKey.includes('슬라이더') || typeKey.includes('slider');
+      const isCurve = typeKey.includes('커브') || typeKey.includes('curve');
+      const isChangeup = typeKey.includes('체인지업') || typeKey.includes('changeup');
+      const isCutter = typeKey.includes('커터') || typeKey.includes('cutter');
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const newTotalPitches = existing.totalPitches + 1;
+        const newMaxVel = Math.max(existing.maxVel, newVideo.velocity || 0);
+        const newAvgVel = Math.round(
+          (existing.avgVel * existing.totalPitches + (newVideo.velocity || 0)) / newTotalPitches
+        );
+
+        const updatedSession: PitchSession = {
+          ...existing,
+          totalPitches: newTotalPitches,
+          fastballCount: existing.fastballCount + (isFastball ? 1 : 0),
+          sliderCount: existing.sliderCount + (isSlider ? 1 : 0),
+          curveballCount: existing.curveballCount + (isCurve ? 1 : 0),
+          changeupCount: existing.changeupCount + (isChangeup ? 1 : 0),
+          cutterCount: existing.cutterCount + (isCutter ? 1 : 0),
+          maxVel: newMaxVel,
+          avgVel: newAvgVel,
+          notes: existing.notes
+            ? `${existing.notes} | 🎥 [투구 영상 연동] ${newVideo.title}`
+            : `🎥 [투구 영상 연동] ${newVideo.title}`,
+        };
+
+        const next = [...prev];
+        next[existingIdx] = updatedSession;
+        return next;
+      } else {
+        const targetPitcher = pitchers.find((p) => p.id === newVideo.pitcherId);
+        const newSession: PitchSession = {
+          id: `session-auto-${Date.now()}`,
+          pitcherId: newVideo.pitcherId,
+          date: newVideo.date,
+          sessionType: 'BULLPEN',
+          totalPitches: 1,
+          fastballCount: isFastball ? 1 : 0,
+          sliderCount: isSlider ? 1 : 0,
+          curveballCount: isCurve ? 1 : 0,
+          changeupCount: isChangeup ? 1 : 0,
+          cutterCount: isCutter ? 1 : 0,
+          maxVel: newVideo.velocity || 145,
+          avgVel: newVideo.velocity || 145,
+          rpe: 7,
+          fatigue: 4,
+          armSoreness: false,
+          notes: `🎥 [투구 영상 자동 연동] ${newVideo.title} (${newVideo.pitchType} ${newVideo.velocity}km/h)`,
+          acwrImpact: parseFloat(
+            ((targetPitcher?.currentAcwr || 1.15) + 0.02).toFixed(2)
+          ),
+        };
+        return [newSession, ...prev];
+      }
+    });
+
+    // 3. Auto-sync to Daily Log
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === newVideo.pitcherId && l.date === newVideo.date
+      );
+      const vidNote = `🎥 [투구 영상 자동 연동] ${newVideo.title} (${newVideo.pitchType} ${newVideo.velocity}km/h)`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          diary: existing.diary ? `${existing.diary}\n${vidNote}` : vidNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: newVideo.pitcherId,
+          date: newVideo.date,
+          trainingType: 'BULLPEN',
+          painScore: 0,
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: vidNote,
+          routines: [
+            { id: 'r1', title: '투구 모션 영상 촬영 및 스피드 분석', category: 'ARM_CARE', completed: true },
+          ],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // 4. Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newVideo.pitcherId && s.date === newVideo.date && s.category === 'BULLPEN'
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: newVideo.pitcherId,
+          date: newVideo.date,
+          time: '15:00',
+          category: 'BULLPEN',
+          title: `🎥 [자동 기록] ${newVideo.title} 투구 영상 분석`,
+          intensity: 'HIGH',
+          details: `${newVideo.pitchType} ${newVideo.velocity}km/h 영상 저장`,
+          durationMinutes: 30,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
   };
 
   // Handler to save DailyLog
@@ -566,15 +854,168 @@ export default function App() {
       }
       return [updatedLog, ...prev];
     });
+
+    // Auto-sync schedule items for that day if completed routines exist
+    if (updatedLog.routines && updatedLog.routines.some((r) => r.completed)) {
+      setTrainingSchedules((prev) =>
+        prev.map((s) => {
+          if (s.pitcherId === updatedLog.pitcherId && s.date === updatedLog.date) {
+            return { ...s, completed: true };
+          }
+          return s;
+        })
+      );
+    }
   };
 
-  // Handler to add PitchSequence
+  // Handler to add PitchSequence (Auto-syncs across Pitchers, PitchSessions, DailyLogs, Schedules)
   const handleAddPitchSequence = (seqData: Omit<PitchSequence, 'id'>) => {
     const newSeq: PitchSequence = {
       ...seqData,
       id: `seq-${Date.now()}`,
     };
     setPitchSequences((prev) => [newSeq, ...prev]);
+
+    // 1. Sync Max Velocity
+    if (seqData.velocity > 0) {
+      setPitchers((prev) =>
+        prev.map((p) =>
+          p.id === seqData.pitcherId
+            ? { ...p, maxVelocity: Math.max(p.maxVelocity || 0, seqData.velocity) }
+            : p
+        )
+      );
+      if (currentUser && currentUser.id === seqData.pitcherId && seqData.velocity > (currentUser.maxVelocity || 0)) {
+        handleUpdateProfile({ ...currentUser, maxVelocity: seqData.velocity });
+      }
+      setGoalRoadmap((prev) => {
+        if (prev.pitcherId === seqData.pitcherId && seqData.velocity > prev.currentVelocity) {
+          return { ...prev, currentVelocity: seqData.velocity };
+        }
+        return prev;
+      });
+    }
+
+    // 2. Auto-sync to Pitch Session
+    setSessions((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === seqData.pitcherId && s.date === seqData.date
+      );
+
+      const typeKey = (seqData.pitchType || '').toLowerCase();
+      const isFastball = typeKey.includes('포심') || typeKey.includes('직구') || typeKey.includes('fastball');
+      const isSlider = typeKey.includes('슬라이더') || typeKey.includes('slider');
+      const isCurve = typeKey.includes('커브') || typeKey.includes('curve');
+      const isChangeup = typeKey.includes('체인지업') || typeKey.includes('changeup');
+      const isCutter = typeKey.includes('커터') || typeKey.includes('cutter');
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const newTotal = existing.totalPitches + 1;
+        const newMax = Math.max(existing.maxVel, seqData.velocity || 0);
+        const newAvg = Math.round((existing.avgVel * existing.totalPitches + (seqData.velocity || 0)) / newTotal);
+
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          totalPitches: newTotal,
+          fastballCount: existing.fastballCount + (isFastball ? 1 : 0),
+          sliderCount: existing.sliderCount + (isSlider ? 1 : 0),
+          curveballCount: existing.curveballCount + (isCurve ? 1 : 0),
+          changeupCount: existing.changeupCount + (isChangeup ? 1 : 0),
+          cutterCount: existing.cutterCount + (isCutter ? 1 : 0),
+          maxVel: newMax,
+          avgVel: newAvg,
+          notes: existing.notes
+            ? `${existing.notes} | 🎯 [구종 기록 연동] vs ${seqData.opponent}`
+            : `🎯 [구종 기록 연동] vs ${seqData.opponent}`,
+        };
+        return next;
+      } else {
+        const targetPitcher = pitchers.find((p) => p.id === seqData.pitcherId);
+        const newSession: PitchSession = {
+          id: `session-auto-${Date.now()}`,
+          pitcherId: seqData.pitcherId,
+          date: seqData.date,
+          sessionType: 'GAME',
+          totalPitches: 1,
+          fastballCount: isFastball ? 1 : 0,
+          sliderCount: isSlider ? 1 : 0,
+          curveballCount: isCurve ? 1 : 0,
+          changeupCount: isChangeup ? 1 : 0,
+          cutterCount: isCutter ? 1 : 0,
+          maxVel: seqData.velocity || 145,
+          avgVel: seqData.velocity || 145,
+          rpe: 8,
+          fatigue: 5,
+          armSoreness: false,
+          notes: `🎯 [실전 경기 구종 자동 연동] vs ${seqData.opponent} (${seqData.batter} 타자) - ${seqData.pitchType} ${seqData.velocity}km/h`,
+          acwrImpact: parseFloat(
+            ((targetPitcher?.currentAcwr || 1.15) + 0.03).toFixed(2)
+          ),
+        };
+        return [newSession, ...prev];
+      }
+    });
+
+    // 3. Auto-sync to Daily Log
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === seqData.pitcherId && l.date === seqData.date
+      );
+      const seqNote = `🎯 [실전 피칭 기록 연동] vs ${seqData.opponent} (${seqData.inning}회말 ${seqData.batter} 타자): ${seqData.pitchType} ${seqData.velocity}km/h (${seqData.result})`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          trainingType: 'GAME',
+          diary: existing.diary ? `${existing.diary}\n${seqNote}` : seqNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: seqData.pitcherId,
+          date: seqData.date,
+          trainingType: 'GAME',
+          painScore: 0,
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: seqNote,
+          routines: [],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // 4. Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === seqData.pitcherId && s.date === seqData.date && (s.category === 'TACTICAL' || s.category === 'BULLPEN')
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: seqData.pitcherId,
+          date: seqData.date,
+          time: '18:00',
+          category: 'TACTICAL',
+          title: `🎯 [자동 기록] vs ${seqData.opponent} 실전 경기 피칭`,
+          intensity: 'HIGH',
+          details: `${seqData.batter} 타자상대 ${seqData.pitchType} ${seqData.velocity}km/h`,
+          durationMinutes: 120,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
   };
 
   // Handler to add or update Training Schedule
@@ -595,11 +1036,35 @@ export default function App() {
     setTrainingSchedules((prev) => prev.filter((s) => s.id !== scheduleId));
   };
 
-  // Handler to toggle Training Schedule completion
+  // Handler to toggle Training Schedule completion with DailyLog Auto-Sync
   const handleToggleScheduleCompleted = (scheduleId: string) => {
-    setTrainingSchedules((prev) =>
-      prev.map((s) => (s.id === scheduleId ? { ...s, completed: !s.completed } : s))
-    );
+    setTrainingSchedules((prev) => {
+      const target = prev.find((s) => s.id === scheduleId);
+      if (target) {
+        const newCompleted = !target.completed;
+        if (newCompleted) {
+          setDailyLogs((dPrev) => {
+            const existingIdx = dPrev.findIndex(
+              (l) => l.pitcherId === target.pitcherId && l.date === target.date
+            );
+            const schedNote = `📅 [일정 완료 연동] ${target.title}`;
+            if (existingIdx >= 0) {
+              const existing = dPrev[existingIdx];
+              if (!existing.diary.includes(target.title)) {
+                const next = [...dPrev];
+                next[existingIdx] = {
+                  ...existing,
+                  diary: existing.diary ? `${existing.diary}\n${schedNote}` : schedNote,
+                };
+                return next;
+              }
+            }
+            return dPrev;
+          });
+        }
+      }
+      return prev.map((s) => (s.id === scheduleId ? { ...s, completed: !s.completed } : s));
+    });
   };
 
   // Scroll to top when tab changes
@@ -650,6 +1115,7 @@ export default function App() {
                 romRecords={romRecords}
                 schedules={trainingSchedules}
                 dailyLogs={dailyLogs}
+                videos={videos}
                 setActiveTab={setActiveTab}
                 onOpenLogger={() => setIsLoggerOpen(true)}
               />
@@ -670,6 +1136,9 @@ export default function App() {
                 onToggleScheduleCompleted={handleToggleScheduleCompleted}
                 autoArchivePassedSchedules={autoArchivePassedSchedules}
                 onToggleAutoArchive={() => setAutoArchivePassedSchedules((prev) => !prev)}
+                videos={videos}
+                onAddVideo={handleAddVideo}
+                onOpenVideoArchive={() => setActiveTab('video')}
               />
             )}
 

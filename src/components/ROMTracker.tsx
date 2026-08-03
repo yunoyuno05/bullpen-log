@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Pitcher, ROMRecord } from '../types';
 import {
   Activity,
@@ -249,8 +250,8 @@ export const ROMTracker: React.FC<ROMTrackerProps> = ({
       </div>
 
       {/* New ROM Record Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-gray-900 border border-white/15 rounded-3xl p-6 md:p-8 max-w-lg w-full space-y-6 text-white shadow-2xl my-8">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h3 className="text-xl font-bold flex items-center gap-2">
@@ -366,7 +367,8 @@ export const ROMTracker: React.FC<ROMTrackerProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

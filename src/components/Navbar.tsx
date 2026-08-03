@@ -123,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <div className="w-5 h-5 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-[10px] font-bold shrink-0">
                     {currentUser.avatarUrl ? (
-                      <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
+                      <img src={currentUser.avatarUrl || undefined} alt={currentUser.name} className="w-full h-full object-cover" />
                     ) : (
                       <User className="w-3.5 h-3.5 text-white" />
                     )}
@@ -206,7 +206,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       >
                         <div className="w-8 h-8 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-xs font-bold text-white shrink-0">
                           {currentUser.avatarUrl ? (
-                            <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
+                            <img src={currentUser.avatarUrl || undefined} alt={currentUser.name} className="w-full h-full object-cover" />
                           ) : (
                             <User className="w-4 h-4 text-white" />
                           )}

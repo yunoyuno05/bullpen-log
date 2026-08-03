@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Pitcher, PitchSession, PitchSessionType } from '../types';
 import { BaseballIcon } from './BaseballIcon';
 import { AlertTriangle, Plus, Minus, Flame, Check } from 'lucide-react';
@@ -70,8 +71,8 @@ export const PitchLoggerModal: React.FC<PitchLoggerModalProps> = ({
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-[#1c1c1e]/95 border border-white/20 rounded-[28px] p-6 md:p-8 max-w-2xl w-full text-white shadow-2xl my-8 space-y-6 backdrop-blur-3xl">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -336,6 +337,7 @@ export const PitchLoggerModal: React.FC<PitchLoggerModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

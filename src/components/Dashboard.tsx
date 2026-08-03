@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pitcher, PitchSession, ROMRecord, TrainingScheduleItem, DailyLog } from '../types';
+import { Pitcher, PitchSession, ROMRecord, TrainingScheduleItem, DailyLog, PitchVideo } from '../types';
 import { BaseballIcon } from './BaseballIcon';
 import {
   TrendingUp,
@@ -15,8 +15,12 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronDown,
   FileText,
-  Check
+  Check,
+  Video
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -40,6 +44,7 @@ interface DashboardProps {
   romRecords: ROMRecord[];
   schedules?: TrainingScheduleItem[];
   dailyLogs?: DailyLog[];
+  videos?: PitchVideo[];
   setActiveTab: (tab: string) => void;
   onOpenLogger: () => void;
 }
@@ -50,6 +55,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   romRecords,
   schedules = [],
   dailyLogs = [],
+  videos = [],
   setActiveTab,
   onOpenLogger,
 }) => {
@@ -73,6 +79,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handlePrevMonth = () => setCalMonthDate(new Date(year, month - 1, 1));
   const handleNextMonth = () => setCalMonthDate(new Date(year, month + 1, 1));
+  const handlePrevYear = () => setCalMonthDate(new Date(year - 1, month, 1));
+  const handleNextYear = () => setCalMonthDate(new Date(year + 1, month, 1));
 
   const categoryLabels: Record<string, { label: string; color: string }> = {
     WEIGHT: { label: '웨이트', color: 'bg-[#FF9500]/20 text-[#FF9500] border-[#FF9500]/30' },
@@ -162,7 +170,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center gap-5">
             <div className="relative">
               <img
-                src={pitcher.avatarUrl}
+                src={pitcher.avatarUrl || undefined}
                 alt={pitcher.name}
                 className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
               />
@@ -255,30 +263,102 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Mini Calendar Grid (5 cols on lg) */}
           <div className="lg:col-span-5 bg-black/40 border border-white/10 rounded-[22px] p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white flex items-center gap-2">
-                {year}년 {month + 1}월
-              </span>
+            {/* Calendar Year/Month Direct Jump Header */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+              {/* Year & Month Dropdowns */}
+              <div className="flex items-center gap-1.5">
+                <div className="relative">
+                  <select
+                    value={year}
+                    onChange={(e) => setCalMonthDate(new Date(Number(e.target.value), month, 1))}
+                    className="bg-black/60 border border-white/20 text-white text-xs font-bold rounded-lg pl-2.5 pr-6 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
+                  >
+                    {Array.from({ length: 21 }, (_, i) => new Date().getFullYear() - 10 + i).map((y) => (
+                      <option key={y} value={y} className="bg-[#1c1c1e] text-white">
+                        {y}년
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3 h-3 text-gray-400 pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" />
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={month}
+                    onChange={(e) => setCalMonthDate(new Date(year, Number(e.target.value), 1))}
+                    className="bg-black/60 border border-white/20 text-white text-xs font-bold rounded-lg pl-2.5 pr-6 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i).map((m) => (
+                      <option key={m} value={m} className="bg-[#1c1c1e] text-white">
+                        {m + 1}월
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3 h-3 text-gray-400 pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+
+              {/* Action Buttons: Prev/Next Year & Month */}
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setSelectedCalendarDate(todayStr)}
-                  className="bg-white/10 hover:bg-white/20 text-gray-200 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors border border-white/10 mr-1 cursor-pointer"
+                  onClick={() => {
+                    setCalMonthDate(new Date());
+                    setSelectedCalendarDate(todayStr);
+                  }}
+                  className="bg-white/10 hover:bg-white/20 text-gray-200 text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors border border-white/10 mr-0.5 cursor-pointer"
+                  title="오늘 날짜로 이동"
                 >
                   오늘
                 </button>
                 <button
-                  onClick={handlePrevMonth}
-                  className="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors cursor-pointer"
+                  onClick={handlePrevYear}
+                  title="1년 전"
+                  className="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronsLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handlePrevMonth}
+                  title="1달 전"
+                  className="p-1 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={handleNextMonth}
-                  className="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors cursor-pointer"
+                  title="1달 후"
+                  className="p-1 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleNextYear}
+                  title="1년 후"
+                  className="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ChevronsRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+            </div>
+
+            {/* Quick Month Selection Pills Bar */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none text-[10px]">
+              {Array.from({ length: 12 }, (_, i) => i).map((m) => {
+                const isCurrent = m === month;
+                return (
+                  <button
+                    key={`m-pill-${m}`}
+                    onClick={() => setCalMonthDate(new Date(year, m, 1))}
+                    className={`px-2 py-0.5 rounded-md font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                      isCurrent
+                        ? 'bg-emerald-500 text-black font-extrabold shadow-sm'
+                        : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    {m + 1}월
+                  </button>
+                );
+              })}
             </div>
 
             {/* Days of Week Header */}

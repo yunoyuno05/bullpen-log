@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Pitcher, PitchVideo } from '../types';
 import {
   Video,
@@ -196,7 +197,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               {leftVideo ? (
                 <video
                   ref={leftRef}
-                  src={leftVideo.videoUrl}
+                  src={leftVideo.videoUrl || undefined}
                   className="w-full h-full object-cover"
                   loop
                   muted
@@ -244,7 +245,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               {rightVideo ? (
                 <video
                   ref={rightRef}
-                  src={rightVideo.videoUrl}
+                  src={rightVideo.videoUrl || undefined}
                   className="w-full h-full object-cover"
                   loop
                   muted
@@ -282,7 +283,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               className="bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl p-4 space-y-3 hover:border-white/30 transition-all"
             >
               <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-white/10">
-                <video src={v.videoUrl} className="w-full h-full object-cover" muted />
+                <video src={v.videoUrl || undefined} className="w-full h-full object-cover" muted />
                 <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[10px] font-mono text-gray-300">
                   {v.cameraAngle}
                 </div>
@@ -312,8 +313,8 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
       </div>
 
       {/* Add Video Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-gray-900 border border-white/15 rounded-3xl p-6 max-w-lg w-full space-y-6 text-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h3 className="text-xl font-bold flex items-center gap-2">
@@ -417,7 +418,8 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
