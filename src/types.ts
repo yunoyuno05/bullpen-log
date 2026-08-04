@@ -19,13 +19,10 @@ export interface Pitcher {
   email?: string;
 }
 
-export interface AthleteAssessment {
-  painStatus?: string;
-  seasonGoal?: string;
-  weeklyTrainingFreq?: string;
-  preferredTrainingFocus?: string;
-  mainPitchTypes?: string[];
-}
+export type ThemeType = 'light' | 'dark' | 'baseball-classic' | 'high-contrast';
+export type LanguageType = 'ko' | 'en' | 'ja';
+
+export type SubscriptionTier = 'FREE' | 'BEGINNER' | 'AMATEUR' | 'PRO';
 
 export interface UserAccount {
   id: string;
@@ -33,17 +30,70 @@ export interface UserAccount {
   name: string;
   number: number;
   team: string;
-  throwingArm: 'RHP' | 'LHP' | 'SWITCH'; // 우투 / 좌투 / 양투
+  throwingArm: 'RHP' | 'LHP' | 'SWITCH';
   role?: string;
-  height?: number; // cm
-  weight?: number; // kg
-  wingspan?: number; // cm
+  height?: number;
+  weight?: number;
+  wingspan?: number;
   age?: number;
   birthdate?: string;
   joinedDate: string;
   maxVelocity?: number;
   avatarUrl?: string;
   assessment?: AthleteAssessment;
+  subscriptionTier?: SubscriptionTier;
+  isAdmin?: boolean;
+  themePref?: ThemeType;
+  langPref?: LanguageType;
+}
+
+export interface Post {
+  id: string;
+  authorId: string;
+  authorName: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+  comments: Comment[];
+  videoUrl?: string;
+}
+
+export interface Comment {
+  id: string;
+  postId: string;
+  authorId: string;
+  authorName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface Ticket {
+  id: string;
+  userId: string;
+  userName: string;
+  subject: string;
+  message: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  createdAt: string;
+  replies: TicketReply[];
+}
+
+export interface TicketReply {
+  id: string;
+  ticketId: string;
+  senderId: string; // user or admin
+  senderName: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface AthleteAssessment {
+  painStatus?: string;
+  seasonGoal?: string;
+  weeklyTrainingFreq?: string;
+  preferredTrainingFocus?: string;
+  mainPitchTypes?: string[];
 }
 
 export interface PitchSession {
@@ -108,6 +158,12 @@ export interface ArmCareExercise {
   description: string;
 }
 
+export interface AffiliateProduct {
+  name: string;
+  url: string;
+  reason: string;
+}
+
 export interface AIReportData {
   riskStatus: 'SAFE' | 'CAUTION' | 'DANGER';
   riskScore: number;
@@ -117,6 +173,7 @@ export interface AIReportData {
   recommendedProgram: RecommendedDay[];
   armCareExercises: ArmCareExercise[];
   nutritionAndRecovery: string[];
+  recommendedGear?: AffiliateProduct[];
 }
 
 export interface AIChatMessage {

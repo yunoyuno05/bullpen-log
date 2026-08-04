@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useAppStore } from './lib/store';
 import { supabase } from './lib/supabase';
 import { Pitcher, PitchSession, ROMRecord, PitchVideo, DailyLog, PitchSequence, GoalRoadmap, UserAccount, TrainingScheduleItem } from './types';
 import {
@@ -44,6 +45,7 @@ export function loadAccountData(user: UserAccount) {
           ...user,
           id: user.id || parsed.user?.id || 'usr_' + Date.now(),
           email: user.email,
+          isAdmin: user.email === 'cheatpt@gmail.com' || parsed.user?.isAdmin,
         };
 
         let pitchersList: Pitcher[] = Array.isArray(parsed.pitchers) ? parsed.pitchers : [];
@@ -129,6 +131,9 @@ export function loadAccountData(user: UserAccount) {
   };
   const initialSchedules = INITIAL_TRAINING_SCHEDULES.map((ts) => (ts.pitcherId === 'p1' ? { ...ts, pitcherId: user.id } : ts));
 
+  if (user.email === 'cheatpt@gmail.com') {
+    user.isAdmin = true;
+  }
   const accountData = {
     user,
     pitchers: [initialUserPitcher, ...INITIAL_PITCHERS.filter((p) => p.id !== 'p1')],
@@ -159,6 +164,9 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.email) {
+          if (parsed.email === 'cheatpt@gmail.com') {
+            parsed.isAdmin = true;
+          }
           return parsed;
         }
       } catch (e) {
@@ -167,6 +175,11 @@ export default function App() {
     }
     return null;
   });
+
+  const setUserToStore = useAppStore(state => state.setUser);
+  useEffect(() => {
+    setUserToStore(currentUser);
+  }, [currentUser, setUserToStore]);
 
   // Load account data if currentUser is present on initial mount
   const initialAccountData = currentUser ? loadAccountData(currentUser) : null;
@@ -1245,6 +1258,48 @@ export default function App() {
                 sessions={sessions}
                 romRecords={romRecords}
               />
+            )}
+
+            {activeTab === 'community' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-center h-[70vh]"
+              >
+                <div className="text-center space-y-4 max-w-md mx-auto bg-white/5 border border-white/10 p-8 rounded-3xl">
+                  <h2 className="text-2xl font-bold text-white">⚾ 불펜 커뮤니티 (준비 중)</h2>
+                  <p className="text-gray-400">선수들과 코치들이 피칭 데이터와 훈련 노하우를 공유하는 공간이 곧 오픈됩니다.</p>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'support' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-center h-[70vh]"
+              >
+                <div className="text-center space-y-4 max-w-md mx-auto bg-white/5 border border-white/10 p-8 rounded-3xl">
+                  <h2 className="text-2xl font-bold text-white">🎧 고객 지원 (준비 중)</h2>
+                  <p className="text-gray-400">1:1 문의, 장애 신고 및 피드백을 남길 수 있는 고객 지원 센터가 곧 오픈됩니다.</p>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'admin' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-center h-[70vh]"
+              >
+                <div className="text-center space-y-4 max-w-md mx-auto bg-white/5 border border-white/10 p-8 rounded-3xl">
+                  <h2 className="text-2xl font-bold text-white">⚙️ 관리자 패널</h2>
+                  <p className="text-gray-400">/hidden-master-panel 경로로 직접 이동하여 접근하세요.</p>
+                </div>
+              </motion.div>
             )}
 
             {activeTab === 'logs' && (

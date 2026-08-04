@@ -1,19 +1,48 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    /* Light Theme */
+    --bg-main: #f5f5f7;
+    --text-main: #1d1d1f;
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(0, 0, 0, 0.12);
+  }
+
+  .dark {
+    --bg-main: #000000;
+    --text-main: #f5f5f7;
+    --glass-bg: rgba(28, 28, 30, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.12);
+  }
+
+  .baseball-classic {
+    --bg-main: #F4F1EA; /* Classic dirt/parchment */
+    --text-main: #2B2B2B; /* Dark charcoal */
+    --glass-bg: rgba(244, 241, 234, 0.85);
+    --glass-border: rgba(181, 28, 28, 0.3); /* Red stitching accent */
+  }
+
+  .high-contrast {
+    --bg-main: #000000;
+    --text-main: #FFFFFF;
+    --glass-bg: #000000;
+    --glass-border: #FFFFFF;
+  }
+
   html {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
     word-break: keep-all;
     overflow-wrap: break-word;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #000000;
-    color: #f5f5f7;
+    background-color: var(--bg-main);
+    color: var(--text-main);
   }
   
   body {
     letter-spacing: -0.015em;
-    background-color: #000000;
+    background-color: var(--bg-main);
   }
 }
 
@@ -39,17 +68,17 @@
 
 /* Apple Dark Frosted Glass Utilities */
 .apple-glass {
-  background: rgba(28, 28, 30, 0.72);
+  background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--glass-border);
 }
 
 .apple-card {
-  background: rgba(28, 28, 30, 0.65);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
   border-radius: 22px;
 }
 

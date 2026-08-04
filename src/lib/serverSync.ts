@@ -1,60 +1,83 @@
 import { PitchVideo } from '../types';
+import { supabase } from './supabase';
 
 /**
- * Uploads a video blob/file/URL to the Express server.
- * The server saves the file to ./uploads/videos and returns a permanent URL (/api/videos/file/...).
- * Also links the video to the user's account on the server.
+ * Uploads a video blob/file/URL to Supabase Storage 'pitching video' bucket.
  */
 export async function uploadVideoToServer(
   videoSource: Blob | File | string,
   videoMetadata: Omit<PitchVideo, 'id'>,
   userEmail?: string
 ): Promise<PitchVideo> {
-  let fileData = '';
+  let fileBlob: Blob | null = null;
+  let originalName = 'video';
+  let mimeType = 'video/mp4';
 
   if (typeof videoSource === 'string' && videoSource.startsWith('data:')) {
-    fileData = videoSource;
+    const match = videoSource.match(/^data:(video\/[a-zA-Z0-9]+);base64,(.*)$/);
+    if (match) {
+      mimeType = match[1];
+      const byteCharacters = atob(match[2]);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      fileBlob = new Blob([byteArray], { type: mimeType });
+      originalName = `video_${Date.now()}`;
+    }
   } else if (typeof videoSource !== 'string' && videoSource && 'size' in videoSource) {
-    fileData = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(videoSource as Blob);
-    });
+    fileBlob = videoSource as Blob;
+    mimeType = fileBlob.type || 'video/mp4';
+    if ('name' in videoSource) {
+      originalName = (videoSource as File).name.replace(/\.[^/.]+$/, "");
+    } else {
+      originalName = `video_${Date.now()}`;
+    }
   } else if (typeof videoSource === 'string' && videoSource.startsWith('blob:')) {
     try {
       const res = await fetch(videoSource);
-      const blob = await res.blob();
-      fileData = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+      fileBlob = await res.blob();
+      mimeType = fileBlob.type || 'video/mp4';
+      originalName = `video_${Date.now()}`;
     } catch (err) {
       console.warn('Could not read blob URL for upload:', err);
     }
   }
 
-  // If we got fileData, send to Express server /api/videos/upload
-  if (fileData) {
+  // Upload to Supabase Storage if we got a valid Blob
+  if (fileBlob) {
     try {
-      const response = await fetch('/api/videos/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: userEmail,
-          video: videoMetadata,
-          fileData,
-        }),
-      });
-
-      const json = await response.json();
-      if (json.success && json.video) {
-        return json.video as PitchVideo;
+      let ext = 'mp4';
+      if (mimeType.includes('webm')) ext = 'webm';
+      if (mimeType.includes('quicktime') || mimeType.includes('mov')) ext = 'mov';
+      
+      const filename = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}_${originalName}.${ext}`;
+      
+      const { data, error } = await supabase.storage
+        .from('pitching video')
+        .upload(filename, fileBlob, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: mimeType
+        });
+        
+      if (error) {
+        throw error;
       }
+      
+      const { data: publicUrlData } = supabase.storage
+        .from('pitching video')
+        .getPublicUrl(filename);
+        
+      return {
+        ...videoMetadata,
+        id: `vid_sb_${Date.now()}`,
+        videoUrl: publicUrlData.publicUrl,
+      };
+      
     } catch (err) {
-      console.error('Failed to upload video to server:', err);
+      console.error('Failed to upload video to Supabase:', err);
     }
   }
 

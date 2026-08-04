@@ -15,8 +15,11 @@ import {
   RefreshCw,
   Loader2,
   CheckCircle2,
-  HeartPulse
+  HeartPulse,
+  ExternalLink
 } from 'lucide-react';
+import { useAppStore } from '../lib/store';
+import { SubscriptionLock } from './SubscriptionLock';
 
 interface AICareReportProps {
   pitcher: Pitcher;
@@ -29,6 +32,7 @@ export const AICareReport: React.FC<AICareReportProps> = ({
   sessions,
   romRecords,
 }) => {
+  const { subscription } = useAppStore();
   const pitcherSessions = sessions.filter((s) => s.pitcherId === pitcher.id);
   const pitcherRom = romRecords.filter((r) => r.pitcherId === pitcher.id);
   const latestRom = pitcherRom[0];
@@ -360,10 +364,10 @@ export const AICareReport: React.FC<AICareReportProps> = ({
                     <span
                       className={`text-lg font-bold px-3 py-0.5 rounded-full border ${
                         report.riskStatus === 'DANGER'
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                          : report.riskStatus === 'CAUTION'
-                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                          ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                          : report.riskStatus === "CAUTION"
+                          ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                          : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
                       }`}
                     >
                       {report.riskStatus}
@@ -386,7 +390,10 @@ export const AICareReport: React.FC<AICareReportProps> = ({
                 </h3>
                 <div className="bg-black/50 border border-white/10 rounded-2xl p-4 text-xs text-gray-300 space-y-3 leading-relaxed font-sans">
                   <p><strong className="text-white">투구 부하 평가:</strong> {report.acwrEvaluation}</p>
-                  <p><strong className="text-white">가동범위 & 메커니즘 인사이트:</strong> {report.biomechanicsInsight}</p>
+                  
+                  <SubscriptionLock requiredTier="AMATEUR" currentTier={subscription}>
+                    <p className="mt-4"><strong className="text-white">가동범위 & 메커니즘 인사이트:</strong> {report.biomechanicsInsight}</p>
+                  </SubscriptionLock>
                 </div>
               </div>
 
@@ -396,7 +403,6 @@ export const AICareReport: React.FC<AICareReportProps> = ({
                   <Calendar className="w-4 h-4 text-amber-400" />
                   <span>2. 주간 맞춤형 투구수 캡 (Throwing Program)</span>
                 </h3>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   {report.recommendedProgram.map((prog, idx) => (
                     <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-1 text-xs">
@@ -419,26 +425,51 @@ export const AICareReport: React.FC<AICareReportProps> = ({
                   <Dumbbell className="w-4 h-4 text-emerald-400" />
                   <span>3. 타겟 어깨/팔꿈치 보강 운동 (Arm Care Exercises)</span>
                 </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {report.armCareExercises.map((ex, idx) => (
-                    <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-1 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">{ex.name}</span>
-                        <span className="text-emerald-400 font-mono font-semibold">{ex.setsReps}</span>
+                <SubscriptionLock requiredTier="AMATEUR" currentTier={subscription}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {report.armCareExercises.map((ex, idx) => (
+                      <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-1 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white text-sm">{ex.name}</span>
+                          <span className="text-emerald-400 font-mono font-semibold">{ex.setsReps}</span>
+                        </div>
+                        <div className="text-rose-400 text-[11px] font-mono">타겟: {ex.targetArea}</div>
+                        <p className="text-gray-400 text-[11px] pt-1">{ex.description}</p>
                       </div>
-                      <div className="text-rose-400 text-[11px] font-mono">타겟: {ex.targetArea}</div>
-                      <p className="text-gray-400 text-[11px] pt-1">{ex.description}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </SubscriptionLock>
               </div>
+
+              {/* Recommended Gear (Affiliate) */}
+              {report.recommendedGear && report.recommendedGear.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-base font-bold text-rose-400 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-400" />
+                    <span>추천 훈련 용품 (전문가 검증)</span>
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {report.recommendedGear.map((gear, idx) => (
+                      <div key={idx} className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="text-white font-bold text-sm">{gear.name}</h4>
+                          <p className="text-gray-400 text-xs mt-1">{gear.reason}</p>
+                        </div>
+                        <a href={gear.url} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                          <span>구매하기</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Recovery & Nutrition */}
               <div className="space-y-3">
                 <h3 className="text-base font-bold text-rose-400 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>4. 영양 & 회복 가이드라인</span>
+                  <span>5. 영양 & 회복 가이드라인</span>
                 </h3>
                 <ul className="bg-black/50 border border-white/10 rounded-2xl p-4 text-xs text-gray-300 space-y-2 list-disc list-inside">
                   {report.nutritionAndRecovery.map((item, idx) => (

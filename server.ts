@@ -208,6 +208,7 @@ app.post('/api/ai-report', async (req, res) => {
     const prompt = `
 당신은 메이저리그(MLB) 정상급 투수 전문 컨디셔닝 코치이자, Driveline 및 Tread Athletics 등 최첨단 데이터 드라이븐 피칭 센터에서 연구하고 최신 바이오메카닉스 논문을 습득한 최고 권위 'AI 불펜 코치'입니다.
 다음 투수의 피칭 메트릭, 부하 지수(ACWR), 가동범위(ROM), 주관적 피로도(RPE) 데이터를 정밀 분석하여 과학적이고 현장감 있는 맞춤형 주간 훈련 & 케어 리포트를 JSON으로 작성해 주세요.
+분석 시 반드시 키네마틱 시퀀스(Kinematic Sequence), 힙-숄더 세퍼레이션(Hip-Shoulder Separation), 리드 레그 블로킹(Lead Leg Blocking) 등의 바이오메카닉스 전문 용어와 지표를 활용하여 설명하세요.
 
 [선수 프로필 & 데이터]
 - 선수 이름: ${pitcherName || '김민우'}
@@ -233,7 +234,7 @@ app.post('/api/ai-report', async (req, res) => {
   "riskScore": number (0-100),
   "headline": "한 줄 요약 피드백",
   "acwrEvaluation": "ACWR 수치 해석 및 투구량 조절 조언",
-  "biomechanicsInsight": "구속 변화, ROM 측정치, GIRD(내회전 결핍) 및 메커니즘 관점 분석",
+  "biomechanicsInsight": "키네마틱 시퀀스, 힙-숄더 세퍼레이션 등 전문 용어를 사용한 투구 메커니즘 및 ROM 측정치 분석",
   "recommendedProgram": [
     { "day": "Day 1", "title": "활동 내용", "pitchCap": number (0-100구), "focus": "중점사항" },
     { "day": "Day 2", "title": "활동 내용", "pitchCap": number, "focus": "중점사항" },
@@ -248,6 +249,9 @@ app.post('/api/ai-report', async (req, res) => {
   ],
   "nutritionAndRecovery": [
     "수면/냉찜질/수분섭취 등 피로 회복 지침 3-4가지"
+  ],
+  "recommendedGear": [
+    { "name": "Driveline PlyoCare® 볼", "url": "https://www.drivelinebaseball.com/product/plyocare-balls/", "reason": "팔 스윙 스피드 향상 및 어깨/팔꿈치 강화" }
   ]
 }
 `;

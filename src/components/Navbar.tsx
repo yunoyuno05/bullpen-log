@@ -18,7 +18,10 @@ import {
   LogIn,
   UserPlus,
   LogOut,
-  Save
+  Save,
+  MessageCircle,
+  Headset,
+  ShieldAlert
 } from 'lucide-react';
 import { BaseballIcon } from './BaseballIcon';
 import { motion, AnimatePresence } from 'motion/react';
@@ -59,6 +62,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'video', label: '메커니즘 영상 아카이브', icon: Video, desc: 'Split-Screen 폼 비교 분석' },
     { id: 'ai-report', label: 'AI 맞춤 케어 리포트', icon: Sparkles, desc: 'AI 불펜 코치 주간 리포트 & 맞춤 코칭', isAi: true },
     { id: 'logs', label: '피칭 일지 데이터', icon: FileText, desc: '구질별 상세 기록 & 불펜 히스토리' },
+    { id: 'community', label: '커뮤니티', icon: MessageCircle, desc: '선수/코치 간 정보 공유' },
+    { id: 'support', label: '고객지원', icon: Headset, desc: '1:1 문의 및 FAQ' },
+    { id: 'admin', label: '관리자', icon: ShieldAlert, desc: '시스템 관리 패널' }
   ];
 
   const currentNav = navItems.find((item) => item.id === activeTab) || navItems[0];
