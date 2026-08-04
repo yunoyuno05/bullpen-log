@@ -208,11 +208,7 @@ export default function App() {
   const initialAccountData = currentUser ? loadAccountData(currentUser) : null;
 
   // Pitchers state
-  const [pitchers, setPitchers] = useState<Pitcher[]>(() => {
-    if (initialAccountData) return initialAccountData.pitchers;
-    const saved = localStorage.getItem('bullpen_pitchers');
-    return saved ? JSON.parse(saved) : INITIAL_PITCHERS;
-  });
+  const [pitchers, setPitchers] = useState<any>([]);
 
   const [selectedPitcherId, setSelectedPitcherId] = useState<string>(() => {
     return currentUser ? currentUser.id : 'p1';
@@ -226,53 +222,25 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Sessions state
-  const [sessions, setSessions] = useState<PitchSession[]>(() => {
-    if (initialAccountData) return initialAccountData.sessions;
-    const saved = localStorage.getItem('bullpen_sessions');
-    return saved ? JSON.parse(saved) : INITIAL_SESSIONS;
-  });
+  const [sessions, setSessions] = useState<any>([]);
 
   // ROM state
-  const [romRecords, setRomRecords] = useState<ROMRecord[]>(() => {
-    if (initialAccountData) return initialAccountData.romRecords;
-    const saved = localStorage.getItem('bullpen_rom_records');
-    return saved ? JSON.parse(saved) : INITIAL_ROM_RECORDS;
-  });
+  const [romRecords, setRomRecords] = useState<any>([]);
 
   // Videos state
-  const [videos, setVideos] = useState<PitchVideo[]>(() => {
-    if (initialAccountData) return initialAccountData.videos;
-    const saved = localStorage.getItem('bullpen_videos');
-    return saved ? JSON.parse(saved) : INITIAL_VIDEOS;
-  });
+  const [videos, setVideos] = useState<any>([]);
 
   // Daily Logs state
-  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(() => {
-    if (initialAccountData) return initialAccountData.dailyLogs;
-    const saved = localStorage.getItem('bullpen_daily_logs');
-    return saved ? JSON.parse(saved) : INITIAL_DAILY_LOGS;
-  });
+  const [dailyLogs, setDailyLogs] = useState<any>([]);
 
   // Pitch Sequences state
-  const [pitchSequences, setPitchSequences] = useState<PitchSequence[]>(() => {
-    if (initialAccountData) return initialAccountData.pitchSequences;
-    const saved = localStorage.getItem('bullpen_pitch_sequences');
-    return saved ? JSON.parse(saved) : INITIAL_PITCH_SEQUENCES;
-  });
+  const [pitchSequences, setPitchSequences] = useState<any>([]);
 
   // Goal Roadmap state
-  const [goalRoadmap, setGoalRoadmap] = useState<GoalRoadmap>(() => {
-    if (initialAccountData) return initialAccountData.goalRoadmap;
-    const saved = localStorage.getItem('bullpen_goal_roadmap');
-    return saved ? JSON.parse(saved) : INITIAL_GOAL_ROADMAP;
-  });
+  const [goalRoadmap, setGoalRoadmap] = useState<GoalRoadmap | null>(null);
 
   // Training Schedules state
-  const [trainingSchedules, setTrainingSchedules] = useState<TrainingScheduleItem[]>(() => {
-    if (initialAccountData) return initialAccountData.trainingSchedules;
-    const saved = localStorage.getItem('bullpen_training_schedules');
-    return saved ? JSON.parse(saved) : INITIAL_TRAINING_SCHEDULES;
-  });
+  const [trainingSchedules, setTrainingSchedules] = useState<any>([]);
 
   // Auto-Archive passed schedules setting state
   const [autoArchivePassedSchedules, setAutoArchivePassedSchedules] = useState<boolean>(() => {
@@ -395,9 +363,34 @@ export default function App() {
   }, []);
 
 
-  const handleOnboardingComplete = (updatedUser: UserAccount) => {
+  const handleOnboardingComplete = async (updatedUser: UserAccount) => {
     setCurrentUser(updatedUser);
     setUserToStore(updatedUser);
+
+    try {
+      const { error } = await supabase.from('profiles').upsert({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwing_arm: updatedUser.throwingArm,
+        role: updatedUser.role,
+        max_velocity: updatedUser.maxVelocity,
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        age: updatedUser.age,
+        birthdate: updatedUser.birthdate,
+        avatar_url: updatedUser.avatarUrl,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      console.log('Profile successfully saved to Supabase');
+    } catch (e) {
+      console.error('Supabase profile sync note:', e);
+    }
+
     
     // Create initial data for new user
     const accData = loadAccountData(updatedUser);
@@ -438,29 +431,72 @@ export default function App() {
     setIsAuthModalOpen(true);
   };
 
-  const handleLoginSuccess = (user: UserAccount, isNewUser?: boolean) => {
+  const loadDataFromServer = async (user: UserAccount) => {
+    try {
+      // Establish Server/Supabase as SSOT (Single Source of Truth)
+      // Fetch from API instead of localStorage first to prevent race condition overwriting
+      const res = await fetch(`/api/account/data/${encodeURIComponent(user.email)}`);
+      const json = await res.json();
+      
+      if (json.success && json.accountData) {
+        const { accountData: accData } = json;
+        setPitchers(accData.pitchers || []);
+        setSelectedPitcherId(user.id);
+        setSessions(accData.sessions || []);
+        setRomRecords(accData.romRecords || []);
+        setVideos(accData.videos || []);
+        setDailyLogs(accData.dailyLogs || []);
+        setPitchSequences(accData.pitchSequences || []);
+        setGoalRoadmap(accData.goalRoadmap || { ...INITIAL_GOAL_ROADMAP, pitcherId: user.id });
+        setTrainingSchedules(accData.trainingSchedules || []);
+        setAutoArchivePassedSchedules(accData.autoArchivePassedSchedules ?? true);
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to fetch from SSOT:', err);
+    }
+    
+    return false;
+  };
+
+  const handleLoginSuccess = async (user: UserAccount, isNewUser?: boolean) => {
     if (authMode === 'signup' || isNewUser) {
       setOnboardingUser(user);
       setShowOnboarding(true);
       return;
     }
 
-    const accData = loadAccountData(user);
-    if (accData) {
-      setCurrentUser(accData.user);
-      setPitchers(accData.pitchers);
-      setSelectedPitcherId(accData.user.id);
-      setSessions(accData.sessions);
-      setRomRecords(accData.romRecords);
-      setVideos(accData.videos);
-      setDailyLogs(accData.dailyLogs);
-      setPitchSequences(accData.pitchSequences);
-      setGoalRoadmap(accData.goalRoadmap);
-      setTrainingSchedules(accData.trainingSchedules);
-      setAutoArchivePassedSchedules(accData.autoArchivePassedSchedules);
-      localStorage.setItem('bullpen_user_account', JSON.stringify(accData.user));
-    } else {
-      setCurrentUser(user);
+    setCurrentUser(user);
+    
+    // Fetch data from SSOT (Supabase / Server) FIRST
+    const hasServerData = await loadDataFromServer(user);
+    
+    if (!hasServerData) {
+      // Fallback only if server has no data at all
+      const accData = loadAccountData(user);
+      if (accData) {
+        setPitchers(accData.pitchers);
+        setSelectedPitcherId(accData.user.id);
+        setSessions(accData.sessions);
+        setRomRecords(accData.romRecords);
+        setVideos(accData.videos);
+        setDailyLogs(accData.dailyLogs);
+        setPitchSequences(accData.pitchSequences);
+        setGoalRoadmap(accData.goalRoadmap);
+        setTrainingSchedules(accData.trainingSchedules);
+        setAutoArchivePassedSchedules(accData.autoArchivePassedSchedules);
+        localStorage.setItem('bullpen_user_account', JSON.stringify(accData.user));
+      } else {
+        // Initialize with empty arrays instead of mock data
+        setPitchers([]);
+        setSessions([]);
+        setRomRecords([]);
+        setVideos([]);
+        setDailyLogs([]);
+        setPitchSequences([]);
+        setGoalRoadmap({ ...INITIAL_GOAL_ROADMAP, pitcherId: user.id });
+        setTrainingSchedules([]);
+      }
     }
     setActiveTab('dashboard');
   };

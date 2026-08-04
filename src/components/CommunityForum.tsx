@@ -98,9 +98,9 @@ export const CommunityForum: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 min-h-screen relative">
+    <div className="pt-24 pb-16 px-4 md:px-8 max-w-4xl mx-auto min-h-screen relative text-white">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold text-white tracking-tight">커뮤니티</h2>
+        <h2 className="text-2xl font-bold text-white tracking-tight">커뮤니티</h2>
         <div className="flex items-center gap-2">
           <span className="bg-white/10 text-white px-3 py-1 rounded-full text-sm font-medium">전체 글</span>
           <span className="text-gray-500 px-3 py-1 text-sm font-medium hover:text-white cursor-pointer transition-colors">인기 글</span>
@@ -120,7 +120,7 @@ export const CommunityForum: React.FC = () => {
               <div 
                 key={post.id} 
                 onClick={() => setSelectedPost(post)}
-                className="bg-gray-900 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all cursor-pointer group"
+                className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-5 hover:border-white/20 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -175,7 +175,7 @@ export const CommunityForum: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="bg-gray-900 border border-white/10 rounded-2xl p-6"
+            className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6"
           >
             <div className="flex items-center gap-4 mb-6 pb-4 border-b border-white/10">
               <button onClick={() => setIsWriting(false)} className="text-gray-400 hover:text-white transition-colors">
@@ -216,7 +216,7 @@ export const CommunityForum: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-gray-900 border border-white/10 rounded-2xl flex flex-col overflow-hidden"
+            className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] flex flex-col overflow-hidden"
             style={{ minHeight: '600px' }}
           >
             <div className="p-6 border-b border-white/10">

@@ -117,17 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-2" ref={menuRef}>
           {/* DESKTOP NAV BAR CONTROLS */}
           <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-            {/* Global Save All Records Action Button */}
-            {onSaveAllRecords && (
-              <button
-                onClick={onSaveAllRecords}
-                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 backdrop-blur-md"
-                title="모든 피칭, 훈련 스케줄, 가동범위 및 영상 기록을 전체 저장합니다."
-              >
-                <Save className="w-3.5 h-3.5 text-emerald-400" />
-                <span>모든 기록 저장</span>
-              </button>
-            )}
+
 
             {currentUser ? (
               <>
@@ -228,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                   >
                     <Save className="w-4 h-4" />
-                    <span>💾 모든 기록 저장하기 (전체 저장)</span>
+                    <span>💾 모든 기록 저장하기</span>
                   </button>
                 )}
 

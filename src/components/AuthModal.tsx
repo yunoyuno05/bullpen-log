@@ -118,6 +118,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [selectedPitchTypes, setSelectedPitchTypes] = useState<string[]>(['포심 패스트볼', '슬라이더']);
   const [pitchCustomText, setPitchCustomText] = useState<string>('');
 
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -133,7 +139,82 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+
+  const handleSendVerification = async () => {
+    if (!signupEmail.trim()) {
+      setErrorMessage('이메일을 입력해주세요.');
+      return;
+    }
+    if (!signupPassword.trim() || signupPassword.length < 6) {
+      setErrorMessage('비밀번호를 먼저 6자 이상 입력해주세요.');
+      return;
+    }
+    if (signupPassword !== signupPasswordConfirm) {
+      setErrorMessage('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: signupEmail.trim(),
+        
+      });
+      
+      if (error) {
+        if (error.message.includes('already registered')) {
+          throw new Error('이미 가입된 이메일입니다.');
+        }
+        throw error;
+      }
+      
+      setIsVerificationSent(true);
+      setSuccessMessage('인증번호가 전송되었습니다. 이메일을 확인해주세요.');
+      
+      if (data.session) {
+        setIsVerified(true);
+        setSuccessMessage('이메일이 자동으로 인증되었습니다 (테스트 모드).');
+      }
+    } catch (err: any) {
+      console.error('Send verification error:', err);
+      let msg = err.message || '인증번호 전송에 실패했습니다.';
+      if (msg.includes('secret API key') || msg.includes('service_role')) {
+        msg = '오류: Supabase Anon Key 대신 Secret Key가 설정되었습니다. AI Studio Settings에서 VITE_SUPABASE_ANON_KEY 값을 public(anon) 키로 변경해주세요.';
+      }
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim()) return;
+    setIsVerifying(true);
+    setErrorMessage(null);
+    
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: signupEmail.trim(),
+        token: verificationCode.trim(),
+        type: 'signup'
+      });
+      
+      if (error) throw error;
+      
+      setIsVerified(true);
+      setSuccessMessage('이메일 인증이 완료되었습니다.');
+    } catch (err: any) {
+      console.error('Verify OTP error:', err);
+      setErrorMessage('인증번호가 올바르지 않거나 만료되었습니다.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const handleNextSignupStep = () => {
+
     setErrorMessage(null);
     if (signupStep === 1) {
       if (!name.trim()) {
@@ -150,6 +231,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
       if (signupPassword !== signupPasswordConfirm) {
         setErrorMessage('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+        return;
+      }
+      if (!isVerified) {
+        setErrorMessage('이메일 인증을 먼저 완료해주세요.');
         return;
       }
       setSignupStep(2);
@@ -271,6 +356,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         msg = '이메일 또는 비밀번호가 올바르지 않습니다.';
       } else if (msg.includes('Email not confirmed')) {
         msg = '이메일 인증이 완료되지 않았습니다. 수신함에서 발송된 인증 링크를 확인해 주세요.';
+      } else if (msg.includes('secret API key') || msg.includes('service_role')) {
+        msg = '오류: Supabase Anon Key 대신 Secret Key가 설정되었습니다. AI Studio Settings에서 VITE_SUPABASE_ANON_KEY 값을 public(anon) 키로 변경해주세요.';
       }
       setErrorMessage(msg);
     } finally {
@@ -326,7 +413,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       const regRecord = {
         email: signupEmail.trim().toLowerCase(),
-        password: signupPassword.trim(),
+        
         userData,
         registeredAt: new Date().toISOString(),
       };
@@ -339,46 +426,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     // Background sync with Supabase
     try {
-      const { data: sbData } = await supabase.auth.signUp({
-        email: signupEmail.trim(),
-        password: signupPassword.trim(),
-        options: {
-          data: {
-            name: userData.name,
-            number: userData.number,
-            team: userData.team,
-            throwingArm: userData.throwingArm,
-            role: userData.role,
-            height: userData.height,
-            weight: userData.weight,
-            wingspan: userData.wingspan,
-            maxVelocity: userData.maxVelocity,
-            assessment: assessmentData,
-          },
-        },
-      });
-
-      if (sbData?.user?.id) {
-        userData.id = sbData.user.id;
-        localStorage.setItem('bullpen_user_account', JSON.stringify(userData));
-        try {
-          await supabase.from('profiles').upsert({
-            id: sbData.user.id,
-            email: userData.email,
-            name: userData.name,
-            number: userData.number,
-            team: userData.team,
-            throwing_arm: userData.throwingArm,
-            role: userData.role,
-            height: userData.height,
-            weight: userData.weight,
-            wingspan: userData.wingspan,
-            max_velocity: userData.maxVelocity,
-            updated_at: new Date().toISOString(),
-          });
-        } catch (pErr) {
-          console.log('Profile sync log:', pErr);
+      const { data: sbData, error: sbError } = await supabase.auth.updateUser({
+        
+        data: {
+          name: userData.name,
+          number: userData.number,
+          team: userData.team,
+          throwingArm: userData.throwingArm,
+          role: userData.role,
+          height: userData.height,
+          weight: userData.weight,
+          wingspan: userData.wingspan,
+          maxVelocity: userData.maxVelocity,
+          assessment: assessmentData,
         }
+      });
+      if (sbError) {
+        console.error('Supabase update error:', sbError);
       }
     } catch (sbErr) {
       console.log('Supabase signup sync:', sbErr);
@@ -717,17 +781,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                         <div className="space-y-1">
                           <label className="text-xs text-gray-300 font-medium">이메일 계정 *</label>
-                          <div className="relative">
-                            <Mail className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
-                            <input
-                              type="email"
-                              required
-                              placeholder="pitcher@example.com"
-                              value={signupEmail}
-                              onChange={(e) => setSignupEmail(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                            />
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Mail className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
+                              <input
+                                type="email"
+                                required
+                                disabled={isVerificationSent || isVerified}
+                                placeholder="pitcher@example.com"
+                                value={signupEmail}
+                                onChange={(e) => setSignupEmail(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-400 disabled:opacity-50"
+                              />
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={handleSendVerification}
+                              disabled={isVerified || isLoading}
+                              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
+                            >
+                              {isVerificationSent ? '재전송' : '인증번호 받기'}
+                            </button>
                           </div>
+                          
+                          {isVerificationSent && !isVerified && (
+                            <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl animate-in fade-in slide-in-from-top-2">
+                              <label className="block text-xs text-emerald-300 font-bold mb-2">이메일로 전송된 인증번호 6자리를 입력해주세요</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="인증번호 6자리"
+                                  value={verificationCode}
+                                  onChange={(e) => setVerificationCode(e.target.value)}
+                                  className="w-full bg-black/50 border border-emerald-500/30 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 tracking-widest text-center"
+                                />
+                                <button 
+                                  type="button"
+                                  onClick={handleVerifyCode}
+                                  disabled={isVerifying || !verificationCode}
+                                  className="bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shrink-0"
+                                >
+                                  {isVerifying ? '확인 중...' : '인증하기'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {isVerified && (
+                            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold mt-1.5">
+                              <Check className="w-3.5 h-3.5" /> 이메일 인증이 완료되었습니다.
+                            </div>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-2.5">

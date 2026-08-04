@@ -57,10 +57,10 @@ export const AdminPanel: React.FC = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8 min-h-screen relative">
+    <div className="pt-24 pb-16 px-4 md:px-8 max-w-5xl mx-auto min-h-screen text-white space-y-6 relative">
       <div className="flex items-center gap-3 mb-8">
         <ShieldAlert className="text-blue-500 w-8 h-8" />
-        <h2 className="text-3xl font-bold text-white tracking-tight">관리자 패널</h2>
+        <h2 className="text-2xl font-bold text-white tracking-tight">관리자 패널</h2>
       </div>
       
       <div className="flex flex-col md:flex-row gap-6">
@@ -90,11 +90,11 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 bg-gray-900 border border-white/10 rounded-3xl p-6 min-h-[600px]">
+        <div className="flex-1 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6 min-h-[600px]">
         {activeTab === 'users' && (
           <div className="max-w-6xl mx-auto">
             <h2 className="text-2xl font-bold mb-6">유저 관리</h2>
-            <div className="bg-gray-900 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] overflow-hidden">
               <table className="w-full text-left">
                 <thead className="bg-white/5 border-b border-white/10">
                   <tr>
@@ -171,7 +171,7 @@ export const AdminPanel: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] w-full max-w-md overflow-hidden shadow-2xl"
             >
               <div className="p-6 border-b border-white/10 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-white">유저 정보 수정</h3>

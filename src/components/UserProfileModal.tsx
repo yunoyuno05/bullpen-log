@@ -369,7 +369,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       onChange={(e) => setNumber(parseInt(e.target.value) || 0)}
                       required
                       min={0}
-                      max={99}
+                      max={999}
                       className="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-white transition-colors"
                     />
                   </div>

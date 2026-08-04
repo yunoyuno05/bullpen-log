@@ -63,9 +63,9 @@ export const SupportTicket: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 min-h-screen">
+    <div className="pt-24 pb-16 px-4 md:px-8 max-w-3xl mx-auto min-h-screen text-white space-y-6">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white tracking-tight mb-6">고객 지원</h2>
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">고객 지원</h2>
         <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
           <button
             onClick={() => setActiveTab('my')}
@@ -87,7 +87,7 @@ export const SupportTicket: React.FC = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        className="bg-gray-900 border border-white/10 rounded-2xl p-6"
+        className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6"
       >
         {activeTab === 'my' && (
           <div className="space-y-4">

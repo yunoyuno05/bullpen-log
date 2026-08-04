@@ -4,14 +4,41 @@ import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
+import multer from 'multer';
+
+// Configure Multer for video uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.mp4';
+    cb(null, `${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`);
+  }
+});
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 500 * 1024 * 1024 } // 500MB max
+});
+
+// Admin Authorization Middleware
+const isAdmin = (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || authHeader !== 'Bearer admin-secret-token') {
+    // In a real app, verify the Supabase JWT token and check if user has admin role
+    return res.status(403).json({ success: false, error: 'Unauthorized: Admin access required' });
+  }
+  next();
+};
+
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '500mb' }));
-app.use(express.urlencoded({ limit: '500mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Ensure server storage directories exist
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'videos');
@@ -25,7 +52,7 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // API Route: Account Server Sync (Save)
-app.post('/api/account/data', (req, res) => {
+app.post('/api/account/data', isAdmin, (req, res) => {
   try {
     const { email, accountData } = req.body;
     if (!email) {
