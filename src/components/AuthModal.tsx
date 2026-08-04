@@ -31,7 +31,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (user: UserAccount) => void;
+  onLoginSuccess: (user: UserAccount, isNewUser?: boolean) => void;
   initialMode?: 'login' | 'signup';
 }
 
@@ -387,7 +387,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     // Done! Switch user to live dashboard & close modal
-    onLoginSuccess(userData);
+    onLoginSuccess(userData, mode === 'signup');
     onClose();
   };
 

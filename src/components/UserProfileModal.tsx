@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { UserAccount } from '../types';
 import { calculateAge } from '../lib/utils';
 import { BaseballIcon } from './BaseballIcon';
-import { Mail, Calendar, Award, LogOut, X, CheckCircle2, Edit3, Save, RotateCcw, Loader2, Camera, Trash2, Ruler, Weight, Activity, Cake } from 'lucide-react';
+import { Palette, Mail, Calendar, Award, LogOut, X, CheckCircle2, Edit3, Save, RotateCcw, Loader2, Camera, Trash2, Ruler, Weight, Activity, Cake } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAppStore } from '../lib/store';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onLogout,
   onUpdateProfile,
 }) => {
+  const { theme, setTheme } = useAppStore();
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -546,6 +549,38 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </div>
               </form>
             )}
+
+            
+            {/* Theme Settings */}
+            <div className="pt-3 pb-2 border-t border-white/10">
+              <h4 className="text-xs font-bold text-gray-400 mb-2 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5" /> 앱 테마 설정</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button 
+                  onClick={() => setTheme('light')}
+                  className={`py-2 text-[10px] font-bold rounded-lg border transition-colors ${theme === 'light' ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+                >
+                  Light
+                </button>
+                <button 
+                  onClick={() => setTheme('dark')}
+                  className={`py-2 text-[10px] font-bold rounded-lg border transition-colors ${theme === 'dark' ? 'bg-black text-white border-white/40 shadow-[0_0_0_2px_rgba(255,255,255,1)]' : 'bg-gray-900 border-white/10 text-gray-300 hover:bg-white/10'}`}
+                >
+                  Dark
+                </button>
+                <button 
+                  onClick={() => setTheme('baseball-classic')}
+                  className={`py-2 text-[10px] font-bold rounded-lg border transition-colors ${theme === 'baseball-classic' ? 'bg-[#F4F1EA] text-[#2B2B2B] border-[#b51c1c]' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+                >
+                  Classic
+                </button>
+                <button 
+                  onClick={() => setTheme('high-contrast')}
+                  className={`py-2 text-[10px] font-bold rounded-lg border transition-colors ${theme === 'high-contrast' ? 'bg-black text-yellow-400 border-yellow-400' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+                >
+                  High-Contrast
+                </button>
+              </div>
+            </div>
 
             {/* Logout Action */}
             <div className="pt-1 border-t border-white/10">

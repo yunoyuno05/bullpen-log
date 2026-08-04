@@ -24,10 +24,16 @@ import { AICareReport } from './components/AICareReport';
 import { PitchLogsTable } from './components/PitchLogsTable';
 import { PitchLoggerModal } from './components/PitchLoggerModal';
 import { AuthModal } from './components/AuthModal';
+import { OnboardingFlow } from './components/OnboardingFlow';
 import { SignUpPage } from './components/SignUpPage';
 import { UserProfileModal } from './components/UserProfileModal';
 import { BaseballIcon } from './components/BaseballIcon';
 import { AdminPanel } from './components/AdminPanel';
+
+import { CommunityForum } from './components/CommunityForum';
+import { SupportTicket } from './components/SupportTicket';
+import { SettingsTab } from './components/SettingsTab';
+
 import { Twitter, Instagram, Mail, CheckCircle2, Save } from 'lucide-react';
 
 export function loadAccountData(user: UserAccount) {
@@ -178,6 +184,22 @@ export default function App() {
   });
 
   const setUserToStore = useAppStore(state => state.setUser);
+
+  useEffect(() => {
+    const handleOpenPricing = () => {
+      if (currentUser) {
+        setOnboardingUser(currentUser);
+        setShowOnboarding(true);
+      } else {
+        setAuthMode('signup');
+        setIsAuthModalOpen(true);
+      }
+    };
+    
+    window.addEventListener('open-pricing-modal', handleOpenPricing);
+    return () => window.removeEventListener('open-pricing-modal', handleOpenPricing);
+  }, [currentUser]);
+
   useEffect(() => {
     setUserToStore(currentUser);
   }, [currentUser, setUserToStore]);
@@ -199,6 +221,8 @@ export default function App() {
   // Auth & Profile Modal states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingUser, setOnboardingUser] = useState<UserAccount | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Sessions state
@@ -370,12 +394,57 @@ export default function App() {
     };
   }, []);
 
+
+  const handleOnboardingComplete = (updatedUser: UserAccount) => {
+    setCurrentUser(updatedUser);
+    setUserToStore(updatedUser);
+    
+    // Create initial data for new user
+    const accData = loadAccountData(updatedUser);
+    if (accData) {
+      setPitchers(accData.pitchers);
+      setSelectedPitcherId(accData.user.id);
+    } else {
+      // Create a pitcher record for the new user if not found
+      const newPitcher: Pitcher = {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwingArm: updatedUser.throwingArm,
+        role: updatedUser.role || '미정 (Unassigned)',
+        age: updatedUser.age || 24,
+        birthdate: updatedUser.birthdate,
+        heightWeight: updatedUser.height && updatedUser.weight ? `${updatedUser.height}cm / ${updatedUser.weight}kg` : '185cm / 84kg',
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        maxVelocity: updatedUser.maxVelocity || 151,
+        currentAcwr: 1.15,
+        avatarUrl: updatedUser.avatarUrl || '',
+        email: updatedUser.email,
+      };
+      setPitchers([newPitcher]);
+      setSelectedPitcherId(updatedUser.id);
+    }
+    
+    setShowOnboarding(false);
+    setOnboardingUser(null);
+    setActiveTab('dashboard');
+  };
+
   const handleOpenAuth = (mode: 'login' | 'signup') => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
   };
 
-  const handleLoginSuccess = (user: UserAccount) => {
+  const handleLoginSuccess = (user: UserAccount, isNewUser?: boolean) => {
+    if (authMode === 'signup' || isNewUser) {
+      setOnboardingUser(user);
+      setShowOnboarding(true);
+      return;
+    }
+
     const accData = loadAccountData(user);
     if (accData) {
       setCurrentUser(accData.user);
@@ -1268,12 +1337,8 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center justify-center h-[70vh]"
               >
-                <div className="text-center space-y-4 max-w-md mx-auto bg-white/5 border border-white/10 p-8 rounded-3xl">
-                  <h2 className="text-2xl font-bold text-white">⚾ 불펜 커뮤니티 (준비 중)</h2>
-                  <p className="text-gray-400">선수들과 코치들이 피칭 데이터와 훈련 노하우를 공유하는 공간이 곧 오픈됩니다.</p>
-                </div>
+                <CommunityForum />
               </motion.div>
             )}
 
@@ -1282,12 +1347,22 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center justify-center h-[70vh]"
               >
-                <div className="text-center space-y-4 max-w-md mx-auto bg-white/5 border border-white/10 p-8 rounded-3xl">
-                  <h2 className="text-2xl font-bold text-white">🎧 고객 지원 (준비 중)</h2>
-                  <p className="text-gray-400">1:1 문의, 장애 신고 및 피드백을 남길 수 있는 고객 지원 센터가 곧 오픈됩니다.</p>
-                </div>
+                <SupportTicket />
+              </motion.div>
+            )}
+
+            {activeTab === 'settings' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <SettingsTab 
+                  currentUser={currentUser} 
+                  onLogout={handleLogout} 
+                  onOpenProfile={() => setIsProfileModalOpen(true)} 
+                />
               </motion.div>
             )}
 
@@ -1315,8 +1390,8 @@ export default function App() {
                 onReturnHome={() => setActiveTab('hero')}
                 onOpenLogin={() => setIsAuthModalOpen(true)}
                 onLoginSuccess={(user) => {
-                  handleLoginSuccess(user);
-                  setActiveTab('dashboard');
+                  handleLoginSuccess(user, true);
+                  // setActiveTab('dashboard'); // Will be set after onboarding completes
                 }}
               />
             )}
@@ -1331,6 +1406,13 @@ export default function App() {
         onClose={() => setIsLoggerOpen(false)}
         onSaveSession={handleSaveSession}
       />
+
+      {showOnboarding && onboardingUser && (
+        <OnboardingFlow 
+          user={onboardingUser} 
+          onComplete={handleOnboardingComplete} 
+        />
+      )}
 
       {/* Auth Modal (Login & Sign Up) */}
       <AuthModal
