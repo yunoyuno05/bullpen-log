@@ -31,6 +31,7 @@
   }
 
   html {
+    font-size: 14px;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
     word-break: keep-all;
     overflow-wrap: break-word;

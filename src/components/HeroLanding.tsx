@@ -1,8 +1,13 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Pitcher, UserAccount } from '../types';
 import { BaseballIcon } from './BaseballIcon';
 import { ArrowRight, LogIn, UserPlus, TrendingUp, Activity, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface HeroLandingProps {
   currentPitcher: Pitcher;
@@ -85,7 +90,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
                 className="w-full sm:w-1/2 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl px-5 sm:px-7 py-2.5 sm:py-3 rounded-full font-bold text-xs sm:text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95 break-keep"
               >
                 <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
-                <span>회원가입</span>
+                <span>{t('회원가입')}</span>
               </button>
             </>
           )}

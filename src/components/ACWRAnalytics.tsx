@@ -1,3 +1,4 @@
+import i18n from '../lib/i18n';
 import React, { useState } from 'react';
 import { Pitcher, PitchSession } from '../types';
 import {
@@ -25,6 +26,9 @@ import {
   AreaChart,
   Area
 } from 'recharts';
+
+
+const t = i18n.t.bind(i18n);
 
 interface ACWRAnalyticsProps {
   pitcher: Pitcher;
@@ -94,7 +98,7 @@ export const ACWRAnalytics: React.FC<ACWRAnalyticsProps> = ({
   const status = getAcwrStatus(pitcher.currentAcwr);
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-5">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>

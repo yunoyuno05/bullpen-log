@@ -1,3 +1,5 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { BaseballIcon } from './BaseballIcon';
@@ -27,6 +29,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -159,7 +164,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessMessage(null);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: signupEmail.trim(),
+        email: signupEmail.trim(), password: signupPassword,
         
       });
       
@@ -512,7 +517,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       : 'text-gray-300 hover:text-white'
                   }`}
                 >
-                  <span>로그인</span>
+                  <span>{t('로그인')}</span>
                 </button>
                 <button
                   type="button"

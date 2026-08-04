@@ -1,0 +1,3945 @@
+#{pitcher.number} ${pitcher.name} 선수 피칭 로그 이력
+#{pitcher.number} {pitcher.name} 선수
+#{pitcher.number} {pitcher.name} 선수의 모든 불펜 피칭, 경기, 라이브 BP 데이터 이력
+#{pitcher.number} {pitcher.name} 피칭/불펜 세션 등록
+${pitcher.name} 선수 AI 케어 리포트 - Bullpen Log
+${pitcher.name} 선수 주간 AI 케어 & 훈련 보고서
+${s.totalPitches}구
+'투구 영상 저장' 탭에서 웹캠으로 바로 투구 모션을 녹화하면 캘린더 해당 일자에 자동 저장 및 프레임 단위 분석이 가능합니다.
+('');
+
+  // Main pitch types selection
+  const pitchTypeOptions = [
+    '포심 패스트볼',
+    '투심 / 싱커',
+    '슬라이더',
+    '커터',
+    '체인지업',
+    '커브',
+    '스플리터 / 포크',
+    '기타 (직접 입력)',
+  ];
+  const [selectedPitchTypes, setSelectedPitchTypes] = useState
+('');
+
+  const pitchTypeOptions = ['포심 직구', '투심 직구', '슬라이더', '체인지업', '커브', '커터', '스플리터/포크', '너클커브'];
+
+  const togglePitchType = (pt: string) => {
+    if (selectedPitchTypes.includes(pt)) {
+      if (selectedPitchTypes.length === 1) return;
+      setSelectedPitchTypes(selectedPitchTypes.filter((t) => t !== pt));
+    } else {
+      setSelectedPitchTypes([...selectedPitchTypes, pt]);
+    }
+  };
+
+  const handleNextStep = () => {
+    setErrorMessage(null);
+    if (signupStep === 1) {
+      if (!name.trim()) {
+        setErrorMessage('선수 성명을 입력해주세요.');
+        return;
+      }
+      if (!email.trim() || !password.trim()) {
+        setErrorMessage('이메일과 비밀번호를 입력해주세요.');
+        return;
+      }
+      if (password.length
+('');
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setNumber(user.number || 18);
+      setTeam(user.team || '');
+      setThrowingArm(user.throwingArm || 'RHP');
+      setRole(user.role || '미정 (Unassigned)');
+      setMaxVelocity(user.maxVelocity || 151.5);
+      setHeight(user.height || 185);
+      setWeight(user.weight || 85);
+      setWingspan(user.wingspan || 190);
+      setAge(user.age || 24);
+      setBirthdate(user.birthdate || '2000-01-15');
+      setAvatarUrl(user.avatarUrl || '');
+    }
+    setIsEditing(false);
+    setSaveSuccess(false);
+  }, [user, isOpen]);
+
+  if (!isOpen || !user) return null;
+
+  const handleImageChange = (e: React.ChangeEvent
+('STRIKE_SWINGING');
+
+  const handleCreateSequence = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAddPitchSequence({
+      pitcherId: pitcher.id,
+      date: selectedDate,
+      opponent: newSeqOpponent,
+      inning: Number(newSeqInning),
+      batter: newSeqBatter,
+      ballCount: newSeqBallCount,
+      pitchType: newSeqPitchType,
+      velocity: Number(newSeqVelocity),
+      result: newSeqResult,
+    });
+    alert('새 투구 시퀀스가 기록되었습니다!');
+  };
+
+  // Category labels and badges helper
+  const getCategoryBadge = (cat: TrainingScheduleItem['category']) => {
+    switch (cat) {
+      case 'WEIGHT':
+        return { label: '웨이트', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' };
+      case 'BULLPEN':
+        return { label: '불펜피칭', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
+      case 'LONG_TOSS':
+        return { label: '롱토스', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' };
+      case 'CONDITIONING':
+        return { label: '컨디셔닝', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30' };
+      case 'RECOVERY':
+        return { label: '리커버리', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' };
+      case 'TACTICAL':
+        return { label: '전술훈련', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' };
+      case 'REST':
+        return { label: '휴식', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30' };
+      default:
+        return { label: '맞춤훈련', color: 'bg-pink-500/20 text-pink-300 border-pink-500/30' };
+    }
+  };
+
+  return (
+('kg');
+  const [autoPlay, setAutoPlay] = useState(true);
+  const [dataSaver, setDataSaver] = useState(false);
+  const [hapticEnabled, setHapticEnabled] = useState(true);
+  const [highQualityUpload, setHighQualityUpload] = useState(true);
+
+
+  const toggleReason = (reason: string) => {
+    if (selectedReasons.includes(reason)) {
+      setSelectedReasons(selectedReasons.filter(r => r !== reason));
+    } else {
+      setSelectedReasons([...selectedReasons, reason]);
+    }
+  };
+
+  const handleSaveSettings = () => {
+    setIsSavingSettings(true);
+    setTimeout(() => {
+      setIsSavingSettings(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }, 600);
+  };
+
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== '탈퇴합니다') {
+      setDeleteError('정확한 확인 문구를 입력해주세요.');
+      return;
+    }
+    
+    setIsDeleting(true);
+    setDeleteError('');
+    
+    try {
+      // 1. Send telemetry or save reason if needed (optional)
+      console.log('Account deleted. Reason:', deleteReason);
+
+      // 2. Call Supabase RPC to delete the user
+      const { error } = await supabase.rpc('delete_user');
+      
+      if (error) {
+        throw error;
+      }
+      
+      // 3. Sign out and clear local state
+      await supabase.auth.signOut();
+      localStorage.clear();
+      onLogout();
+    } catch (err: any) {
+      console.error('Delete account error:', err);
+      setDeleteError(err.message || '탈퇴 처리 중 오류가 발생했습니다.');
+      setIsDeleting(false);
+    }
+  };
+
+
+  return (
+('record');
+
+  // Form Fields
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState(defaultDate || todayStr);
+  const [pitchType, setPitchType] = useState('포심 직구');
+  const [velocity, setVelocity] = useState
+('구속 3~5km/h 증속 및 하체 회전력 강화');
+  const [goalCustomText, setGoalCustomText] = useState
+('구속 향상 (Max Velocity 3~5km/h Up)');
+  const [goalCustomText, setGoalCustomText] = useState
+('미정 (Unassigned)');
+
+  // Step 2: Specs & Pitch types
+  const [height, setHeight] = useState
+('미정 (Unassigned)');
+  const [maxVelocity, setMaxVelocity] = useState
+('미정 (Unassigned)');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
+
+  // Physical specs
+  const [height, setHeight] = useState
+('바이오매커니즘 & 투구 폼 메커니즘 교정');
+  const [focusCustomText, setFocusCustomText] = useState
+('스톱워치 & 주관적 관찰 피드백');
+  const [equipmentCustomText, setEquipmentCustomText] = useState
+('우측 팔꿈치 내측 (UCL 주변)');
+  const [notes, setNotes] = useState
+('주 3~4회 (정기 훈련 및 기술 불펜)');
+  const [freqCustomText, setFreqCustomText] = useState
+('주 3~4회 정기 훈련 (표준 세션)');
+  const [freqCustomText, setFreqCustomText] = useState
+('통증 없음 (정상)');
+  const [painCustomText, setPainCustomText] = useState
+('통증 없음 (최상의 피칭 컨디션)');
+  const [painCustomText, setPainCustomText] = useState
+('팔꿈치 내측 (UCL 근처)');
+  const [notes, setNotes] = useState
+('하체 폭발력 & 피칭 메커니즘');
+  const [focusCustomText, setFocusCustomText] = useState
+(120);
+
+  const calculatedRatio = calcChronicAvg > 0 ? (calcAcutePitches / calcChronicAvg).toFixed(2) : '0.00';
+  const calcVal = parseFloat(calculatedRatio);
+
+  // 28-day chart data
+  const chartData = pitcherSessions.slice().reverse().map((s) => ({
+    date: s.date,
+    pitches: s.totalPitches,
+    acwr: s.acwrImpact || 1.15,
+    fastball: s.fastballCount,
+    breaking: s.sliderCount + s.curveballCount + s.cutterCount,
+    offspeed: s.changeupCount,
+  }));
+
+  const getAcwrStatus = (val: number) => {
+    if (val > 1.5) {
+      return {
+        label: '고위험군 (Danger Zone)',
+        color: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+        barColor: 'bg-rose-500',
+        desc: '단기 투구량이 급격히 스파이크(Spike)되었습니다. 팔꿈치 UCL 및 어깨 회전근개 과부하 부상 위험이 2~4배 높습니다. 48~72시간 동안 라이브 피칭 및 불펜 투구를 즉시 중단하고 쉬어야 합니다.',
+      };
+    }
+    if (val >= 1.3) {
+      return {
+        label: '주의 구간 (Caution Zone)',
+        color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
+        barColor: 'bg-amber-500',
+        desc: '투구 부하가 한계에 다다르고 있습니다. 다음 불펜 세션 투구수를 25~30구 이하로 제한하고, 직구 및 체인지업 위주의 저부하 피칭을 수행하세요.',
+      };
+    }
+    if (val
+([
+    {
+      id: 'm1',
+      sender: 'assistant',
+      text: `안녕하세요, ${pitcher.name} 선수! 저는 Bullpen Log의 AI 불펜 코치입니다. 현재 선수의 ACWR(${pitcher.currentAcwr}), 최근 피칭수(${totalRecentPitches}구), 가동범위에 대한 궁금증이나 구종 개발, 부상 예방 관리에 대해 언제든 물어보세요!`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    },
+  ]);
+  const [inputMsg, setInputMsg] = useState
+(['포심 직구', '슬라이더', '커브']);
+
+  // Step 3: Athlete Assessment Questions with "Custom" (기타) options
+  const [painChoice, setPainChoice] = useState
+(['포심 패스트볼', '슬라이더']);
+  const [pitchCustomText, setPitchCustomText] = useState
+(currentDayLog.routines);
+
+  // Update record form state when selectedDate changes
+  useEffect(() => {
+    setEditPainScore(currentDayLog.painScore);
+    setEditPainLocation(currentDayLog.painLocation || '');
+    setEditSleepHours(currentDayLog.sleepHours);
+    setEditDiary(currentDayLog.diary);
+    setEditWeightVolume(currentDayLog.weightVolumeKg);
+    setEditTrainingType(currentDayLog.trainingType);
+    setRoutinesState(currentDayLog.routines);
+  }, [selectedDate, selectedDateLog]);
+
+  // Handle routine toggle
+  const toggleRoutine = (rId: string) => {
+    setRoutinesState((prev) =>
+      prev.map((r) => (r.id === rId ? { ...r, completed: !r.completed } : r))
+    );
+  };
+
+  // Handle saving past daily record log
+  const handleSaveDayLog = () => {
+    const updatedLog: DailyLog = {
+      ...currentDayLog,
+      trainingType: editTrainingType,
+      painScore: editPainScore,
+      painLocation: editPainLocation,
+      sleepHours: editSleepHours,
+      diary: editDiary,
+      weightVolumeKg: editWeightVolume,
+      routines: routinesState,
+    };
+    onSaveDailyLog(updatedLog);
+    alert(`${selectedDate} 과거 훈련 기록이 성공적으로 저장되었습니다!`);
+  };
+
+  // Schedule Submit Handler
+  const handleCreateSchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!schedTitle.trim()) {
+      alert('훈련 제목을 입력해주세요.');
+      return;
+    }
+
+    const newSch: TrainingScheduleItem = {
+      id: `ts-${Date.now()}`,
+      pitcherId: pitcher.id,
+      date: schedDate,
+      time: schedTime,
+      category: schedCategory,
+      title: schedTitle.trim(),
+      intensity: schedIntensity,
+      details: schedDetails.trim(),
+      durationMinutes: Number(schedDuration),
+      completed: false,
+    };
+
+    onSaveSchedule(newSch);
+    setSchedTitle('');
+    setSchedDetails('');
+    alert(`${schedDate} 훈련 스케줄이 성공적으로 등록되었습니다!`);
+  };
+
+  // New Pitch Sequence form state
+  const [newSeqOpponent, setNewSeqOpponent] = useState('라이벌 A팀');
+  const [newSeqInning, setNewSeqInning] = useState(1);
+  const [newSeqBatter, setNewSeqBatter] = useState('1번 타자');
+  const [newSeqBallCount, setNewSeqBallCount] = useState('0-0');
+  const [newSeqPitchType, setNewSeqPitchType] = useState('포심 직구');
+  const [newSeqVelocity, setNewSeqVelocity] = useState(150);
+  const [newSeqResult, setNewSeqResult] = useState
+(false);
+
+  // Auto-save account data whenever active state or logged-in user updates
+  useEffect(() => {
+    if (currentUser && currentUser.email) {
+      const key = `bullpen_account_data_${currentUser.email.trim().toLowerCase()}`;
+      const accountData = {
+        user: currentUser,
+        pitchers,
+        sessions,
+        romRecords,
+        videos,
+        dailyLogs,
+        pitchSequences,
+        goalRoadmap,
+        trainingSchedules,
+        autoArchivePassedSchedules,
+      };
+      try {
+        localStorage.setItem(key, JSON.stringify(accountData));
+        localStorage.setItem('bullpen_user_account', JSON.stringify(currentUser));
+        const regKey = `registered_user_${currentUser.email.trim().toLowerCase()}`;
+        const rawReg = localStorage.getItem(regKey);
+        if (rawReg) {
+          const regObj = JSON.parse(rawReg);
+          regObj.userData = currentUser;
+          localStorage.setItem(regKey, JSON.stringify(regObj));
+        }
+      } catch (e) {
+        console.error('Error auto-saving account data:', e);
+      }
+    }
+  }, [
+    currentUser,
+    pitchers,
+    sessions,
+    romRecords,
+    videos,
+    dailyLogs,
+    pitchSequences,
+    goalRoadmap,
+    trainingSchedules,
+    autoArchivePassedSchedules,
+  ]);
+
+  // Sync Supabase Auth Session on mount
+  useEffect(() => {
+    const checkSupabaseAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const sbUser = session.user;
+          const metadata = sbUser.user_metadata || {};
+          const syncedUser: UserAccount = {
+            id: sbUser.id,
+            email: sbUser.email || '',
+            name: metadata.name || '김투수',
+            number: typeof metadata.number === 'number' ? metadata.number : 18,
+            team: metadata.team || '서울 자이언츠',
+            throwingArm: metadata.throwingArm || 'RHP',
+            joinedDate: sbUser.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            maxVelocity: metadata.maxVelocity || 153.2,
+            height: metadata.height || 185,
+            weight: metadata.weight || 85,
+            wingspan: metadata.wingspan || 190,
+            age: metadata.age || 24,
+            birthdate: metadata.birthdate || '2000-01-15',
+            avatarUrl: metadata.avatarUrl || '',
+            isAdmin: sbUser.email === 'cheatpt@gmail.com',
+          };
+          setCurrentUser(syncedUser);
+        }
+      } catch (e) {
+        console.log('Supabase session check:', e);
+      }
+    };
+
+    checkSupabaseAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const sbUser = session.user;
+        const metadata = sbUser.user_metadata || {};
+        const syncedUser: UserAccount = {
+          id: sbUser.id,
+          email: sbUser.email || '',
+          name: metadata.name || '김투수',
+          number: typeof metadata.number === 'number' ? metadata.number : 18,
+          team: metadata.team || '서울 자이언츠',
+          throwingArm: metadata.throwingArm || 'RHP',
+          joinedDate: sbUser.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          maxVelocity: metadata.maxVelocity || 153.2,
+          height: metadata.height || 185,
+          weight: metadata.weight || 85,
+          wingspan: metadata.wingspan || 190,
+          age: metadata.age || 24,
+          birthdate: metadata.birthdate || '2000-01-15',
+          avatarUrl: metadata.avatarUrl || '',
+          isAdmin: sbUser.email === 'cheatpt@gmail.com',
+        };
+        setCurrentUser(syncedUser);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+
+  const handleOnboardingComplete = async (updatedUser: UserAccount) => {
+    setCurrentUser(updatedUser);
+    setUserToStore(updatedUser);
+
+    try {
+      const { error } = await supabase.from('profiles').upsert({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwing_arm: updatedUser.throwingArm,
+        role: updatedUser.role,
+        max_velocity: updatedUser.maxVelocity,
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        age: updatedUser.age,
+        birthdate: updatedUser.birthdate,
+        avatar_url: updatedUser.avatarUrl,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      console.log('Profile successfully saved to Supabase');
+    } catch (e) {
+      console.error('Supabase profile sync note:', e);
+    }
+
+    
+    // Create initial data for new user
+    const accData = loadAccountData(updatedUser);
+    if (accData) {
+      setPitchers(accData.pitchers);
+      setSelectedPitcherId(accData.user.id);
+    } else {
+      // Create a pitcher record for the new user if not found
+      const newPitcher: Pitcher = {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwingArm: updatedUser.throwingArm,
+        role: updatedUser.role || '미정 (Unassigned)',
+        age: updatedUser.age || 24,
+        birthdate: updatedUser.birthdate,
+        heightWeight: updatedUser.height && updatedUser.weight ? `${updatedUser.height}cm / ${updatedUser.weight}kg` : '185cm / 84kg',
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        maxVelocity: updatedUser.maxVelocity || 151,
+        currentAcwr: 1.15,
+        avatarUrl: updatedUser.avatarUrl || '',
+        email: updatedUser.email,
+      };
+      setPitchers([newPitcher]);
+      setSelectedPitcherId(updatedUser.id);
+    }
+    
+    setShowOnboarding(false);
+    setOnboardingUser(null);
+    setActiveTab('dashboard');
+  };
+
+  const handleOpenAuth = (mode: 'login' | 'signup') => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const loadDataFromServer = async (user: UserAccount) => {
+    try {
+      // Establish Server/Supabase as SSOT (Single Source of Truth)
+      // Fetch from API instead of localStorage first to prevent race condition overwriting
+      const res = await fetch(`/api/account/data/${encodeURIComponent(user.email)}`);
+      const json = await res.json();
+      
+      if (json.success && json.accountData) {
+        const { accountData: accData } = json;
+        setPitchers(accData.pitchers || []);
+        setSelectedPitcherId(user.id);
+        setSessions(accData.sessions || []);
+        setRomRecords(accData.romRecords || []);
+        setVideos(accData.videos || []);
+        setDailyLogs(accData.dailyLogs || []);
+        setPitchSequences(accData.pitchSequences || []);
+        setGoalRoadmap(accData.goalRoadmap || { ...INITIAL_GOAL_ROADMAP, pitcherId: user.id });
+        setTrainingSchedules(accData.trainingSchedules || []);
+        setAutoArchivePassedSchedules(accData.autoArchivePassedSchedules ?? true);
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to fetch from SSOT:', err);
+    }
+    
+    return false;
+  };
+
+  const handleLoginSuccess = async (user: UserAccount, isNewUser?: boolean) => {
+    if (authMode === 'signup' || isNewUser) {
+      setOnboardingUser(user);
+      setShowOnboarding(true);
+      return;
+    }
+
+    setCurrentUser(user);
+    
+    // Fetch data from SSOT (Supabase / Server) FIRST
+    const hasServerData = await loadDataFromServer(user);
+    
+    if (!hasServerData) {
+      // Fallback only if server has no data at all
+      const accData = loadAccountData(user);
+      if (accData) {
+        setPitchers(accData.pitchers);
+        setSelectedPitcherId(accData.user.id);
+        setSessions(accData.sessions);
+        setRomRecords(accData.romRecords);
+        setVideos(accData.videos);
+        setDailyLogs(accData.dailyLogs);
+        setPitchSequences(accData.pitchSequences);
+        setGoalRoadmap(accData.goalRoadmap);
+        setTrainingSchedules(accData.trainingSchedules);
+        setAutoArchivePassedSchedules(accData.autoArchivePassedSchedules);
+        localStorage.setItem('bullpen_user_account', JSON.stringify(accData.user));
+      } else {
+        // Initialize with empty arrays instead of mock data
+        setPitchers([]);
+        setSessions([]);
+        setRomRecords([]);
+        setVideos([]);
+        setDailyLogs([]);
+        setPitchSequences([]);
+        setGoalRoadmap({ ...INITIAL_GOAL_ROADMAP, pitcherId: user.id });
+        setTrainingSchedules([]);
+      }
+    }
+    setActiveTab('dashboard');
+  };
+
+  const handleUpdateProfile = async (updatedUser: UserAccount) => {
+    setCurrentUser(updatedUser);
+
+    setPitchers((prev) => {
+      const existingIdx = prev.findIndex(
+        (p) => p.id === updatedUser.id || (p.email && p.email.toLowerCase() === updatedUser.email.toLowerCase())
+      );
+      const updatedPitcher: Pitcher = {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwingArm: updatedUser.throwingArm,
+        role: updatedUser.role || '미정 (Unassigned)',
+        age: updatedUser.age || 24,
+        birthdate: updatedUser.birthdate,
+        heightWeight: updatedUser.height && updatedUser.weight ? `${updatedUser.height}cm / ${updatedUser.weight}kg` : '185cm / 84kg',
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        maxVelocity: updatedUser.maxVelocity || 151,
+        currentAcwr: existingIdx >= 0 ? prev[existingIdx].currentAcwr : 1.15,
+        avatarUrl: updatedUser.avatarUrl || '',
+        email: updatedUser.email,
+      };
+
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], ...updatedPitcher };
+        return next;
+      }
+      return [updatedPitcher, ...prev];
+    });
+
+    try {
+      const regKey = `registered_user_${updatedUser.email.trim().toLowerCase()}`;
+      const rawReg = localStorage.getItem(regKey);
+      if (rawReg) {
+        const regObj = JSON.parse(rawReg);
+        regObj.userData = updatedUser;
+        localStorage.setItem(regKey, JSON.stringify(regObj));
+      }
+    } catch (e) {
+      console.error('Failed to update local reg record:', e);
+    }
+
+    localStorage.setItem('bullpen_user_account', JSON.stringify(updatedUser));
+
+    // Sync with Supabase Auth user metadata & profile table if available
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          name: updatedUser.name,
+          number: updatedUser.number,
+          team: updatedUser.team,
+          throwingArm: updatedUser.throwingArm,
+          role: updatedUser.role,
+          maxVelocity: updatedUser.maxVelocity,
+          height: updatedUser.height,
+          weight: updatedUser.weight,
+          wingspan: updatedUser.wingspan,
+          age: updatedUser.age,
+          birthdate: updatedUser.birthdate,
+          avatarUrl: updatedUser.avatarUrl,
+        },
+      });
+
+      await supabase.from('profiles').upsert({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        number: updatedUser.number,
+        team: updatedUser.team,
+        throwing_arm: updatedUser.throwingArm,
+        role: updatedUser.role,
+        max_velocity: updatedUser.maxVelocity,
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        wingspan: updatedUser.wingspan,
+        age: updatedUser.age,
+        birthdate: updatedUser.birthdate,
+        avatar_url: updatedUser.avatarUrl,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.log('Supabase profile sync note:', e);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.log('Signout error:', e);
+    }
+    setCurrentUser(null);
+    localStorage.removeItem('bullpen_user_account');
+    setActiveTab('hero');
+  };
+
+  // Auth Guard: Unauthenticated users cannot view functional tabs and stay on hero
+  useEffect(() => {
+    if (!currentUser && activeTab !== 'hero') {
+      setActiveTab('hero');
+      setIsAuthModalOpen(true);
+    }
+  }, [currentUser, activeTab]);
+
+  const currentPitcher: Pitcher = currentUser
+    ? {
+        id: currentUser.id,
+        name: currentUser.name,
+        number: currentUser.number,
+        team: currentUser.team,
+        throwingArm: currentUser.throwingArm,
+        role: currentUser.role || '미정 (Unassigned)',
+        age: currentUser.age || 24,
+        birthdate: currentUser.birthdate,
+        heightWeight: currentUser.height && currentUser.weight
+          ? `${currentUser.height}cm / ${currentUser.weight}kg`
+          : '185cm / 84kg',
+        height: currentUser.height || 185,
+        weight: currentUser.weight || 84,
+        wingspan: currentUser.wingspan || 190,
+        maxVelocity: currentUser.maxVelocity || 151,
+        currentAcwr: pitchers.find((p) => p.id === currentUser.id)?.currentAcwr || 1.15,
+        avatarUrl: currentUser.avatarUrl || pitchers.find((p) => p.id === currentUser.id)?.avatarUrl || '',
+        email: currentUser.email,
+      }
+    : (pitchers.find((p) => p.id === selectedPitcherId) || pitchers[0] || INITIAL_PITCHERS[0]);
+
+  // Handler to save new pitching session (Auto-syncs across Pitchers, DailyLogs, Schedules, Roadmap)
+  const handleSaveSession = (newSessionData: Omit
+(false);
+
+  // Generate Report function calling Express `/api/ai-report`
+  const generateAiReport = async () => {
+    setLoadingReport(true);
+    setReportError(null);
+
+    try {
+      const res = await fetch('/api/ai-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pitcherName: pitcher.name,
+          throwingArm: pitcher.throwingArm,
+          acwr: pitcher.currentAcwr,
+          recentPitches: totalRecentPitches,
+          avgVelocity: latestSession?.avgVel || 142,
+          maxVelocity: pitcher.maxVelocity,
+          rpe: latestSession?.rpe || 7,
+          fatigue: latestSession?.fatigue || 4,
+          rom: latestRom,
+          notes: latestSession?.notes || '불펜 피칭 후 투구 후반부 구속 저하 관찰됨',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.report) {
+        setReport(data.report);
+      } else {
+        setReportError(data.error || '리포트 생성에 실패했습니다.');
+      }
+    } catch (err: any) {
+      setReportError(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoadingReport(false);
+    }
+  };
+
+  // Send Chat Message to `/api/ai-coach`
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMsg.trim() || chatLoading) return;
+
+    const userMessageText = inputMsg;
+    const userMsg: AIChatMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: userMessageText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInputMsg('');
+    setChatLoading(true);
+
+    try {
+      const res = await fetch('/api/ai-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessageText,
+          pitcherData: {
+            name: pitcher.name,
+            acwr: pitcher.currentAcwr,
+            recentPitches: totalRecentPitches,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.reply) {
+        const botMsg: AIChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: 'assistant',
+          text: data.reply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const exportReportAsHtml = () => {
+    if (!report) return;
+    const htmlContent = `
+(null);
+
+  // New Ticket Form State
+  const [newTitle, setNewTitle] = useState('');
+  const [newCategory, setNewCategory] = useState('결제');
+  const [newDescription, setNewDescription] = useState('');
+
+  const handleSubmitTicket = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newDescription.trim()) return;
+
+    const newTicket: Ticket = {
+      id: `t${Date.now()}`,
+      title: newTitle,
+      category: newCategory,
+      status: '대기',
+      date: new Date().toISOString().split('T')[0],
+      description: newDescription
+    };
+
+    setTickets([newTicket, ...tickets]);
+    setActiveTab('my');
+    setNewTitle('');
+    setNewDescription('');
+    setNewCategory('결제');
+  };
+
+  return (
+(null);
+
+  // Toggle synced play/pause
+  const togglePlay = () => {
+    if (isPlaying) {
+      leftRef.current?.pause();
+      rightRef.current?.pause();
+      setIsPlaying(false);
+    } else {
+      leftRef.current?.play();
+      rightRef.current?.play();
+      setIsPlaying(true);
+    }
+  };
+
+  // Change playback speed
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    if (leftRef.current) leftRef.current.playbackRate = speed;
+    if (rightRef.current) rightRef.current.playbackRate = speed;
+  };
+
+  // Step frame forward/backward (approx 0.04s)
+  const stepFrame = (direction: 'prev' | 'next') => {
+    const delta = direction === 'next' ? 0.04 : -0.04;
+    if (leftRef.current) leftRef.current.currentTime = Math.max(0, leftRef.current.currentTime + delta);
+    if (rightRef.current) rightRef.current.currentTime = Math.max(0, rightRef.current.currentTime + delta);
+  };
+
+  // Reset videos
+  const resetVideos = () => {
+    if (leftRef.current) leftRef.current.currentTime = 0;
+    if (rightRef.current) rightRef.current.currentTime = 0;
+  };
+
+  // Add Video Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newUrl, setNewUrl] = useState('');
+  const [newPitchType, setNewPitchType] = useState('포심 직구');
+  const [newVel, setNewVel] = useState
+(null);
+
+  // Update date when defaultDate changes
+  useEffect(() => {
+    if (defaultDate) {
+      setDate(defaultDate);
+    }
+  }, [defaultDate]);
+
+  // Clean up camera stream on unmount or modal close
+  const stopCameraStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      stopCameraStream();
+      resetRecordingState();
+    }
+  }, [isOpen]);
+
+  const resetRecordingState = () => {
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    setIsRecording(false);
+    setRecordingSeconds(0);
+    setRecordedBlobUrl(null);
+    setCameraError(null);
+  };
+
+  // Start Webcam Camera Feed
+  const startCamera = async () => {
+    setCameraError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 60 } },
+        audio: true,
+      });
+      streamRef.current = stream;
+      if (videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = stream;
+      }
+      setIsCameraActive(true);
+    } catch (err: any) {
+      console.error('Camera access error:', err);
+      setCameraError('카메라 및 마이크 권한이 필요하거나 기기에서 카메라를 찾을 수 없습니다.');
+    }
+  };
+
+  // Start 15-second Pitch Video Recording
+  const startRecording = () => {
+    if (!streamRef.current) return;
+
+    recordedChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+      ? 'video/webm;codecs=vp9'
+      : MediaRecorder.isTypeSupported('video/mp4')
+      ? 'video/mp4'
+      : 'video/webm';
+
+    try {
+      const recorder = new MediaRecorder(streamRef.current, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setRecordedBlobUrl(url);
+      };
+
+      recorder.start(100);
+      setIsRecording(true);
+      setRecordingSeconds(0);
+
+      // Timer to count up to 15 seconds
+      const startTime = Date.now();
+      timerIntervalRef.current = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        if (elapsed >= 15.0) {
+          // Reached 15 seconds max! Stop recording automatically
+          stopRecording();
+        } else {
+          setRecordingSeconds(elapsed);
+        }
+      }, 50);
+    } catch (err) {
+      console.error('MediaRecorder start error:', err);
+      setCameraError('영상 녹화를 시작하는 도중 오류가 발생했습니다.');
+    }
+  };
+
+  // Upload & Save Progress State
+  const [isUploading, setIsUploading] = useState
+(null);
+
+  const handleSaveAllRecords = () => {
+    try {
+      const accountData = {
+        user: currentUser,
+        pitchers,
+        sessions,
+        romRecords,
+        videos,
+        dailyLogs,
+        pitchSequences,
+        goalRoadmap,
+        trainingSchedules,
+        autoArchivePassedSchedules,
+        lastSavedAt: new Date().toLocaleString('ko-KR'),
+      };
+
+      if (currentUser && currentUser.email) {
+        const key = `bullpen_account_data_${currentUser.email.trim().toLowerCase()}`;
+        localStorage.setItem(key, JSON.stringify(accountData));
+        localStorage.setItem('bullpen_user_account', JSON.stringify(currentUser));
+      }
+
+      localStorage.setItem('bullpen_pitchers', JSON.stringify(pitchers));
+      localStorage.setItem('bullpen_sessions', JSON.stringify(sessions));
+      localStorage.setItem('bullpen_rom_records', JSON.stringify(romRecords));
+      localStorage.setItem('bullpen_videos', JSON.stringify(videos));
+      localStorage.setItem('bullpen_daily_logs', JSON.stringify(dailyLogs));
+      localStorage.setItem('bullpen_pitch_sequences', JSON.stringify(pitchSequences));
+      localStorage.setItem('bullpen_goal_roadmap', JSON.stringify(goalRoadmap));
+      localStorage.setItem('bullpen_training_schedules', JSON.stringify(trainingSchedules));
+
+      setSaveToastMessage('💾 모든 피칭, 훈련 스케줄, 가동범위 및 영상 기록이 안전하게 저장되었습니다!');
+      setTimeout(() => {
+        setSaveToastMessage(null);
+      }, 4000);
+    } catch (err) {
+      console.error('Error saving records:', err);
+      setSaveToastMessage('⚠️ 기록 저장 중 오류가 발생했습니다.');
+      setTimeout(() => {
+        setSaveToastMessage(null);
+      }, 3000);
+    }
+  };
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
+  return (
+(null);
+
+  if (!isOpen) return null;
+
+  const togglePitchType = (pt: string) => {
+    if (selectedPitchTypes.includes(pt)) {
+      if (selectedPitchTypes.length === 1 && pt !== '기타 (직접 입력)') return;
+      setSelectedPitchTypes(selectedPitchTypes.filter((t) => t !== pt));
+    } else {
+      setSelectedPitchTypes([...selectedPitchTypes, pt]);
+    }
+  };
+
+
+  const handleSendVerification = async () => {
+    if (!signupEmail.trim()) {
+      setErrorMessage('이메일을 입력해주세요.');
+      return;
+    }
+    if (!signupPassword.trim() || signupPassword.length
+(null);
+
+  let navItems = [
+    { id: 'dashboard', label: '라이브 대시보드', icon: LayoutDashboard, desc: '선수 종합 통계 & 통합 모니터링' },
+    { id: 'calendar', label: '훈련 캘린더', icon: Calendar, desc: '훈련 스케줄 계획, 과거 피칭/웨이트 기록' },
+    { id: 'acwr', label: '부하 지수 (ACWR) 분석', icon: TrendingUp, desc: '7일/28일 과부하 및 부상 위험 경보' },
+    { id: 'rom', label: '가동범위 (ROM) & GIRD', icon: Dumbbell, desc: '관절 가동성 및 통증 히트맵' },
+    { id: 'video', label: '메커니즘 영상 아카이브', icon: Video, desc: 'Split-Screen 폼 비교 분석' },
+    { id: 'ai-report', label: 'AI 맞춤 케어 리포트', icon: Sparkles, desc: 'AI 불펜 코치 주간 리포트 & 맞춤 코칭', isAi: true },
+    { id: 'logs', label: '피칭 일지 데이터', icon: FileText, desc: '구질별 상세 기록 & 불펜 히스토리' },
+    { id: 'community', label: '커뮤니티', icon: MessageCircle, desc: '선수/코치 간 정보 공유' },
+    { id: 'support', label: '고객지원', icon: Headset, desc: '1:1 문의 및 FAQ' },
+    { id: 'settings', label: '설정', icon: User, desc: '앱 설정 및 프로필 변경' }
+  ];
+
+  if (currentUser?.isAdmin) {
+    navItems.push({ id: 'admin', label: '관리자', icon: ShieldAlert, desc: '시스템 관리 패널' });
+  }
+
+  const currentNav = navItems.find((item) => item.id === activeTab) || navItems[0];
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectTab = (tabId: string) => {
+    setActiveTab(tabId);
+    setIsMenuOpen(false);
+  };
+
+  return (
+(null);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      alert('접근 권한이 없습니다');
+      navigate('/');
+      return;
+    }
+    fetchUsers();
+  }, [isAdmin, navigate]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      // Mock data for UI if supabase fails
+      const mockUsers: UserAccount[] = [
+        { id: '1', email: 'test1@example.com', name: '김선수', subscriptionTier: 'FREE', joinedDate: '2024-01-01', isAdmin: false } as UserAccount,
+        { id: '2', email: 'pro@example.com', name: '이프로', subscriptionTier: 'PRO', joinedDate: '2024-02-15', isAdmin: false } as UserAccount,
+        { id: '3', email: 'cheatpt@gmail.com', name: '관리자', subscriptionTier: 'PRO', joinedDate: '2024-03-01', isAdmin: true } as UserAccount,
+      ];
+      const { data, error } = await supabase.from('profiles').select('*');
+      if (data && data.length > 0) {
+        setUsers(data as UserAccount[]);
+      } else {
+        setUsers(mockUsers);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveUser = () => {
+    if (!editingUser) return;
+    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
+    setEditingUser(null);
+    alert('사용자 정보가 성공적으로 변경되었습니다.');
+  };
+
+  if (!isAdmin) return null;
+
+  return (
+(null);
+  const [isWriting, setIsWriting] = useState(false);
+  
+  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [newComment, setNewComment] = useState('');
+
+  const handleCreatePost = () => {
+    if (!newTitle.trim() || !newContent.trim()) return;
+    
+    const newPost: Post = {
+      id: `p${Date.now()}`,
+      authorName: '나',
+      authorTier: 'PRO', // Mock
+      timestamp: '방금 전',
+      title: newTitle,
+      content: newContent,
+      likes: 0,
+      comments: []
+    };
+    
+    setPosts([newPost, ...posts]);
+    setIsWriting(false);
+    setNewTitle('');
+    setNewContent('');
+  };
+
+  const handleAddComment = () => {
+    if (!selectedPost || !newComment.trim()) return;
+    
+    const comment: Comment = {
+      id: `c${Date.now()}`,
+      authorName: '나',
+      timestamp: '방금 전',
+      content: newComment
+    };
+    
+    const updatedPost = {
+      ...selectedPost,
+      comments: [...selectedPost.comments, comment]
+    };
+    
+    setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
+    setSelectedPost(updatedPost);
+    setNewComment('');
+  };
+
+  return (
+({calcVal > 1.5 ? '🔴 고위험' : calcVal >= 1.3 ? '🟠 주의' : calcVal
+(※ 15초 이하의 영상만 저장 가능합니다)
+(위험도 점수: ${report.riskScore}/100)
+(점수: {report.riskScore}/100)
+(피로 {session.fatigue}/10)
+) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    uploadedFileRef.current = file;
+    setUploadFileName(file.name);
+    const url = URL.createObjectURL(file);
+    setUploadUrl(url);
+
+    // Validate video duration
+    const tempVideo = document.createElement('video');
+    tempVideo.src = url;
+    tempVideo.onloadedmetadata = () => {
+      if (tempVideo.duration > 15.5) {
+        setUploadDurationWarning(true);
+      } else {
+        setUploadDurationWarning(false);
+      }
+    };
+
+    if (!title) {
+      setTitle(file.name.replace(/\.[^/.]+$/, ""));
+    }
+  };
+
+  // Form Submission (Server Video Upload & Account Save)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isUploading) return;
+
+    setIsUploading(true);
+
+    const defaultTitleName = `${date} ${pitchType} ${velocity}km/h 투구 메커니즘`;
+    const videoMetadata: Omit
+) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          setAvatarUrl(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setAvatarUrl('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    setIsSaving(true);
+    const updatedUser: UserAccount = {
+      ...user,
+      name: name.trim(),
+      number: Number(number) || 0,
+      team: team.trim() || '소속 없음',
+      throwingArm,
+      role: role || '미정 (Unassigned)',
+      maxVelocity: Number(maxVelocity) || 145,
+      height: Number(height) || 0,
+      weight: Number(weight) || 0,
+      wingspan: Number(wingspan) || 0,
+      age: Number(age) || 0,
+      birthdate,
+      avatarUrl,
+    };
+
+    try {
+      if (onUpdateProfile) {
+        await onUpdateProfile(updatedUser);
+      }
+      setIsSaving(false);
+      setSaveSuccess(true);
+      setIsEditing(false);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      setIsSaving(false);
+    }
+  };
+
+  const getThrowingArmLabel = (arm: 'RHP' | 'LHP' | 'SWITCH') => {
+    switch (arm) {
+      case 'RHP': return '우투 (RHP)';
+      case 'LHP': return '좌투 (LHP)';
+      case 'SWITCH': return '양투 (Switch)';
+      default: return '우투 (RHP)';
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return createPortal(
+) => {
+    const newRom: ROMRecord = {
+      ...newRomData,
+      id: `rom-${Date.now()}`,
+    };
+    setRomRecords((prev) => [newRom, ...prev]);
+
+    // Auto-sync to Daily Log
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === newRomData.pitcherId && l.date === newRomData.date
+      );
+      const romNote = `🏥 [어깨 ROM 검사 자동 연동] 굴곡/신전/회전 측정 완료 (통증 ${newRomData.painScore}/10 - ${newRomData.painLocation || '이상 없음'})`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          painScore: newRomData.painScore,
+          painLocation: newRomData.painLocation || existing.painLocation,
+          diary: existing.diary ? `${existing.diary}\n${romNote}` : romNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: newRomData.pitcherId,
+          date: newRomData.date,
+          trainingType: 'REHAB',
+          painScore: newRomData.painScore,
+          painLocation: newRomData.painLocation || '',
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: romNote,
+          routines: [
+            { id: 'r1', title: '어깨 회전근개 가동성 모니터링', category: 'ARM_CARE', completed: true },
+          ],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newRomData.pitcherId && s.date === newRomData.date && (s.category === 'RECOVERY' || s.category === 'REST')
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: newRomData.pitcherId,
+          date: newRomData.date,
+          time: '10:00',
+          category: 'RECOVERY',
+          title: `🏥 [자동 기록] 어깨 가동범위(ROM) 측정 완료`,
+          intensity: 'LOW',
+          details: `통증 ${newRomData.painScore}/10`,
+          durationMinutes: 20,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
+  };
+
+  // Handler to add Video (Auto-syncs across PitchSessions, Pitchers, DailyLogs, Schedules, Roadmap)
+  const handleAddVideo = (newVideoData: PitchVideo | Omit
+) => {
+    const newSeq: PitchSequence = {
+      ...seqData,
+      id: `seq-${Date.now()}`,
+    };
+    setPitchSequences((prev) => [newSeq, ...prev]);
+
+    // 1. Sync Max Velocity
+    if (seqData.velocity > 0) {
+      setPitchers((prev) =>
+        prev.map((p) =>
+          p.id === seqData.pitcherId
+            ? { ...p, maxVelocity: Math.max(p.maxVelocity || 0, seqData.velocity) }
+            : p
+        )
+      );
+      if (currentUser && currentUser.id === seqData.pitcherId && seqData.velocity > (currentUser.maxVelocity || 0)) {
+        handleUpdateProfile({ ...currentUser, maxVelocity: seqData.velocity });
+      }
+      setGoalRoadmap((prev) => {
+        if (prev.pitcherId === seqData.pitcherId && seqData.velocity > prev.currentVelocity) {
+          return { ...prev, currentVelocity: seqData.velocity };
+        }
+        return prev;
+      });
+    }
+
+    // 2. Auto-sync to Pitch Session
+    setSessions((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === seqData.pitcherId && s.date === seqData.date
+      );
+
+      const typeKey = (seqData.pitchType || '').toLowerCase();
+      const isFastball = typeKey.includes('포심') || typeKey.includes('직구') || typeKey.includes('fastball');
+      const isSlider = typeKey.includes('슬라이더') || typeKey.includes('slider');
+      const isCurve = typeKey.includes('커브') || typeKey.includes('curve');
+      const isChangeup = typeKey.includes('체인지업') || typeKey.includes('changeup');
+      const isCutter = typeKey.includes('커터') || typeKey.includes('cutter');
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const newTotal = existing.totalPitches + 1;
+        const newMax = Math.max(existing.maxVel, seqData.velocity || 0);
+        const newAvg = Math.round((existing.avgVel * existing.totalPitches + (seqData.velocity || 0)) / newTotal);
+
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          totalPitches: newTotal,
+          fastballCount: existing.fastballCount + (isFastball ? 1 : 0),
+          sliderCount: existing.sliderCount + (isSlider ? 1 : 0),
+          curveballCount: existing.curveballCount + (isCurve ? 1 : 0),
+          changeupCount: existing.changeupCount + (isChangeup ? 1 : 0),
+          cutterCount: existing.cutterCount + (isCutter ? 1 : 0),
+          maxVel: newMax,
+          avgVel: newAvg,
+          notes: existing.notes
+            ? `${existing.notes} | 🎯 [구종 기록 연동] vs ${seqData.opponent}`
+            : `🎯 [구종 기록 연동] vs ${seqData.opponent}`,
+        };
+        return next;
+      } else {
+        const targetPitcher = pitchers.find((p) => p.id === seqData.pitcherId);
+        const newSession: PitchSession = {
+          id: `session-auto-${Date.now()}`,
+          pitcherId: seqData.pitcherId,
+          date: seqData.date,
+          sessionType: 'GAME',
+          totalPitches: 1,
+          fastballCount: isFastball ? 1 : 0,
+          sliderCount: isSlider ? 1 : 0,
+          curveballCount: isCurve ? 1 : 0,
+          changeupCount: isChangeup ? 1 : 0,
+          cutterCount: isCutter ? 1 : 0,
+          maxVel: seqData.velocity || 145,
+          avgVel: seqData.velocity || 145,
+          rpe: 8,
+          fatigue: 5,
+          armSoreness: false,
+          notes: `🎯 [실전 경기 구종 자동 연동] vs ${seqData.opponent} (${seqData.batter} 타자) - ${seqData.pitchType} ${seqData.velocity}km/h`,
+          acwrImpact: parseFloat(
+            ((targetPitcher?.currentAcwr || 1.15) + 0.03).toFixed(2)
+          ),
+        };
+        return [newSession, ...prev];
+      }
+    });
+
+    // 3. Auto-sync to Daily Log
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === seqData.pitcherId && l.date === seqData.date
+      );
+      const seqNote = `🎯 [실전 피칭 기록 연동] vs ${seqData.opponent} (${seqData.inning}회말 ${seqData.batter} 타자): ${seqData.pitchType} ${seqData.velocity}km/h (${seqData.result})`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          trainingType: 'GAME',
+          diary: existing.diary ? `${existing.diary}\n${seqNote}` : seqNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: seqData.pitcherId,
+          date: seqData.date,
+          trainingType: 'GAME',
+          painScore: 0,
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: seqNote,
+          routines: [],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // 4. Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === seqData.pitcherId && s.date === seqData.date && (s.category === 'TACTICAL' || s.category === 'BULLPEN')
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: seqData.pitcherId,
+          date: seqData.date,
+          time: '18:00',
+          category: 'TACTICAL',
+          title: `🎯 [자동 기록] vs ${seqData.opponent} 실전 경기 피칭`,
+          intensity: 'HIGH',
+          details: `${seqData.batter} 타자상대 ${seqData.pitchType} ${seqData.velocity}km/h`,
+          durationMinutes: 120,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
+  };
+
+  // Handler to add or update Training Schedule
+  const handleSaveSchedule = (schedule: TrainingScheduleItem) => {
+    setTrainingSchedules((prev) => {
+      const idx = prev.findIndex((s) => s.id === schedule.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = schedule;
+        return next;
+      }
+      return [schedule, ...prev];
+    });
+  };
+
+  // Handler to delete Training Schedule
+  const handleDeleteSchedule = (scheduleId: string) => {
+    setTrainingSchedules((prev) => prev.filter((s) => s.id !== scheduleId));
+  };
+
+  // Handler to toggle Training Schedule completion with DailyLog Auto-Sync
+  const handleToggleScheduleCompleted = (scheduleId: string) => {
+    setTrainingSchedules((prev) => {
+      const target = prev.find((s) => s.id === scheduleId);
+      if (target) {
+        const newCompleted = !target.completed;
+        if (newCompleted) {
+          setDailyLogs((dPrev) => {
+            const existingIdx = dPrev.findIndex(
+              (l) => l.pitcherId === target.pitcherId && l.date === target.date
+            );
+            const schedNote = `📅 [일정 완료 연동] ${target.title}`;
+            if (existingIdx >= 0) {
+              const existing = dPrev[existingIdx];
+              if (!existing.diary.includes(target.title)) {
+                const next = [...dPrev];
+                next[existingIdx] = {
+                  ...existing,
+                  diary: existing.diary ? `${existing.diary}\n${schedNote}` : schedNote,
+                };
+                return next;
+              }
+            }
+            return dPrev;
+          });
+        }
+      }
+      return prev.map((s) => (s.id === scheduleId ? { ...s, completed: !s.completed } : s));
+    });
+  };
+
+  // Global Save All Records Handler
+  const [saveToastMessage, setSaveToastMessage] = useState
+) => {
+    const newSession: PitchSession = {
+      ...newSessionData,
+      id: `session-${Date.now()}`,
+    };
+
+    setSessions((prev) => [newSession, ...prev]);
+
+    // 1. Sync ACWR & Max Velocity for Pitcher & User Account & Roadmap
+    setPitchers((prev) =>
+      prev.map((p) => {
+        if (p.id === newSessionData.pitcherId) {
+          return {
+            ...p,
+            currentAcwr: newSessionData.acwrImpact || p.currentAcwr,
+            maxVelocity: Math.max(p.maxVelocity || 0, newSessionData.maxVel || 0),
+          };
+        }
+        return p;
+      })
+    );
+
+    if (currentUser && currentUser.id === newSessionData.pitcherId && newSessionData.maxVel > (currentUser.maxVelocity || 0)) {
+      handleUpdateProfile({ ...currentUser, maxVelocity: newSessionData.maxVel });
+    }
+
+    setGoalRoadmap((prev) => {
+      if (prev.pitcherId === newSessionData.pitcherId && newSessionData.maxVel > prev.currentVelocity) {
+        return { ...prev, currentVelocity: newSessionData.maxVel };
+      }
+      return prev;
+    });
+
+    // 2. Auto-sync to Daily Logs
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === newSessionData.pitcherId && l.date === newSessionData.date
+      );
+      const sessionNote = `⚾ [피칭 세션 자동 연동] ${newSessionData.sessionType} ${newSessionData.totalPitches}구 완료 (최고 ${newSessionData.maxVel}km/h) ${newSessionData.notes || ''}`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          trainingType: existing.trainingType || (newSessionData.sessionType === 'GAME' ? 'GAME' : 'BULLPEN'),
+          diary: existing.diary ? `${existing.diary}\n${sessionNote}` : sessionNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: newSessionData.pitcherId,
+          date: newSessionData.date,
+          trainingType: newSessionData.sessionType === 'GAME' ? 'GAME' : 'BULLPEN',
+          painScore: newSessionData.armSoreness ? 4 : 0,
+          painLocation: newSessionData.sorenessLocation || '',
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: sessionNote,
+          routines: [
+            { id: 'r1', title: '불펜/경기 후 아이싱 및 어깨 보강', category: 'RECOVERY', completed: true },
+          ],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // 3. Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newSessionData.pitcherId && s.date === newSessionData.date && (s.category === 'BULLPEN' || s.category === 'TACTICAL')
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: newSessionData.pitcherId,
+          date: newSessionData.date,
+          time: '14:00',
+          category: 'BULLPEN',
+          title: `⚾ [자동 기록] ${newSessionData.sessionType} ${newSessionData.totalPitches}구 피칭`,
+          intensity: 'HIGH',
+          details: `최고 ${newSessionData.maxVel}km/h, RPE ${newSessionData.rpe}`,
+          durationMinutes: 45,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
+  };
+
+  // Handler to delete session
+  const handleDeleteSession = (sessionId: string) => {
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+  };
+
+  // Handler to add ROM record (Auto-syncs with DailyLog & Recovery Schedule)
+  const handleAddROMRecord = (newRomData: Omit
+) => {
+    const videoId = (newVideoData as PitchVideo).id || `video-${Date.now()}`;
+    const newVideo: PitchVideo = {
+      ...newVideoData,
+      id: videoId,
+    };
+
+    setVideos((prev) => [newVideo, ...prev.filter((v) => v.id !== videoId)]);
+
+    // 1. Sync Pitcher Max Velocity & Profile & Roadmap
+    if (newVideo.velocity > 0) {
+      setPitchers((prev) =>
+        prev.map((p) =>
+          p.id === newVideo.pitcherId
+            ? { ...p, maxVelocity: Math.max(p.maxVelocity || 0, newVideo.velocity) }
+            : p
+        )
+      );
+      if (currentUser && currentUser.id === newVideo.pitcherId) {
+        if (newVideo.velocity > (currentUser.maxVelocity || 0)) {
+          handleUpdateProfile({ ...currentUser, maxVelocity: newVideo.velocity });
+        }
+      }
+      setGoalRoadmap((prev) => {
+        if (prev.pitcherId === newVideo.pitcherId && newVideo.velocity > prev.currentVelocity) {
+          return { ...prev, currentVelocity: newVideo.velocity };
+        }
+        return prev;
+      });
+    }
+
+    // 2. Auto-sync to Pitch Sessions (투구 기록 시스템)
+    setSessions((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newVideo.pitcherId && s.date === newVideo.date
+      );
+
+      const typeKey = (newVideo.pitchType || '').toLowerCase();
+      const isFastball = typeKey.includes('포심') || typeKey.includes('직구') || typeKey.includes('fastball');
+      const isSlider = typeKey.includes('슬라이더') || typeKey.includes('slider');
+      const isCurve = typeKey.includes('커브') || typeKey.includes('curve');
+      const isChangeup = typeKey.includes('체인지업') || typeKey.includes('changeup');
+      const isCutter = typeKey.includes('커터') || typeKey.includes('cutter');
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const newTotalPitches = existing.totalPitches + 1;
+        const newMaxVel = Math.max(existing.maxVel, newVideo.velocity || 0);
+        const newAvgVel = Math.round(
+          (existing.avgVel * existing.totalPitches + (newVideo.velocity || 0)) / newTotalPitches
+        );
+
+        const updatedSession: PitchSession = {
+          ...existing,
+          totalPitches: newTotalPitches,
+          fastballCount: existing.fastballCount + (isFastball ? 1 : 0),
+          sliderCount: existing.sliderCount + (isSlider ? 1 : 0),
+          curveballCount: existing.curveballCount + (isCurve ? 1 : 0),
+          changeupCount: existing.changeupCount + (isChangeup ? 1 : 0),
+          cutterCount: existing.cutterCount + (isCutter ? 1 : 0),
+          maxVel: newMaxVel,
+          avgVel: newAvgVel,
+          notes: existing.notes
+            ? `${existing.notes} | 🎥 [투구 영상 연동] ${newVideo.title}`
+            : `🎥 [투구 영상 연동] ${newVideo.title}`,
+        };
+
+        const next = [...prev];
+        next[existingIdx] = updatedSession;
+        return next;
+      } else {
+        const targetPitcher = pitchers.find((p) => p.id === newVideo.pitcherId);
+        const newSession: PitchSession = {
+          id: `session-auto-${Date.now()}`,
+          pitcherId: newVideo.pitcherId,
+          date: newVideo.date,
+          sessionType: 'BULLPEN',
+          totalPitches: 1,
+          fastballCount: isFastball ? 1 : 0,
+          sliderCount: isSlider ? 1 : 0,
+          curveballCount: isCurve ? 1 : 0,
+          changeupCount: isChangeup ? 1 : 0,
+          cutterCount: isCutter ? 1 : 0,
+          maxVel: newVideo.velocity || 145,
+          avgVel: newVideo.velocity || 145,
+          rpe: 7,
+          fatigue: 4,
+          armSoreness: false,
+          notes: `🎥 [투구 영상 자동 연동] ${newVideo.title} (${newVideo.pitchType} ${newVideo.velocity}km/h)`,
+          acwrImpact: parseFloat(
+            ((targetPitcher?.currentAcwr || 1.15) + 0.02).toFixed(2)
+          ),
+        };
+        return [newSession, ...prev];
+      }
+    });
+
+    // 3. Auto-sync to Daily Log
+    setDailyLogs((prev) => {
+      const existingIdx = prev.findIndex(
+        (l) => l.pitcherId === newVideo.pitcherId && l.date === newVideo.date
+      );
+      const vidNote = `🎥 [투구 영상 자동 연동] ${newVideo.title} (${newVideo.pitchType} ${newVideo.velocity}km/h)`;
+
+      if (existingIdx >= 0) {
+        const existing = prev[existingIdx];
+        const next = [...prev];
+        next[existingIdx] = {
+          ...existing,
+          diary: existing.diary ? `${existing.diary}\n${vidNote}` : vidNote,
+        };
+        return next;
+      } else {
+        const newLog: DailyLog = {
+          id: `daily-auto-${Date.now()}`,
+          pitcherId: newVideo.pitcherId,
+          date: newVideo.date,
+          trainingType: 'BULLPEN',
+          painScore: 0,
+          sleepHours: 8,
+          sleepQuality: 'GOOD',
+          diary: vidNote,
+          routines: [
+            { id: 'r1', title: '투구 모션 영상 촬영 및 스피드 분석', category: 'ARM_CARE', completed: true },
+          ],
+          weightVolumeKg: 0,
+        };
+        return [newLog, ...prev];
+      }
+    });
+
+    // 4. Auto-sync to Training Schedules
+    setTrainingSchedules((prev) => {
+      const existingIdx = prev.findIndex(
+        (s) => s.pitcherId === newVideo.pitcherId && s.date === newVideo.date && s.category === 'BULLPEN'
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], completed: true };
+        return next;
+      } else {
+        const newSched: TrainingScheduleItem = {
+          id: `sched-auto-${Date.now()}`,
+          pitcherId: newVideo.pitcherId,
+          date: newVideo.date,
+          time: '15:00',
+          category: 'BULLPEN',
+          title: `🎥 [자동 기록] ${newVideo.title} 투구 영상 분석`,
+          intensity: 'HIGH',
+          details: `${newVideo.pitchType} ${newVideo.velocity}km/h 영상 저장`,
+          durationMinutes: 30,
+          completed: true,
+        };
+        return [newSched, ...prev];
+      }
+    });
+  };
+
+  // Handler to save DailyLog
+  const handleSaveDailyLog = (updatedLog: DailyLog) => {
+    setDailyLogs((prev) => {
+      const idx = prev.findIndex((l) => l.date === updatedLog.date && l.pitcherId === updatedLog.pitcherId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = updatedLog;
+        return next;
+      }
+      return [updatedLog, ...prev];
+    });
+
+    // Auto-sync schedule items for that day if completed routines exist
+    if (updatedLog.routines && updatedLog.routines.some((r) => r.completed)) {
+      setTrainingSchedules((prev) =>
+        prev.map((s) => {
+          if (s.pitcherId === updatedLog.pitcherId && s.date === updatedLog.date) {
+            return { ...s, completed: true };
+          }
+          return s;
+        })
+      );
+    }
+  };
+
+  // Handler to add PitchSequence (Auto-syncs across Pitchers, PitchSessions, DailyLogs, Schedules)
+  const handleAddPitchSequence = (seqData: Omit
+))}
+
+                            {/* Dynamic Custom Text Input for Q1 */}
+                            {painChoice === '기타 (직접 입력)' && (
+))}
+
+                            {/* Dynamic Custom Text Input for Q2 */}
+                            {goalChoice === '기타 (직접 입력)' && (
+))}
+
+                            {focusChoice === '기타 (직접 입력)' && (
+))}
+
+                            {freqChoice === '기타 (직접 입력)' && (
+)}
+
+                  {/* STEP 2: ATHLETE ASSESSMENT QUESTIONS WITH '기타 (직접 입력)' */}
+                  {signupStep === 2 && (
+)}
+
+        {/* STEP 3: ATHLETE ASSESSMENT QUESTIONNAIRE (UNIFIED SINGLE EMERALD SCHEME WITH "기타 (직접 입력)" AT BOTTOM) */}
+        {signupStep === 3 && (
++ ROM 측정치 등록
++ 새 세션 추가
++ 영상 추가하기
++ 투구 영상 촬영 / 저장
++ 피칭 부하 기록하기
+/ 0.8 ~ 1.30 타겟
+/ 1.30 타겟
+/ 정상 0°
+/ 정상 140~150°
+/ 정상 50~60°
+/ 정상 90~110°
+/월
+1', email: 'test1@example.com', name: '김선수', subscriptionTier: 'FREE', joinedDate: '2024-01-01
+1. ACWR 및 기본 분석
+1. ACWR 및 바이오메카닉스 정밀 진단
+1. 계정 및 선수 기본 정보
+1. 밸런스 포인트
+100% 프로 구단급 바이오메카닉스 분석 (지면 반력 효율 & 힙-숄더 세퍼레이션)
+120 구/주
+120구
+142 구
+150구 (보통)
+15초 이내 고속 투구 메커니즘 녹화 영상.
+15초 투구 프레임 분석 & 바이오메카닉스
+1년 전
+1년 후
+1단계: 계정 & 기본 프로필' : signupStep === 2 ? '2단계: 신체 & 피칭 스펙' : '3단계: 세부 선수 진단 설문
+1달 전
+1달 후
+1번 타자
+1프레임 뒤로 (~0.03초)
+1프레임 앞으로 (~0.03초)
+2', email: 'pro@example.com', name: '이프로', subscriptionTier: 'PRO', joinedDate: '2024-02-15
+2. 디딤발 착지
+2. 신체 스펙 & 최고 구속
+2. 주간 맞춤형 투구수 캡 (Throwing Program)
+250구
+28일 피칭 부하 & ACWR 추이
+2시간 전
+3', email: 'cheatpt@gmail.com', name: '관리자', subscriptionTier: 'PRO', joinedDate: '2024-03-01
+3. 어깨 최대외회전
+3. 타겟 보강 운동 (Arm Care Exercises)
+300구 (과부하)
+30구 (휴식)
+4. 릴리스 포인트
+4. 영양 & 회복 가이드라인
+40구
+5. 영양 & 회복 가이드라인
+5. 팔로우 스루
+5시간 전
+5프레임 뒤로
+5프레임 앞으로
+6자 이상
+7일/28일 투구 과부하 감지
+:
+                          입력하신 신체 정보와 구속은 개인화된 팔꿈치 부하지수 및 안전 투구수 산정에 반영됩니다.
+<span class="pain">⚠️ 통증있음</span>' : '<span class="ok">정상</span>
+= ({
+  pitcher,
+  romRecords,
+  onAddROMRecord,
+  setActiveTab,
+}) => {
+  const pitcherRom = romRecords.filter((r) => r.pitcherId === pitcher.id);
+  const latestRom = pitcherRom[0] || {
+    shoulderFlexion: 170,
+    shoulderExtension: 55,
+    shoulderIntRotation: 42,
+    shoulderExtRotation: 110,
+    elbowFlexion: 140,
+    elbowExtension: 0,
+    painScore: 2,
+    painLocation: '우측 팔꿈치 내측 (UCL 주변)',
+  };
+
+  const [showModal, setShowModal] = useState(false);
+
+  // New ROM Form State
+  const [sFlex, setSFlex] = useState
+= {
+      pitcherId,
+      title: title.trim() || defaultTitleName,
+      date,
+      videoUrl: '',
+      pitchType,
+      velocity,
+      cameraAngle,
+      notes: notes.trim() || '15초 이내 고속 투구 메커니즘 녹화 영상.',
+    };
+
+    let videoSource: Blob | File | string = 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4';
+
+    if (mode === 'record') {
+      if (recordedBlobRef.current) {
+        videoSource = recordedBlobRef.current;
+      } else if (recordedBlobUrl) {
+        videoSource = recordedBlobUrl;
+      }
+    } else {
+      if (uploadedFileRef.current) {
+        videoSource = uploadedFileRef.current;
+      } else if (uploadUrl) {
+        videoSource = uploadUrl;
+      }
+    }
+
+    try {
+      const savedVideo = await uploadVideoToServer(videoSource, videoMetadata, currentUserEmail);
+      onAddVideo(savedVideo);
+    } catch (err) {
+      console.error('Error uploading video in modal:', err);
+      // Fallback
+      onAddVideo({
+        ...videoMetadata,
+        id: `vid_${Date.now()}`,
+        videoUrl: typeof videoSource === 'string' ? videoSource : URL.createObjectURL(videoSource as Blob),
+      });
+    } finally {
+      setIsUploading(false);
+      stopCameraStream();
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return createPortal(
+= {
+      pitcherId: pitcher.id,
+      title: newTitle.trim() || '새 피칭 메커니즘 영상',
+      date: dateStr,
+      videoUrl: '',
+      pitchType: newPitchType,
+      velocity: newVel,
+      cameraAngle: newAngle,
+      notes: newNotes,
+    };
+
+    let videoSource: File | string = newUrl || 'https://assets.mixkit.co/videos/preview/mixkit-baseball-pitcher-throwing-a-ball-41584-large.mp4';
+    if (selectedFile) {
+      videoSource = selectedFile;
+    }
+
+    try {
+      const savedVideo = await uploadVideoToServer(videoSource, videoMetadata, currentUserEmail);
+      onAddVideo(savedVideo);
+    } catch (err) {
+      console.error('Error saving video in archive modal:', err);
+      onAddVideo({
+        ...videoMetadata,
+        id: `vid_${Date.now()}`,
+        videoUrl: typeof videoSource === 'string' ? videoSource : URL.createObjectURL(videoSource),
+      });
+    } finally {
+      setIsUploading(false);
+      setSelectedFile(null);
+      setNewTitle('');
+      setNewUrl('');
+      setShowModal(false);
+    }
+  };
+
+  return (
+= {
+    WEIGHT: { label: '웨이트', color: 'bg-[#FF9500]/20 text-[#FF9500] border-[#FF9500]/30' },
+    BULLPEN: { label: '불펜 피칭', color: 'bg-[#34C759]/20 text-[#34C759] border-[#34C759]/30' },
+    LONG_TOSS: { label: '롱토스', color: 'bg-[#32ADE6]/20 text-[#32ADE6] border-[#32ADE6]/30' },
+    CONDITIONING: { label: '컨디셔닝', color: 'bg-[#AF52DE]/20 text-[#AF52DE] border-[#AF52DE]/30' },
+    RECOVERY: { label: '리커버리', color: 'bg-[#FF2D55]/20 text-[#FF2D55] border-[#FF2D55]/30' },
+    TACTICAL: { label: '전술/수비', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+    REST: { label: '휴식', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30' },
+    CUSTOM: { label: '일반 훈련', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+  };
+
+  const upcomingSchedules = pitcherSchedules
+    .filter((s) => s.date >= todayStr && !s.completed)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const selectedDateSchedules = pitcherSchedules.filter((s) => s.date === selectedCalendarDate);
+  const selectedDateLog = pitcherDailyLogs.find((l) => l.date === selectedCalendarDate);
+  const selectedDateSessions = pitcherSessions.filter((s) => s.date === selectedCalendarDate);
+
+  // Calculate 7-day Acute Load (sum of pitches in last 7 days) and Chronic Load (average weekly pitches over last 28 days)
+  const totalPitchesLast7Days = pitcherSessions.reduce((acc, s) => acc + s.totalPitches, 0);
+  const latestSession = pitcherSessions[0];
+
+  // Prepare chart data for 28-day historical pitching sessions
+  const chartData = pitcherSessions.slice().reverse().map((s) => ({
+    date: s.date.slice(5),
+    pitches: s.totalPitches,
+    maxVel: s.maxVel,
+    acwr: s.acwrImpact || 1.15,
+  }));
+
+  // Calculate pitch breakdown totals
+  const totalFastballs = pitcherSessions.reduce((sum, s) => sum + s.fastballCount, 0);
+  const totalSliders = pitcherSessions.reduce((sum, s) => sum + s.sliderCount, 0);
+  const totalCurveballs = pitcherSessions.reduce((sum, s) => sum + s.curveballCount, 0);
+  const totalChangeups = pitcherSessions.reduce((sum, s) => sum + s.changeupCount, 0);
+  const totalCutters = pitcherSessions.reduce((sum, s) => sum + s.cutterCount, 0);
+
+  const pieData = [
+    { name: '포심 직구', value: totalFastballs, color: '#3B82F6' },
+    { name: '슬라이더', value: totalSliders, color: '#F59E0B' },
+    { name: '커브', value: totalCurveballs, color: '#10B981' },
+    { name: '체인지업', value: totalChangeups, color: '#EC4899' },
+    { name: '커터/스플리터', value: totalCutters, color: '#8B5CF6' },
+  ].filter((d) => d.value > 0);
+
+  // ACWR Badge formatting
+  const getAcwrBadge = (val: number) => {
+    if (val > 1.5) {
+      return {
+        label: '고위험 (High Risk)',
+        color: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+        icon: AlertTriangle,
+      };
+    }
+    if (val >= 1.3) {
+      return {
+        label: '주의 (Caution)',
+        color: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        icon: AlertTriangle,
+      };
+    }
+    if (val
+>({
+    '1. 밸런스 포인트': 0.8,
+    '2. 디딤발 착지': 1.6,
+    '3. 어깨 최대외회전': 2.2,
+    '4. 릴리스 포인트': 2.5,
+    '5. 팔로우 스루': 3.2,
+  });
+
+  // Canvas Drawing State
+  const [isDrawingMode, setIsDrawingMode] = useState
+ACWR 부하 지수
+ACWR 부하 지수 계산 • 어깨 내회전 GIRD 결핍 분석 • 7일 맞춤 피칭 캡 수립
+ACWR 부하 지수 기본 모니터링
+AI 맞춤형 케어 리포트 & 코칭
+AI 불펜 코치 (AI Bullpen Coach)
+AI 불펜 코치 분석 중...
+AI 불펜 코치가 답변을 작성 중입니다...
+AI 불펜 코치가 바이오메카닉스 데이터를 정밀 진단 중입니다...
+AI 불펜 코치가 선수의 ACWR, ROM 가동범위, 투구 피로도를 종합 분석하여 완벽한 주간 훈련 스케줄을 수립합니다.
+AI 컨디셔닝 리포트
+AI 케어 리포트 바로가기
+AI 케어 리포트 생성하기
+BULLPEN' ? '불펜 피칭' : session.sessionType === 'GAME' ? '실전 경기' : session.sessionType === 'LIVE_BP' ? '라이브 BP' : '캐치볼
+Behind Mound (마운드 후방)
+Bullpen Log {mode === 'login' ? '선수 로그인' : '선수 등록 & 회원가입'}
+Bullpen Log 대시보드
+Bullpen Log 선수 등록 회원가입
+Bullpen Log 스마트 알고리즘
+Bullpen Stars / 서울 자이언츠
+CSV 다운로드
+Driveline 플라이오케어 볼 루틴 질문있습니다
+GIRD 경고' : '정상
+GIRD 및 가동범위(ROM) 측정
+GIRD 주의: 내회전 스트레칭 필요
+Gabbett et al. 스포츠 과학 연구 표준에 입각한 투수의 단기(7일) vs 장기(28일) 피칭 워크로드 비율 계산기
+HTML 다운로드
+HTML 보고서 다운로드
+High Home (포수 후면 상단)
+High Home (포수 후방)
+LHP': return '좌투 (LHP)
+Q1. 현재 투구 시 팔꿈치나 어깨에 통증 또는 피로감이 있으신가요?
+Q2. 올 시즌 달성하고자 하는 가장 핵심적인 목표는 무엇인가요?
+Q3. 일주일 평균 피칭 & 웨이트 훈련 세션 횟수는 어느 정도인가요?
+Q4. 가장 집중하고 싶은 피칭/트레이닝 케어 분야는 무엇인가요?
+RHP' ? '우투 (RHP)' : pitcher.throwingArm === 'LHP' ? '좌투 (LHP)' : '양투 (Switch)
+RHP': return '우투 (RHP)
+ROM 관절 가동성
+RPE / 피로도
+RPE 강도
+SWITCH': return '양투 (Switch)
+Screen A (기준 영상)
+Screen B (비교 영상)
+Side View (측면 90도)
+Side View (측면 메커니즘)
+Slow-Mo 240fps (초고속 슬로우)
+Slow-Mo 240fps 초고속
+Tread & Driveline 기반 정밀 키네마틱 시퀀스 분석 제공
+UCL 인대 파열 및 팔꿈치 염증 위험 급증. 피칭 즉시 중단 및 휴식 필요.
+acwr', label: '부하 지수 (ACWR) 분석', icon: TrendingUp, desc: '7일/28일 과부하 및 부상 위험 경보
+admin', label: '관리자', icon: ShieldAlert, desc: '시스템 관리 패널
+ai-report', label: 'AI 맞춤 케어 리포트', icon: Sparkles, desc: 'AI 불펜 코치 주간 리포트 & 맞춤 코칭
+c1', authorName: '김투수', timestamp: '1시간 전', content: '네, 능형근 쪽 자극이 오는게 맞습니다. 저는 주 3회 웜업으로 진행하고 있습니다.
+c2', authorName: '박코치', timestamp: '30분 전', content: '통증이 아니라 뻐근한 느낌이라면 정상입니다. 무리하지 마시고 가벼운 무게부터 시작하세요.
+c3', authorName: '정분석', timestamp: '2시간 전', content: '좋네요! 골반 턴이 훨씬 부드러워졌습니다.
+calendar', label: '훈련 캘린더', icon: Calendar, desc: '훈련 스케줄 계획, 과거 피칭/웨이트 기록
+community', label: '커뮤니티', icon: MessageCircle, desc: '선수/코치 간 정보 공유
+dashboard', label: '라이브 대시보드', icon: LayoutDashboard, desc: '선수 종합 통계 & 통합 모니터링
+fileInputRef.current?.click()}
+                    className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center text-white text-[10px] font-bold opacity-90 group-hover:opacity-100 transition-opacity cursor-pointer border-2 border-white/40"
+                    title="프로필 사진 변경"
+                  >
+handleSelectTab(currentUser ? 'dashboard' : 'hero')}
+          className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity shrink-0 group"
+          title={currentUser ? "대시보드로 이동" : "Bullpen Log 홈"}
+        >
+handleSelectTier('AMATEUR')}
+                  className="w-full py-3 rounded-xl bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 font-medium transition-colors"
+                >
+                  선택하기
+handleSelectTier('BEGINNER')}
+                  className="w-full py-3 rounded-xl bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 font-medium transition-colors"
+                >
+                  선택하기
+handleSelectTier('FREE')}
+                  className="w-full py-3 rounded-xl border border-white/20 text-white hover:bg-white/10 font-medium transition-colors"
+                >
+                  선택하기
+handleSelectTier('PRO')}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-red-500 hover:from-orange-500 hover:to-red-400 text-white font-bold text-lg shadow-lg shadow-orange-500/25 transition-all"
+                >
+                  프로 플랜 시작하기
+https://... (비워두면 기본 MP4 적용)
+jumpToPhase(timeVal)}
+                    className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    이동 ▶
+left" dataKey="pitches" name="투구수 (구)" fill="#38bdf8
+login' ? '선수 로그인' : '선수 등록 & 회원가입
+logs', label: '피칭 일지 데이터', icon: FileText, desc: '구질별 상세 기록 & 불펜 히스토리
+monotone" dataKey="breaking" stackId="1" name="변화구 (슬라이더/커브)" stroke="#F59E0B" fill="#F59E0B
+monotone" dataKey="fastball" stackId="1" name="직구" stroke="#3B82F6" fill="#3B82F6
+monotone" dataKey="offspeed" stackId="1" name="오프스피드 (체인지업)" stroke="#EC4899" fill="#EC4899
+nextDateWithVideo && handleJumpToDate(nextDateWithVideo)}
+            className={`px-3 py-2 rounded-xl font-bold transition-all flex items-center gap-1 cursor-pointer border ${
+              nextDateWithVideo
+                ? 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
+            }`}
+            title={nextDateWithVideo ? `${nextDateWithVideo}로 이동` : '다음 저장 날짜 없음'}
+          >
+onDeleteSchedule(sch.id)}
+                              className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                              title="삭제"
+                            >
+onDeleteSession(session.id)}
+                      className="text-gray-500 hover:text-rose-400 p-1.5 rounded-lg transition-colors cursor-pointer"
+                      title="삭제"
+                    >
+p.id === updatedUser.id || (p.email && p.email.toLowerCase() === updatedUser.email.toLowerCase())
+        );
+
+        const userPitcher: Pitcher = {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          number: updatedUser.number,
+          team: updatedUser.team,
+          throwingArm: updatedUser.throwingArm,
+          role: updatedUser.role || '미정 (Unassigned)',
+          age: updatedUser.age || 24,
+          birthdate: updatedUser.birthdate,
+          heightWeight: updatedUser.height && updatedUser.weight ? `${updatedUser.height}cm / ${updatedUser.weight}kg` : '185cm / 84kg',
+          height: updatedUser.height,
+          weight: updatedUser.weight,
+          wingspan: updatedUser.wingspan,
+          maxVelocity: updatedUser.maxVelocity || 151,
+          currentAcwr: existingIdx >= 0 ? pitchersList[existingIdx].currentAcwr : 1.15,
+          avatarUrl: updatedUser.avatarUrl || '',
+          email: updatedUser.email,
+        };
+
+        if (existingIdx >= 0) {
+          pitchersList[existingIdx] = { ...pitchersList[existingIdx], ...userPitcher };
+        } else {
+          pitchersList = [userPitcher, ...pitchersList];
+        }
+
+        return {
+          user: updatedUser,
+          pitchers: pitchersList,
+          sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+          romRecords: Array.isArray(parsed.romRecords) ? parsed.romRecords : [],
+          videos: Array.isArray(parsed.videos) ? parsed.videos : [],
+          dailyLogs: Array.isArray(parsed.dailyLogs) ? parsed.dailyLogs : [],
+          pitchSequences: Array.isArray(parsed.pitchSequences) ? parsed.pitchSequences : [],
+          goalRoadmap: parsed.goalRoadmap || { ...INITIAL_GOAL_ROADMAP, pitcherId: updatedUser.id },
+          trainingSchedules: Array.isArray(parsed.trainingSchedules) ? parsed.trainingSchedules : [],
+          autoArchivePassedSchedules: typeof parsed.autoArchivePassedSchedules === 'boolean' ? parsed.autoArchivePassedSchedules : true,
+        };
+      }
+    } catch (e) {
+      console.error('Error parsing stored account data:', e);
+    }
+  }
+
+  // Generate initial default data bound to user.id if key does not exist
+  const initialUserPitcher: Pitcher = {
+    id: user.id,
+    name: user.name || '투수',
+    number: typeof user.number === 'number' ? user.number : 18,
+    team: user.team || 'Bullpen Stars',
+    throwingArm: user.throwingArm || 'RHP',
+    role: user.role || '미정 (Unassigned)',
+    age: user.age || 24,
+    birthdate: user.birthdate,
+    heightWeight: user.height && user.weight ? `${user.height}cm / ${user.weight}kg` : '185cm / 84kg',
+    height: user.height || 185,
+    weight: user.weight || 84,
+    wingspan: user.wingspan || 190,
+    maxVelocity: user.maxVelocity || 151,
+    currentAcwr: 1.15,
+    avatarUrl: user.avatarUrl || '',
+    email: user.email,
+  };
+
+  const initialSessions = INITIAL_SESSIONS.map((s) => (s.pitcherId === 'p1' ? { ...s, pitcherId: user.id } : s));
+  const initialRomRecords = INITIAL_ROM_RECORDS.map((r) => (r.pitcherId === 'p1' ? { ...r, pitcherId: user.id } : r));
+  const initialVideos = INITIAL_VIDEOS.map((v) => (v.pitcherId === 'p1' ? { ...v, pitcherId: user.id } : v));
+  const initialDailyLogs = INITIAL_DAILY_LOGS.map((l) => (l.pitcherId === 'p1' ? { ...l, pitcherId: user.id } : l));
+  const initialPitchSequences = INITIAL_PITCH_SEQUENCES.map((ps) => (ps.pitcherId === 'p1' ? { ...ps, pitcherId: user.id } : ps));
+  const initialRoadmap: GoalRoadmap = {
+    ...INITIAL_GOAL_ROADMAP,
+    pitcherId: user.id,
+    targetVelocity: user.maxVelocity ? Math.round(user.maxVelocity + 4) : 155,
+    currentVelocity: user.maxVelocity || 151,
+    targetWeight: user.weight ? user.weight + 3 : 88,
+    currentWeight: user.weight || 84,
+  };
+  const initialSchedules = INITIAL_TRAINING_SCHEDULES.map((ts) => (ts.pitcherId === 'p1' ? { ...ts, pitcherId: user.id } : ts));
+
+  if (user.email === 'cheatpt@gmail.com') {
+    user.isAdmin = true;
+  }
+  const accountData = {
+    user,
+    pitchers: [initialUserPitcher, ...INITIAL_PITCHERS.filter((p) => p.id !== 'p1')],
+    sessions: initialSessions,
+    romRecords: initialRomRecords,
+    videos: initialVideos,
+    dailyLogs: initialDailyLogs,
+    pitchSequences: initialPitchSequences,
+    goalRoadmap: initialRoadmap,
+    trainingSchedules: initialSchedules,
+    autoArchivePassedSchedules: true,
+  };
+
+  try {
+    localStorage.setItem(key, JSON.stringify(accountData));
+  } catch (e) {
+    console.error('Error saving new initial account data:', e);
+  }
+
+  return accountData;
+}
+
+export default function App() {
+  // User Account state
+  const [currentUser, setCurrentUser] = useState
+pain">⚠️ 통증있음</span>' : '<span class="ok
+prevDateWithVideo && handleJumpToDate(prevDateWithVideo)}
+            className={`px-3 py-2 rounded-xl font-bold transition-all flex items-center gap-1 cursor-pointer border ${
+              prevDateWithVideo
+                ? 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
+            }`}
+            title={prevDateWithVideo ? `${prevDateWithVideo}로 이동` : '이전 저장 날짜 없음'}
+          >
+r1', title: '불펜/경기 후 아이싱 및 어깨 보강', category: 'RECOVERY
+r1', title: '어깨 회전근개 가동성 모니터링', category: 'ARM_CARE
+r1', title: '어깨/팔꿈치 밴드 익스텐션 3세트', category: 'ARM_CARE
+r1', title: '투구 모션 영상 촬영 및 스피드 분석', category: 'ARM_CARE
+r2', title: '슬리퍼 스트레칭 (GIRD 예방)', category: 'STRETCH
+r3', title: '단백질 보충제 및 글루타민 섭취', category: 'NUTRITION
+r4', title: '아이스 팩 마사지 15분', category: 'RECOVERY
+right" type="monotone" dataKey="acwr" name="ACWR 지수" stroke="#f43f5e
+rom', label: '가동범위 (ROM) & GIRD', icon: Dumbbell, desc: '관절 가동성 및 통증 히트맵
+setActiveSubTab('calendar-video')}
+                          className="text-[9px] font-extrabold text-emerald-400 hover:underline cursor-pointer"
+                        >
+                          영상 탭 이동 ▶
+setActiveTab('acwr')}
+              className="text-xs text-gray-300 hover:text-white font-semibold flex items-center gap-1 transition-colors"
+            >
+              상세 분석
+setActiveTab('logs')}
+                className="text-xs text-gray-400 hover:text-white underline font-medium"
+              >
+                전체보기
+setActiveTab('my')}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'my' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+          >
+            내 문의 내역
+setActiveTab('new')}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'new' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+          >
+            새 문의하기
+setBookmarkForCurrentFrame(phaseName)}
+                    className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors cursor-pointer"
+                    title="현재 프레임으로 업데이트"
+                  >
+                    [현재 세팅]
+setCalMonthDate(new Date(year, m, 1))}
+                    className={`px-2 py-0.5 rounded-md font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                      isCurrent
+                        ? 'bg-emerald-500 text-black font-extrabold shadow-sm'
+                        : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    {m + 1}월
+setCurrentMonth(m)}
+                      className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        isCurrent
+                          ? 'bg-emerald-500 text-black shadow-md scale-105'
+                          : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-white/10'
+                      }`}
+                    >
+                      {m}월
+setCurrentYear((y) => y - 1);
+  const handleNextYear = () => setCurrentYear((y) => y + 1);
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear((y) => y - 1);
+    } else {
+      setCurrentMonth((m) => m - 1);
+    }
+  };
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear((y) => y + 1);
+    } else {
+      setCurrentMonth((m) => m + 1);
+    }
+  };
+  const handleToday = () => {
+    const now = new Date();
+    setCurrentYear(now.getFullYear());
+    setCurrentMonth(now.getMonth() + 1);
+    setSelectedDate(todayStr);
+  };
+
+  // Pitcher filtered items
+  const pitcherSessions = sessions.filter((s) => s.pitcherId === pitcher.id);
+  const pitcherDailyLogs = dailyLogs.filter((l) => l.pitcherId === pitcher.id);
+  const pitcherSequences = pitchSequences.filter((s) => s.pitcherId === pitcher.id);
+  const pitcherSchedules = schedules.filter((s) => s.pitcherId === pitcher.id);
+  const pitcherVideos = (videos || []).filter((v) => v.pitcherId === pitcher.id);
+
+  // Selected date items
+  const selectedDateSchedules = pitcherSchedules.filter((s) => s.date === selectedDate);
+  const selectedDateSessions = pitcherSessions.filter((s) => s.date === selectedDate);
+  const selectedDateLog = pitcherDailyLogs.find((l) => l.date === selectedDate);
+  const selectedDateVideos = pitcherVideos.filter((v) => v.date === selectedDate);
+
+  // Record Form States for History subtab
+  const currentDayLog = selectedDateLog || {
+    id: `dl-${selectedDate}`,
+    pitcherId: pitcher.id,
+    date: selectedDate,
+    trainingType: 'REST' as const,
+    painScore: 0,
+    painLocation: '',
+    sleepHours: 7.5,
+    sleepQuality: 'GOOD' as const,
+    diary: '',
+    routines: [
+      { id: 'r1', title: '어깨/팔꿈치 밴드 익스텐션 3세트', category: 'ARM_CARE', completed: false },
+      { id: 'r2', title: '슬리퍼 스트레칭 (GIRD 예방)', category: 'STRETCH', completed: false },
+      { id: 'r3', title: '단백질 보충제 및 글루타민 섭취', category: 'NUTRITION', completed: false },
+      { id: 'r4', title: '아이스 팩 마사지 15분', category: 'RECOVERY', completed: false },
+    ],
+    weightVolumeKg: 0,
+  };
+
+  const [editPainScore, setEditPainScore] = useState
+setDeleteConfirmText(e.target.value)}
+                    placeholder="탈퇴합니다"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-rose-500/50"
+                  />
+setDeleteReason(e.target.value)}
+                    placeholder="기타 사유를 입력해주세요 (선택)"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-rose-500/50 resize-none h-20"
+                  />
+setEditingUser(null)}
+                  className="px-5 py-2.5 rounded-xl font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  취소
+setEditingUser(u)}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors"
+                        >
+                          수정
+setFilterType('ALL')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              filterType === 'ALL' ? 'bg-white text-black font-bold' : 'bg-white/5 text-gray-400 hover:text-white'
+            }`}
+          >
+            전체 ({pitcherSessions.length})
+setFilterType('BULLPEN')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              filterType === 'BULLPEN' ? 'bg-white text-black font-bold' : 'bg-white/5 text-gray-400 hover:text-white'
+            }`}
+          >
+            불펜 피칭
+setFilterType('GAME')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              filterType === 'GAME' ? 'bg-white text-black font-bold' : 'bg-white/5 text-gray-400 hover:text-white'
+            }`}
+          >
+            실전 경기
+setFilterType('LIVE_BP')}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              filterType === 'LIVE_BP' ? 'bg-white text-black font-bold' : 'bg-white/5 text-gray-400 hover:text-white'
+            }`}
+          >
+            라이브 BP
+setInputMsg(e.target.value)}
+              placeholder="투구 훈련, 통증, 회복법 질문하기..."
+              className="flex-1 bg-black/60 border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-rose-400"
+            />
+setIsDeleteModalOpen(false)}
+                  className="flex-1 py-3 px-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors"
+                >
+                  취소
+setIsDrawingMode(!isDrawingMode)}
+                className={`p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+                  isDrawingMode
+                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm'
+                    : 'bg-white/10 hover:bg-white/20 text-gray-300 border-white/10'
+                }`}
+                title="영상 위에 각도/궤적 그리기"
+              >
+setIsMenuOpen(!isMenuOpen)}
+            className={`sm:hidden w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer shadow-md ${
+              isMenuOpen
+                ? 'bg-white text-black border-white'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+            }`}
+            aria-label="더보기 메뉴"
+          >
+            {isMenuOpen ?
+setIsRecorderOpen(true)}
+                className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer mt-1"
+              >
+                + 이 날짜에 영상 추가하기
+setIsRecorderOpen(true)}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs py-2 rounded-xl transition-all shadow-md cursor-pointer mt-1"
+            >
+              웹캠 / 카메라 녹화
+setLanguage('ko')}
+                className={`p-2.5 rounded-xl border text-sm text-center font-medium transition-all ${language === 'ko' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+              >
+                한국어
+setName(e.target.value)}
+                      required
+                      className="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white transition-colors"
+                      placeholder="이름 입력"
+                    />
+setNewDescription(e.target.value)}
+                rows={6}
+                placeholder="도움이 필요한 내용을 상세히 적어주세요."
+                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 resize-none"
+              />
+setNewNotes(e.target.value)}
+                  placeholder="예: 디딤발 착지 시 골반 회전 타이밍이 양호함."
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white h-20"
+                />
+setNewTitle(e.target.value)}
+                  placeholder="예: 7월 29일 불펜 피칭 포심 메커니즘"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white"
+                  required
+                />
+setNewTitle(e.target.value)}
+                placeholder="문의 제목을 입력하세요"
+                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+              />
+setNewUrl(e.target.value)}
+                  placeholder="https://... (비워두면 기본 MP4 적용)"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white"
+                />
+setNotes(e.target.value)}
+                  placeholder="예: 슬리퍼 스트레칭 수행 후 5도 회복됨"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white h-20"
+                />
+setNotes(e.target.value)}
+                rows={2}
+                placeholder="예: 디딤발 착지 시 골반 회전 타이밍 양호, 릴리스 포인트 고정 점검"
+                className="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400 resize-none"
+              />
+setNotes(e.target.value)}
+              placeholder="예: 30구 투구 후 체인지업 떨어지는 각 양호. 팔꿈치 특이사항 없음."
+              className="w-full bg-black/60 border border-white/15 rounded-xl p-3 text-white h-20"
+            />
+setPainLoc(e.target.value)}
+                  placeholder="예: 우측 팔꿈치 내측 (UCL 근처)"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white"
+                  required
+                />
+setSearchTerm(e.target.value)}
+            placeholder="날짜 또는 메모 검색..."
+            className="w-full bg-black/60 border border-white/15 rounded-xl pl-9 pr-4 py-2 text-xs text-white focus:outline-none focus:border-white/40"
+          />
+setShowModal(false)}
+                  className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl"
+                >
+                  취소
+setShowModal(false)}
+                  className="bg-white/10 text-white font-semibold px-4 py-2 rounded-xl"
+                >
+                  취소
+setSorenessLocation(e.target.value)}
+                  placeholder="예: 팔꿈치 내측 (UCL 근처) 타이트함"
+                  className="w-full bg-black/60 border border-rose-500/30 rounded-xl p-2.5 text-white"
+                />
+setTeam(e.target.value)}
+                    required
+                    className="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white transition-colors"
+                    placeholder="예: 서울 자이언츠"
+                  />
+setThrowingArm('LHP')}
+                      className={`py-1.5 rounded-lg font-bold text-[11px] transition-all cursor-pointer ${
+                        throwingArm === 'LHP' ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      좌투 (L)
+setThrowingArm('RHP')}
+                      className={`py-1.5 rounded-lg font-bold text-[11px] transition-all cursor-pointer ${
+                        throwingArm === 'RHP' ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      우투 (R)
+setThrowingArm('SWITCH')}
+                      className={`py-1.5 rounded-lg font-bold text-[11px] transition-all cursor-pointer ${
+                        throwingArm === 'SWITCH' ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      양투 (Switch)
+setTitle(e.target.value)}
+                placeholder="예: 8월 2일 불펜 149km/h 포심 릴리스 순간"
+                className="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400"
+              />
+settings', label: '설정', icon: User, desc: '앱 설정 및 프로필 변경
+stepFrame('next')} className="px-2 py-1 hover:bg-white/10 rounded">
+                다음프레임 ▶
+stepFrame('prev')} className="px-2 py-1 hover:bg-white/10 rounded">
+                ◀ 이전프레임
+stepFrame(-1)}
+                className="px-2 py-1 hover:bg-white/10 rounded font-mono font-bold text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                title="1프레임 뒤로 (~0.03초)"
+              >
+                ◀ -1F
+stepFrame(-5)}
+                className="px-2 py-1 hover:bg-white/10 rounded font-mono font-bold text-gray-300 hover:text-white cursor-pointer"
+                title="5프레임 뒤로"
+              >
+                ◀◀ -5F
+stepFrame(1)}
+                className="px-2 py-1 hover:bg-white/10 rounded font-mono font-bold text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                title="1프레임 앞으로 (~0.03초)"
+              >
+                +1F ▶
+stepFrame(5)}
+                className="px-2 py-1 hover:bg-white/10 rounded font-mono font-bold text-gray-300 hover:text-white cursor-pointer"
+                title="5프레임 앞으로"
+              >
+                +5F ▶▶
+support', label: '고객지원', icon: Headset, desc: '1:1 문의 및 FAQ
+video', label: '메커니즘 영상 아카이브', icon: Video, desc: 'Split-Screen 폼 비교 분석
+{
+                    const today = new Date();
+                    setCalYear(today.getFullYear());
+                    setCalMonth(today.getMonth() + 1);
+                  }}
+                  className="text-[9px] font-extrabold text-emerald-400 hover:underline cursor-pointer"
+                >
+                  이번 달로 이동
+{
+                    setCalMonthDate(new Date());
+                    setSelectedCalendarDate(todayStr);
+                  }}
+                  className="bg-white/10 hover:bg-white/20 text-gray-200 text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors border border-white/10 mr-0.5 cursor-pointer"
+                  title="오늘 날짜로 이동"
+                >
+                  오늘
+{
+                  setLeftVideoId(v.id);
+                  window.scrollTo({ top: 100, behavior: 'smooth' });
+                }}
+                className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs py-2 rounded-xl transition-all cursor-pointer"
+              >
+                비교 플레이어로 불러오기
+{
+                  stopCameraStream();
+                  onClose();
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition-colors cursor-pointer"
+              >
+                취소
+{
+                if (videoRef.current) videoRef.current.currentTime = 0;
+              }}
+              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs transition-colors cursor-pointer border border-white/10"
+              title="처음으로"
+            >
+{
+    e.preventDefault();
+    setErrorMessage(null);
+
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage('이메일과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    if (rememberEmail) {
+      localStorage.setItem('saved_user_email', email.trim());
+    } else {
+      localStorage.removeItem('saved_user_email');
+    }
+
+    if (rememberPassword) {
+      localStorage.setItem('saved_user_password', password);
+    } else {
+      localStorage.removeItem('saved_user_password');
+    }
+
+    if (autoLogin) {
+      localStorage.setItem('auto_login_enabled', 'true');
+    } else {
+      localStorage.setItem('auto_login_enabled', 'false');
+    }
+
+    try {
+      // 1. Try local registration record first
+      const localRegRaw = localStorage.getItem(`registered_user_${email.trim().toLowerCase()}`);
+      if (localRegRaw) {
+        try {
+          const localReg = JSON.parse(localRegRaw);
+          if (localReg && localReg.password === password.trim()) {
+            onLoginSuccess(localReg.userData);
+            onClose();
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // 2. Supabase Auth sign in
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const sbUser = data.user;
+      const metadata = sbUser?.user_metadata || {};
+
+      let profileData = null;
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', sbUser?.id)
+          .single();
+        if (prof) profileData = prof;
+      } catch (pErr) {
+        console.log('Profile select log:', pErr);
+      }
+
+      const userData: UserAccount = {
+        id: sbUser?.id || 'usr_' + Date.now(),
+        email: sbUser?.email || email.trim(),
+        name: profileData?.name || metadata.name || '투수',
+        number: profileData?.number || metadata.number || 18,
+        team: profileData?.team || metadata.team || 'Bullpen Stars',
+        throwingArm: profileData?.throwing_arm || metadata.throwingArm || 'RHP',
+        role: profileData?.role || metadata.role || '선발 (SP)',
+        height: profileData?.height || metadata.height || 183,
+        weight: profileData?.weight || metadata.weight || 82,
+        wingspan: profileData?.wingspan || metadata.wingspan || 188,
+        joinedDate: sbUser?.created_at ? sbUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        maxVelocity: profileData?.max_velocity || metadata.maxVelocity || 148,
+        assessment: metadata.assessment,
+      };
+
+      onLoginSuccess(userData);
+      onClose();
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      let msg = err?.message || '인증 처리 중 오류가 발생했습니다.';
+      if (msg.includes('Invalid login credentials')) {
+        msg = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      } else if (msg.includes('Email not confirmed')) {
+        msg = '이메일 인증이 완료되지 않았습니다. 수신함에서 발송된 인증 링크를 확인해 주세요.';
+      } else if (msg.includes('secret API key') || msg.includes('service_role')) {
+        msg = '오류: Supabase Anon Key 대신 Secret Key가 설정되었습니다. AI Studio Settings에서 VITE_SUPABASE_ANON_KEY 값을 public(anon) 키로 변경해주세요.';
+      }
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignupSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setErrorMessage(null);
+
+    setIsLoading(true);
+
+    const finalPain = painChoice === '기타 (직접 입력)' ? painCustomText.trim() || '기타 작성' : painChoice;
+    const finalGoal = goalChoice === '기타 (직접 입력)' ? goalCustomText.trim() || '기타 작성' : goalChoice;
+    const finalFreq = freqChoice === '기타 (직접 입력)' ? freqCustomText.trim() || '기타 작성' : freqChoice;
+    const finalFocus = focusChoice === '기타 (직접 입력)' ? focusCustomText.trim() || '기타 작성' : focusChoice;
+
+    let finalPitchTypes = selectedPitchTypes.filter((p) => p !== '기타 (직접 입력)');
+    if (selectedPitchTypes.includes('기타 (직접 입력)') && pitchCustomText.trim()) {
+      finalPitchTypes.push(pitchCustomText.trim());
+    }
+    if (finalPitchTypes.length === 0) finalPitchTypes = ['포심 패스트볼', '슬라이더'];
+
+    const assessmentData: AthleteAssessment = {
+      painStatus: finalPain,
+      seasonGoal: finalGoal,
+      weeklyTrainingFreq: finalFreq,
+      preferredTrainingFocus: finalFocus,
+      mainPitchTypes: finalPitchTypes,
+    };
+
+    const userId = 'usr_' + Date.now();
+    const userData: UserAccount = {
+      id: userId,
+      email: signupEmail.trim(),
+      name: name.trim() || '투수',
+      number: typeof number === 'number' ? number : 18,
+      team: team.trim() || 'Bullpen Stars',
+      throwingArm,
+      role,
+      height: typeof height === 'number' ? height : 183,
+      weight: typeof weight === 'number' ? weight : 82,
+      wingspan: typeof wingspan === 'number' ? wingspan : 188,
+      age: typeof age === 'number' ? age : calculateAge(birthdate),
+      birthdate: birthdate || '2002-01-15',
+      joinedDate: new Date().toISOString().split('T')[0],
+      maxVelocity: typeof maxVelocity === 'number' ? maxVelocity : 148,
+      assessment: assessmentData,
+    };
+
+    // Save registration locally for zero-delay registration
+    try {
+      const regRecord = {
+        email: signupEmail.trim().toLowerCase(),
+        
+        userData,
+        registeredAt: new Date().toISOString(),
+      };
+      localStorage.setItem(`registered_user_${signupEmail.trim().toLowerCase()}`, JSON.stringify(regRecord));
+      localStorage.setItem('saved_user_email', signupEmail.trim());
+      localStorage.setItem('bullpen_user_account', JSON.stringify(userData));
+    } catch (lErr) {
+      console.error('Local save error:', lErr);
+    }
+
+    // Background sync with Supabase
+    try {
+      const { data: sbData, error: sbError } = await supabase.auth.updateUser({
+        
+        data: {
+          name: userData.name,
+          number: userData.number,
+          team: userData.team,
+          throwingArm: userData.throwingArm,
+          role: userData.role,
+          height: userData.height,
+          weight: userData.weight,
+          wingspan: userData.wingspan,
+          maxVelocity: userData.maxVelocity,
+          assessment: assessmentData,
+        }
+      });
+      if (sbError) {
+        console.error('Supabase update error:', sbError);
+      }
+    } catch (sbErr) {
+      console.log('Supabase signup sync:', sbErr);
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Done! Switch user to live dashboard & close modal
+    onLoginSuccess(userData, mode === 'signup');
+    onClose();
+  };
+
+  return createPortal(
+{
+    if (!verificationCode.trim()) return;
+    setIsVerifying(true);
+    setErrorMessage(null);
+    
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: signupEmail.trim(),
+        token: verificationCode.trim(),
+        type: 'signup'
+      });
+      
+      if (error) throw error;
+      
+      setIsVerified(true);
+      setSuccessMessage('이메일 인증이 완료되었습니다.');
+    } catch (err: any) {
+      console.error('Verify OTP error:', err);
+      setErrorMessage('인증번호가 올바르지 않거나 만료되었습니다.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleNextSignupStep = () => {
+
+    setErrorMessage(null);
+    if (signupStep === 1) {
+      if (!name.trim()) {
+        setErrorMessage('선수 성명을 입력해주세요.');
+        return;
+      }
+      if (!signupEmail.trim() || !signupPassword.trim()) {
+        setErrorMessage('이메일과 비밀번호를 입력해주세요.');
+        return;
+      }
+      if (signupPassword.length
+{
+    setErrorMessage(null);
+    if (signupStep > 1) {
+      setSignupStep((prev) => (prev - 1) as 1 | 2 | 3);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setEmailSentNotice(null);
+
+    // Resolve final question strings (either preset choice or custom user text)
+    const finalPain = painChoice === '기타 (직접 입력)' ? (painCustomText.trim() || '기타 상세 작성') : painChoice;
+    const finalGoal = goalChoice === '기타 (직접 입력)' ? (goalCustomText.trim() || '기타 시즌 목표') : goalChoice;
+    const finalFreq = freqChoice === '기타 (직접 입력)' ? (freqCustomText.trim() || '기타 훈련 주기') : freqChoice;
+    const finalFocus = focusChoice === '기타 (직접 입력)' ? (focusCustomText.trim() || '기타 집중 분야') : focusChoice;
+
+    setIsLoading(true);
+
+    const assessmentData: AthleteAssessment = {
+      painStatus: finalPain,
+      seasonGoal: finalGoal,
+      weeklyTrainingFreq: finalFreq,
+      preferredTrainingFocus: finalFocus,
+      mainPitchTypes: selectedPitchTypes.length > 0 ? selectedPitchTypes : ['포심 패스트볼', '슬라이더'],
+    };
+
+    const userId = 'usr_' + Date.now();
+
+    const userData: UserAccount = {
+      id: userId,
+      email: email.trim(),
+      name: name.trim() || '투수',
+      number: typeof number === 'number' ? number : 18,
+      team: team.trim() || 'Bullpen Stars',
+      throwingArm,
+      role,
+      height: typeof height === 'number' ? height : 183,
+      weight: typeof weight === 'number' ? weight : 82,
+      wingspan: typeof wingspan === 'number' ? wingspan : 188,
+      age: typeof age === 'number' ? age : calculateAge(birthdate),
+      birthdate: birthdate || '2002-01-15',
+      maxVelocity: typeof maxVelocity === 'number' ? maxVelocity : 148,
+      joinedDate: new Date().toISOString().split('T')[0],
+      assessment: assessmentData,
+    };
+
+    // 1. Save user account locally for instant & reliable registration
+    try {
+      const regRecord = {
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+        userData,
+        registeredAt: new Date().toISOString(),
+      };
+      localStorage.setItem(`registered_user_${email.trim().toLowerCase()}`, JSON.stringify(regRecord));
+      localStorage.setItem('saved_user_email', email.trim());
+      localStorage.setItem('bullpen_user_account', JSON.stringify(userData));
+    } catch (localErr) {
+      console.error('Local save error:', localErr);
+    }
+
+    // 2. Sync with Supabase Auth in background (if configured/online)
+    try {
+      const { data: sbData } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          data: {
+            name: name.trim() || '투수',
+            number: typeof number === 'number' ? number : 18,
+            team: team.trim() || 'Bullpen Stars',
+            throwingArm,
+            role,
+            height: typeof height === 'number' ? height : 183,
+            weight: typeof weight === 'number' ? weight : 82,
+            wingspan: typeof wingspan === 'number' ? wingspan : 188,
+            maxVelocity: typeof maxVelocity === 'number' ? maxVelocity : 148,
+            assessment: assessmentData,
+          },
+        },
+      });
+
+      if (sbData?.user?.id) {
+        userData.id = sbData.user.id;
+        localStorage.setItem('bullpen_user_account', JSON.stringify(userData));
+        try {
+          await supabase.from('profiles').upsert({
+            id: sbData.user.id,
+            email: userData.email,
+            name: userData.name,
+            number: userData.number,
+            team: userData.team,
+            throwing_arm: userData.throwingArm,
+            role: userData.role,
+            height: userData.height,
+            weight: userData.weight,
+            wingspan: userData.wingspan,
+            max_velocity: userData.maxVelocity,
+            updated_at: new Date().toISOString(),
+          });
+        } catch (pErr) {
+          console.log('Profile upsert info:', pErr);
+        }
+      }
+    } catch (sbErr) {
+      console.log('Supabase sync notice:', sbErr);
+    } finally {
+      setIsLoading(false);
+    }
+
+    // 3. Immediately complete registration & seamlessly transfer user to live dashboard!
+    onLoginSuccess(userData);
+  };
+
+  return (
+{/* Box 1: 앞으로의 운동 일정 (Upcoming Workout Schedule) */}
+{/* Box 2: Selected Date or Recent Workout Logs (선택일 / 최근 운동 기록) */}
+{/* Custom Pitch Input */}
+                        {selectedPitchTypes.includes('기타 (직접 입력)') && (
+{/* Custom text input if "기타 (직접 입력)" selected */}
+                {painChoice === '기타 (직접 입력)' && (
+{[
+                              '구속 향상 (Max Velocity 3~5km/h Up)',
+                              '제구력 및 구위 커맨드 안정화',
+                              '부상 방지 및 이닝 제한 / 피치 카운트 관리',
+                              '구종 다양화 및 신구종 (변화구) 연마',
+                              '실전 경기 출전 확대 및 경기력 유지',
+                              '기타 (직접 입력)',
+                            ].map((opt) => (
+{[
+                              '바이오매커니즘 & 투구 폼 메커니즘 교정',
+                              '팔 보호 & 보강 운동 (Arm Care / Plyo Ball)',
+                              '웨이트 트레이닝 & 근력/순발력 강화',
+                              '투구수 관리 & 피로도 모니터링 (ACWR)',
+                              '기타 (직접 입력)',
+                            ].map((opt) => (
+{[
+                              '주 1~2회 (가벼운 불펜 & 캐치볼 세션)',
+                              '주 3~4회 (정기 훈련 및 기술 불펜)',
+                              '주 5회 이상 (고강도 불펜 & 정기 투구)',
+                              '주말 리그 / 경기 위주 출전',
+                              '기타 (직접 입력)',
+                            ].map((opt) => (
+{[
+                              '통증 없음 (최상의 피칭 컨디션)',
+                              '약간의 어깨/팔꿈치 뻐근함 (피로 누적)',
+                              '어깨 회전근개 / 찌릿한 불편함',
+                              '팔꿈치 내측 (UCL) 관절 통증',
+                              '수술 후 재활 및 투구 복귀 단계',
+                              '기타 (직접 입력)',
+                            ].map((opt) => (
+{[
+                    '구속 3~5km/h 증속 및 하체 회전력 강화',
+                    '제구력 및 릴리스 포인트 일정성 확보',
+                    '변화구(슬라이더/체인지업) 완성도 향상',
+                    '부상 없는 시즌 풀타임 완주',
+                    '투구수 관리 및 ACWR 위험 방지',
+                    '기타 (직접 입력)',
+                  ].map((opt) => {
+                    const isSelected = goalChoice === opt;
+                    return (
+{[
+                    '주 1~2회 (라이트 트레이닝)',
+                    '주 3~4회 정기 훈련 (표준 세션)',
+                    '주 5회 이상 (고강도 엘리트 훈련)',
+                    '기타 (직접 입력)',
+                  ].map((opt) => {
+                    const isSelected = freqChoice === opt;
+                    return (
+{[
+                    '통증 없음 (정상 수치)',
+                    '투구 후 경미한 어깨/팔꿈치 피로감',
+                    '팔꿈치 내측 UCL 집중 관리 필요',
+                    '어깨 회전근개 / 가동범위 제한 관리 필요',
+                    '이전 수술 및 단계적 재활 진행 중',
+                    '기타 (직접 입력)',
+                  ].map((opt) => {
+                    const isSelected = painChoice === opt;
+                    return (
+{[
+                    '하체 폭발력 & 피칭 메커니즘',
+                    '어깨 가동성 & 보강 리커버리',
+                    '릴리스 포인트 고정 & 제구 코칭',
+                    '구종 다양화 & 구속 모니터링',
+                    '기타 (직접 입력)',
+                  ].map((opt) => {
+                    const isSelected = focusChoice === opt;
+                    return (
+{['더 이상 사용하지 않음', '다른 서비스 이용', '기능 부족', '사용이 불편함/어려움', '요금 불만'].map(reason => (
+{calYear}년 {calMonth}월
+{calcAcutePitches} 구
+{calcChronicAvg} 구/주
+{currentUser.team || '소속 팀 없음'} · {currentUser.throwingArm}
+{currentUser?.name || '사용자'}
+{dateVideos.length > 0 ? `투구 영상 ${dateVideos.length}개` : '영상 없음'}
+{editPainScore}점
+{focusChoice === '기타 (직접 입력)' && (
+{freqChoice === '기타 (직접 입력)' && (
+{freqChoice === '기타 (직접 입력)' ? freqCustomText : freqChoice}
+{goalChoice === '기타 (직접 입력)' && (
+{goalChoice === '기타 (직접 입력)' ? goalCustomText : goalChoice}
+{isDeleting ? '처리 중...' : '영구 탈퇴'}
+{isDrawingMode ? '그리기 켜짐' : '그리기 툴'}
+{isGirdDeficit
+                ? '내회전 가동범위가 45도 미만으로 감소되었습니다 (GIRD). 슬리퍼 스트레칭이 시급합니다.'
+                : '양호한 어깨 내회전 가동성 확보 중입니다.'}
+{isGirdDeficit ? 'GIRD 경고' : '정상'}
+{isPlaying ? '일시정지' : '동시 재생'}
+{isPlaying ? '일시정지' : '재생'}
+{isVerificationSent ? '재전송' : '인증번호 받기'}
+{isVerifying ? '확인 중...' : '인증하기'}
+{latestRom.painLocation || '통증 없음'}
+{latestRom.testerNotes || '특이사항 없음'}
+{log.diary || '작성된 일지 내용 없음'}
+{m + 1}월
+{m}월
+{painChoice === '기타 (직접 입력)' ? painCustomText : painChoice}
+{painScore}점
+{pitcher.currentAcwr > 1.5
+                  ? '부상 위험 매우 높음! 즉시 쉬어야 합니다.'
+                  : pitcher.currentAcwr >= 1.3
+                  ? '주의 단계. 피칭 수량 제한 권장.'
+                  : '최적의 부하 상태. 훈련 지속 가능.'}
+{pitcher.name} 선수 주간 AI 케어 & 훈련 보고서
+{pitcher.name} 선수의 현재 ACWR
+{pitcher.team} • 만 {pitcher.age}세 • {pitcher.heightWeight}
+{pitcher.throwingArm === 'RHP' ? '우투 (RHP)' : pitcher.throwingArm === 'LHP' ? '좌투 (LHP)' : '양투 (Switch)'}
+{plan.pitches}구
+{r.painLocation} ({r.testerNotes || '없음'})
+{report ? '리포트 다시 생성하기' : 'AI 케어 리포트 생성하기'}
+{sch.completed ? '완료' : '예정'}
+{sch.time || '시간 미지정'}
+{selectedDate} 투구 영상 목록
+{selectedDate}에 저장된 투구 영상이 없습니다.
+{selectedFile ? selectedFile.name : '선택된 파일 없음'}
+{selectedPitchTypes.filter((p) => p !== '기타 (직접 입력)').join(', ')}
+                              {selectedPitchTypes.includes('기타 (직접 입력)') && pitchCustomText ? `, ${pitchCustomText}` : ''}
+{seq.inning}회 / {seq.batter}
+{sess.notes || '특이사항 없음'}
+{sess.totalPitches}구 ({sess.maxVel}km/h)
+{session.notes || '특이사항 없음'}
+{session.sessionType === 'BULLPEN' ? '불펜 피칭' : session.sessionType === 'GAME' ? '실전 경기' : session.sessionType === 'LIVE_BP' ? '라이브 BP' : '캐치볼'}
+{session.totalPitches}구
+{signupStep === 1 ? '1단계: 계정 & 기본 프로필' : signupStep === 2 ? '2단계: 신체 & 피칭 스펙' : '3단계: 세부 선수 진단 설문'}
+{totalPitchesLast7Days}구
+{totalPitches} 구
+{u.name || '알 수 없음'}
+{upcomingSchedules.length}건 예정
+{user.age ? `만 ${user.age}세` : '만 24세'}
+{user.role || '미정 (Unassigned)'}
+{video.notes || '메커니즘 메모가 등록되어 있지 않습니다.'}
+{video.pitchType} ({video.velocity}km/h) 릴리스 파악
+{y}년
+※ 15초 이하의 영상만 저장 가능합니다.
+● 실시간 온라인 (AI 불펜 코치)
+⚙️ 기타 맞춤 훈련 (Custom)
+⚠️ 기록 저장 중 오류가 발생했습니다.
+⚠️ 통증 {dayLog.painScore}
+⚠️ 통증있음
+⚾ 불펜 피칭 (Bullpen)
+⚾ 투구 세션: 총 {selectedDateSessions.reduce((acc, s) => acc + s.totalPitches, 0)}구
+⚾ 피칭 세션: {sessionForLog.reduce((acc, s) => acc + s.totalPitches, 0)}구 완료 (최고{' '}
+                              {Math.max(...sessionForLog.map((s) => s.maxVel))}km/h)
+✓ 선수 프로필 정보가 성공적으로 저장되었습니다!
+가동범위 & 메커니즘 인사이트:
+가동범위(ROM) & 신체 히트맵
+가동범위(ROM) 영상 업로드 오류
+가동범위(ROM) 측정 이력 기록
+가입 날짜
+가입일
+간단한 캘린더 조회
+강도: {sch.intensity}
+건의사항
+검증됨
+게시물 관리
+게임로그 시퀀스
+결과
+결제
+결제 영수증은 메일로 받았는데, 여전히 무료 등급으로 표시됩니다. 확인 부탁드립니다.
+결제는 언제든 해지할 수 있습니다.
+계정에 로그인하여 최근 피칭 세션 데이터, 구속 변화 트렌드, 부하 지수(ACWR) 및 맞춤형 케어 가이드를 확인하세요.
+고강도 (High)
+고객 지원
+고객지원 관리
+고위험 (High Risk)
+고위험 존 (Danger Zone)
+고위험군 (Danger Zone)
+고화질 영상 업로드
+공유
+과거 기록 이력 타임라인
+과거 훈련 기록 및 피드백 일지 입력
+관리
+관리자
+관리자 권한 부여
+관리자 답변
+관리자 패널
+관절 가동성(ROM) 추적
+관절/근육 통증 점수 (0-10)
+구
+구독 등급
+구매하기
+구매한 요금제 및 프리미엄 구독 혜택은 즉시 소멸되며 환불되지 않습니다.
+구사 가능한 실전 구종 선택 (복수 선택 가능)
+구속 (km/h)
+구속 3~5km/h 증속 및 하체 회전력 강화
+구속 단위
+구속 향상 (Max Velocity 3~5km/h Up)
+구수', angle: -90, position: 'insideLeft', fill: '#8e8e93
+구종
+구종 구사 비율 (Pitch Mix)
+구종 다양화 & 구속 모니터링
+구종 다양화 및 신구종 (변화구) 연마
+구종 믹스 (FB/SL/CB/CH/CT)
+구종 선택
+구종/구속
+권장한계 (180구) 이하 안정권
+그리기 켜짐' : '그리기 툴
+금
+기간: {ph.duration}
+기록
+기록 {completedSchedCount + daySessions.length + (dayLog?.diary ? 1 : 0)}건
+기록 입력
+기본 계정 및 선수 인적사항
+기본 프로필 사진으로 변경
+기본 피칭 일지 작성
+기타
+기타 (직접 입력)
+기타 (직접 입력)' ? (focusCustomText.trim() || '기타 집중 분야
+기타 (직접 입력)' ? (freqCustomText.trim() || '기타 훈련 주기
+기타 (직접 입력)' ? (goalCustomText.trim() || '기타 시즌 목표
+기타 (직접 입력)' ? (painCustomText.trim() || '기타 상세 작성
+기타 (직접 입력)' ? focusCustomText.trim() || '기타 작성
+기타 (직접 입력)' ? freqCustomText.trim() || '기타 작성
+기타 (직접 입력)' ? goalCustomText.trim() || '기타 작성
+기타 (직접 입력)' ? painCustomText.trim() || '기타 작성
+기타 (직접 입력)') && pitchCustomText ? `, ${pitchCustomText}` : '
+기타 (직접 입력)').join(',
+기타 모션
+기타 사유를 입력해주세요 (선택)
+기타 피칭 모션
+김투수
+나
+나이 (만 세)
+나이 (만)
+날짜
+날짜 또는 메모 검색...
+날짜 선택
+날짜가 지나면 자동으로 기록으로 백업
+날짜별 구종별 투구수 & ACWR 변동 추이
+날짜별로 저장된 투구 메커니즘 영상을 프레임 단위로 재생하여 릴리스 포인트 및 팔각도를 점검하세요.
+내 기기에서 영상 파일 직접 선택 (서버 저장)
+내용을 입력하세요...
+내회전
+내회전 가동범위가 45도 미만으로 감소되었습니다 (GIRD). 슬리퍼 스트레칭이 시급합니다.
+네트워크 오류가 발생했습니다.
+녹화 중...
+다른 기기 및 계정 어디서든 접근할 수 있도록 동영상을 서버로 안전하게 업로드하고 있습니다.
+다음 단계 ({signupStep + 1}/3)
+다음 단계로
+다음 저장 날짜
+다음 저장 날짜 없음
+단기 7일 투구 수 (Acute):
+단기 투구량이 급격히 스파이크(Spike)되었습니다. 팔꿈치 UCL 및 어깨 회전근개 과부하 부상 위험이 2~4배 높습니다. 48~72시간 동안 라이브 피칭 및 불펜 투구를 즉시 중단하고 쉬어야 합니다.
+달성 완료
+달성하고자 하는 시즌 목표를 직접 입력해주세요.
+당신에게 맞는 플랜을 선택하세요
+대기
+대기' | '완료
+대시보드로 이동하기
+댓글을 입력하세요...
+더 이상 사용하지 않음', '다른 서비스 이용', '기능 부족', '사용이 불편함/어려움', '요금 불만
+더보기 메뉴
+데이터 절약 모드
+도움이 필요한 내용을 상세히 적어주세요.
+돌아가기
+동영상 서버 저장 중...
+동일 비밀번호
+되며 복구할 수 없습니다.
+등록
+등록된 메모 & 메커니즘 관찰평가
+등록된 문의 내역이 없습니다.
+등록된 시퀀스가 없습니다.
+등록된 피칭 일지가 없습니다.
+등록된 훈련 스케줄 목록
+등록된 훈련 스케줄이 없습니다.
+등록하기
+등번호
+등번호 (#) *
+등번호 *
+디컨디셔닝 (Underloading)
+또는 영상 URL 입력 (URL 직접 입력시)
+라고 입력해주세요.
+라이벌 A팀
+라이브 BP (Live Pitching)
+로 진입합니다.
+로그아웃
+로그아웃 (Sign Out)
+로그인
+로그인 처리 중...
+로그인하기
+롱토스
+롱토스', color: 'bg-[#32ADE6]/20 text-[#32ADE6] border-[#32ADE6]/30
+롱토스', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30
+루킹 스트라이크
+리버스 런지 메디신볼 스로우
+리커버리
+리커버리', color: 'bg-[#FF2D55]/20 text-[#FF2D55] border-[#FF2D55]/30
+리커버리', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30
+리포트 다시 생성하기' : 'AI 케어 리포트 생성하기
+리포트 생성에 실패했습니다.
+릴리스 포인트 고정 & 제구 코칭
+막대: 투구수 (구) | 선: ACWR 지수 (1.5 이상 위험)
+만 24세
+맞춤형 웨이트 트레이닝 처방
+맞춤형 팔 케어 리포트 생성
+맞춤훈련', color: 'bg-pink-500/20 text-pink-300 border-pink-500/30
+메뉴 및 대시보드 탭
+메모
+메인 캘린더
+메인 훈련 구체 유형
+메커니즘 메모가 등록되어 있지 않습니다.
+메커니즘 영상 아카이브
+모든 항목은 '기타 (직접 입력)' 선택 시 맞춤 답변 가능
+모든 환경 설정 저장
+모바일 데이터 시 저해상도 재생
+목
+목표 구속
+목표 구속 달성 및 체중 증량을 위한 단계별 구체적 트레이닝 마일스톤
+목표 로드맵
+목표 체중
+무게 단위
+무료 (Free)
+무료 플랜 모든 기능
+무제한 AI 영상 폼 분석
+문의 내용
+문의 제목을 입력하세요
+미정 (Unassigned)
+바이오매커니즘 & 투구 폼 메커니즘 교정
+바이오메카닉스 특징 및 메모
+방금 전
+버튼 터치 시 진동 효과
+버튼을 눌러 피칭 중에 터치 카운트할 수 있습니다.
+범타 아웃
+변화구(슬라이더/체인지업) 완성도 향상
+보강 & 리커버리 루틴 체크
+보관된 피칭 영상 목록 ({pitcherVideos.length})
+보유 중인 특수 구종명을 입력해주세요 (예: 스위퍼, 스플리터 등)...
+볼
+볼카운트 (B-S)
+볼카운트 시퀀스 추가
+볼카운트별 투구 시퀀스 이력
+부상 방지 및 이닝 제한 / 피치 카운트 관리
+부상 없는 시즌 풀타임 완주
+부상 위험 등급
+부상 위험 매우 높음! 즉시 쉬어야 합니다.
+부상 위험이 가장 낮으며 투수의 경기력과 스태미너가 최고조를 유지합니다.
+부위 미기재
+부하 지수(ACWR) 정밀 트래킹
+분석 메모:
+불펜 (RP)
+불펜 피칭
+불펜 피칭 (Bullpen)
+불펜 피칭 후 투구 후반부 구속 저하 관찰됨
+불펜 피칭', color: 'bg-[#34C759]/20 text-[#34C759] border-[#34C759]/30
+불펜 피칭이나 캐치볼 모션을 웹캠으로 촬영하여 바로 분석하세요.
+불펜 훈련 (Bullpen)
+불펜피칭', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30
+비밀번호
+비밀번호 *
+비밀번호 재입력
+비밀번호 저장
+비밀번호 확인 *
+비밀번호는 최소 6자 이상이어야 합니다.
+비밀번호를 먼저 6자 이상 입력해주세요.
+비밀번호와 비밀번호 확인이 일치하지 않습니다.
+빠른 월 선택:
+뻐근함
+사용자
+사용자 정보가 성공적으로 변경되었습니다.
+사용하실 언어를 선택해 주세요
+사운드 효과
+사진 변경
+사진 업로드
+사진, 생년월일, 신체 정보, 최고 구속 및 투구 손을 변경합니다.
+삭제
+상단의 'AI 케어 리포트 생성하기' 버튼을 누르면 {pitcher.name} 선수의 피칭 데이터 및 ROM을 기반으로 정밀 보고서가 즉시 작성됩니다.
+상대
+상대 팀명
+상세 내용
+새 ROM & 통증 측정 등록
+새 글 작성
+새 투구 시퀀스가 기록되었습니다!
+새 피칭 기록
+새 피칭 메커니즘 영상
+새 피칭 메커니즘 영상 추가
+새 훈련 일정 추가
+새로운 투구 모션 영상이나 불펜 피칭 영상이 있나요?
+생년월일
+생년월일 (Birthdate)
+서버 업로드 중...
+서비스 이용을 위한 계정 정보와 팀 소속 정보를 작성해 주세요.
+서울 자이언츠
+선발 (SP)
+선수 가입 완료 처리 중...
+선수 등록 완료 & 대시보드 입장
+선수 등록 회원가입
+선수 맞춤형 상태 및 훈련 목적 설문
+선수 목표 트레이닝 로드맵
+선수 상세 정보
+선수 상태 & 훈련 평가
+선수 상태 및 맞춤 피칭 진단 설문
+선수 상태 및 통증 위험도 자동 모니터링
+선수 성명 *
+선수 성명을 입력해주세요.
+선수 이름
+선수 정보
+선수 정보 등록 중...
+선수 체중 및 웨이트 (kg vs lbs)
+선수 프로필 정보 수정
+선수명
+선수의 부상 이력, 목표, 훈련 패턴을 파악하여 최적의 ACWR 리포트 및 트레이닝 가이드를 제공합니다.
+선택된 영상이 없습니다. 날짜 변경이나 저장 날짜 이동을 통해 영상을 선택하세요.
+선택된 파일 없음
+선택된 파일: {uploadFileName}
+선택일 / 최근 운동 기록
+선택한 날짜 ({selectedDate})의 훈련 종목, 통증 점수, 수면 시간, 웨이트 중량 및 세부 일지를 남기고 관리하세요.
+선택한 날짜 요약
+선택한 날짜에 기록이 없습니다. 최근 작성된 운동일지:
+설정
+세부 종목 / 세트 / 노트
+세션 유구 종류
+세션 유형
+소속 없음
+소속 팀 없음
+소속 팀명
+소속 팀명 / 학교 *
+소속팀
+소요 시간(분)
+속도:
+손목/손가락 (Wrist)
+수
+수면 {log.sleepHours}시간
+수면 {selectedDateLog.sleepHours}시간
+수면 시간 (시간)
+수술 후 재활 및 투구 복귀 단계
+스마트 맞춤 가이드 제안
+스마트 투수 피칭 & 부상 방지 케어 플랫폼
+스케줄 & 영상 관리 팁
+스톱워치 & 주관적 관찰 피드백
+스플리터
+스플리터 (Splitter)
+스플리터 / 포크
+슬라이더
+슬라이더 (Slider)
+슬라이더') || typeKey.includes('slider
+슬라이더', value: totalSliders, color: '#F59E0B
+시간
+시간 미지정
+시뮬레이션 결과 ACWR
+시즌 개인 목표를 직접 작성해주세요...
+시즌 목표 기타 내용을 직접 입력해주세요.
+시즌 목표:
+신규 선수 등록 및 투수 프로필 생성
+신장 (cm)
+신장 (cm) *
+신장 (키)
+신장, 체중, 최고 구속 정보를 모두 입력해주세요.
+신체 / 최고구속
+신체 적응력과 피로도 간의 완벽한 밸런스입니다. 퍼포먼스가 극대화되고 부상 위험이 가장 적은 안전 지대입니다.
+실시간 ACWR 자가 시뮬레이터
+실시간 구종별 카운터 (Total: {totalPitches}구)
+실시간 피칭 트래킹 데이터 동기화
+실전 경기 (Game)
+실전 경기 출전 확대 및 경기력 유지
+아마추어 (Amateur)
+아마추어 플랜 모든 기능
+아이디 기억하기
+아직 생성된 AI 리포트가 없습니다
+안내: 업로드된 영상이 15초를 초과합니다. 릴리스 포인트 분석을 위해 앞 15초 구간 위주로 플레이어에 표시됩니다.
+안녕하세요 고객님. 결제 시스템 동기화 지연으로 불편을 드려 죄송합니다. 현재 고객님의 계정은 정상적으로 프로 등급으로 변경 완료되었습니다. 앱을 재시작하시면 적용된 내용을 확인하실 수 있습니다.
+알 수 없음
+앞으로의 운동 일정
+액션
+앱 기본 환경과 프로필을 관리하세요.
+앱 내 상호작용 사운드
+앱 테마
+앱 테마 설정
+앱 환경 설정
+야구 & 웨이트 훈련 스케줄 계획 및 세분화
+약간의 어깨/팔꿈치 뻐근함 (피로 누적)
+양투 (Switch)
+양호한 어깨 내회전 가동성 확보 중입니다.
+어깨 가동범위 (GIRD)
+어깨 가동성 & 보강 리커버리
+어깨 관절 (Shoulder)
+어깨 내회전
+어깨 내회전 (Internal Rotation)
+어깨 내회전 (°)
+어깨 내회전 결핍(GIRD) 및 팔꿈치 내측(UCL) 가동범위를 추적하여 투수 특화 근골격계 안전성을 진단합니다.
+어깨 외회전
+어깨 외회전 (External Rotation)
+어깨 외회전 (°)
+어깨 외회전 부족 및 골반 회전 타이밍 지연으로 인해 상체 의존도가 높습니다. 힙-숄더 세퍼레이션 개선이 필요합니다.
+어깨 회전근개 / 가동범위 제한 관리 필요
+어깨 회전근개 / 찌릿한 불편함
+어깨/팔 통증 상태를 직접 상세히 적어주세요...
+어깨·팔꿈치 가동범위 추적
+언어 설정
+업로드 시 원본 화질 유지
+없음
+영구히 삭제
+영상 녹화를 시작하는 도중 오류가 발생했습니다.
+영상 없음
+영상 위에 각도/궤적 그리기
+영상 자동 재생
+영상 제목
+영상 파일 업로드 (.mp4)
+영상을 불러올 수 없습니다.
+영상이 없습니다.
+예: 148
+예: 30구 투구 후 체인지업 떨어지는 각 양호. 팔꿈치 특이사항 없음.
+예: 7800
+예: 7월 29일 불펜 피칭 포심 메커니즘
+예: 8월 2일 불펜 149km/h 포심 릴리스 순간
+예: Bullpen Stars
+예: 김투수
+예: 디딤발 착지 시 골반 회전 타이밍 양호, 릴리스 포인트 고정 점검
+예: 디딤발 착지 시 골반 회전 타이밍이 양호함.
+예: 서울 자이언츠
+예: 슬리퍼 스트레칭 수행 후 5도 회복됨
+예: 우측 팔꿈치 내측 (UCL 근처)
+예: 팔꿈치 내측 (UCL 근처) 타이트함
+예: 하체 폭발력 스쿼트 & 회전 코어 세션
+예: 하프 스쿼트 120kg 5x5, 데드리프트 140kg 3x5, 어깨 밴드 보강 3세트
+예정 일정
+예정된 운동 일정이 없습니다.
+예정된 훈련 스케줄이 없습니다.
+오늘
+오늘 날짜로 이동
+오늘 불펜 피칭 영상 (구속 142km/h)
+오늘의 피드백 & 훈련 일지
+오류
+오류 및 버그
+오류: Supabase Anon Key 대신 Secret Key가 설정되었습니다. AI Studio Settings에서 VITE_SUPABASE_ANON_KEY 값을 public(anon) 키로 변경해주세요.
+완료
+완료' : '예정
+완료' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400
+완료된 훈련 기록이 아직 없습니다.
+왼쪽 폼에서 첫 야구/웨이트 훈련 일정을 등록해보세요.
+요즘 구속 정체기가 와서 플라이오케어 볼을 도입해보려고 합니다. 리버스 스로우할 때 날개뼈 쪽 자극이 오는게 정상인가요? 다른 분들은 루틴을 어떻게 가져가시는지 궁금합니다.
+용량이 큰 영상을 올리려고 하니 500 에러가 납니다. 제한 용량이 있나요?
+우측 팔꿈치 내측 (UCL 주변)
+우투 (RHP)
+운동 강도
+운동 일지 작성하기
+운동 자각도 (RPE 1-10)
+운동강도
+운동일지
+운동일지: {selectedDateLog.trainingType}
+워터백 숄더 로테이션
+월
+월 1회 AI 폼 피드백
+웨이트 볼륨: {selectedDateLog.weightVolumeKg}kg
+웨이트 트레이닝
+웨이트 트레이닝 & 근력/순발력 강화
+웨이트 트레이닝 (Weight)
+웨이트 트레이닝, 불펜 피칭, 롱토스, 컨디셔닝, 리커버리 등 모든 야구 훈련 일정을 체계적으로 계획하세요.
+웨이트', color: 'bg-[#FF9500]/20 text-[#FF9500] border-[#FF9500]/30
+웨이트', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30
+웹캠 / 카메라 직접 촬영
+위 정보로 선수 등록을 마치고
+위험 (1.5)', fill: '#f43f5e
+윙스팬 (cm)
+윙스팬 (팔길이)
+윙스팬 양팔 길이 (cm)
+윙스팬/팔길이 (cm)
+유저 관리
+유저 정보 수정
+유저의 모든 정보, 기록, 영상 데이터는
+유지중. 슬라이더 비중 증가 시 팔꿈치 내측 무리 주의.
+이 날짜에 저장된 투구 영상이 없습니다.
+이 상태로 AI 가이드 생성
+이강속
+이닝
+이닝/타자
+이두근 및 상완근 유연성 정상범위입니다.
+이름
+이름 입력
+이메일
+이메일 (조회 전용)
+이메일 계정 *
+이메일 또는 비밀번호가 올바르지 않습니다.
+이메일 인증을 먼저 완료해주세요.
+이메일 인증이 완료되었습니다.
+이메일 인증이 완료되지 않았습니다. 수신함에서 발송된 인증 링크를 확인해 주세요.
+이메일 주소
+이메일 주소 (아이디) *
+이메일과 비밀번호를 입력해주세요.
+이메일로 전송된 인증번호 6자리를 입력해주세요
+이메일을 입력해주세요.
+이메일이 자동으로 인증되었습니다 (테스트 모드).
+이미 가입된 이메일입니다.
+이미 계정이 있으신가요?
+이번 시즌 주요 목표
+이상 없음
+이전 단계
+이전 수술 및 단계적 재활 진행 중
+이전 저장 날짜
+이전 저장 날짜 없음
+이전으로
+인기 글
+인쇄 / PDF 저장
+인적사항 & 신체스펙
+인증 처리 중 오류가 발생했습니다.
+인증번호 6자리
+인증번호 전송에 실패했습니다.
+인증번호가 올바르지 않거나 만료되었습니다.
+인증번호가 전송되었습니다. 이메일을 확인해주세요.
+일
+일반 훈련', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30
+일시정지' : '동시 재생
+일시정지' : '재생
+일정 {upcomingCount}건
+일정 계획
+일정 추가
+있음
+자동 로그인
+작성된 선수 프로필 및 설문 확인
+작성된 운동 일지가 없습니다.
+작성된 일지 내용 없음
+작성일: ${new Date().toISOString().split('T')[0]} | Bullpen Log AI Engine
+작성일: {new Date().toISOString().split('T')[0]} | 담당: Bullpen Log AI Engine
+장기 28일 주평균 (Chronic):
+재생 속도:
+재시도
+재전송' : '인증번호 받기
+재촬영하기
+재활 & 보강 (Rehab)
+저강도 (Low)
+저부하 (0.8)', fill: '#38bdf8
+저부하 (Underload)
+저장
+저장 날짜 (캘린더 연동)
+저장 완료
+저장 중...
+저장된 기록 일지가 아직 없습니다.
+저장된 영상과 기록을 서버로 동기화합니다.
+저장하기
+적정 최적존 (Sweet Spot)
+전문 2분할 비교 아카이브로 이동
+전문 바이오메카닉스 분석 (Driveline 기준)
+전문 코치 1:1 라이브 피드백
+전술/수비', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30
+전술훈련', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30
+전체 글
+전체 보기
+전체 피칭 일지 (Pitch Logs)
+접근 권한이 없습니다
+정상
+정확한 ACWR 피로도 및 바이오매커니즘 부하 추정을 위해 신체 계측 수치를 입력하세요.
+정확한 확인 문구를 입력해주세요.
+제구력 및 구위 커맨드 안정화
+제구력 및 릴리스 포인트 일정성 확보
+제목
+제목을 입력하세요
+제출하기
+좌투 (LHP)
+주 1~2회 (가벼운 불펜 & 캐치볼 세션)
+주 1~2회 (라이트 트레이닝)
+주 3~4회 (정기 훈련 및 기술 불펜)
+주 3~4회 정기 훈련 (표준 세션)
+주 5회 이상 (고강도 불펜 & 정기 투구)
+주 5회 이상 (고강도 엘리트 훈련)
+주 보직 (선택사항)
+주 투구 손 *
+주간 불펜 & 피칭 세션 빈도
+주간 훈련 주기를 적어주세요...
+주관적 강도 (RPE) / 피로도
+주관적 통증 점수 (0 ~ 10)
+주말 리그 / 경기 위주 출전
+주요 구종:
+주요 보유 구종 선택 (복수 선택 가능)
+주요 보직 역할 (선택사항)
+주의 (1.3)', fill: '#f59e0b
+주의 (Caution)
+주의 구간 (Caution Zone)
+주의 단계. 피칭 수량 제한 권장.
+주의 존 (Caution Zone)
+준비 중인 기능입니다.
+중강도 (Medium)
+중점 관리 영역을 적어주세요...
+중점 훈련 및 피칭 리포트 분야
+중점 훈련 분야 기타 내용을 직접 입력해주세요.
+지금 리포트 생성
+지나간 일정
+지나간 일정 자동 기록 전환
+지난 28일간 주평균 투구수 (Chronic Workload)
+지난주 피드백 받고 힙-숄더 세퍼레이션 신경써서 던져봤습니다. 확실히 익스텐션이 앞으로 더 끌고나와지는 느낌이네요. 피드백 부탁드립니다!
+지면 반력 효율(GRF)과 힙-숄더 세퍼레이션 타이밍을 확인하여 구속 5km/h 상승의 해답을 찾으세요.
+지우기
+직구, 변구, 체인지업 비율에 따른 부하 누적량 시각화
+진행 중
+집중하고자 하는 훈련 분야를 직접 입력해주세요.
+창 닫기
+처리 중...' : '영구 탈퇴
+처음으로
+첫 번째 댓글을 남겨보세요.
+체격 신체 측정 및 피칭 구종 스펙
+체인지업
+체인지업 (Changeup)
+체인지업') || typeKey.includes('changeup
+체인지업', value: totalChangeups, color: '#EC4899
+체중 (kg)
+체중 (kg) *
+체중 (몸무게)
+체크박스를 눌러 완료 여부를 토글할 수 있습니다.
+초보 (Beginner)
+초보 플랜 모든 기능
+총 {dateVideos.length}개
+총 웨이트 볼륨 (kg)
+총 투구수
+촬영 시작
+촬영 완료 ({recordingSeconds.toFixed(1)}초)
+최고 / 평균 구속
+최고 구속
+최고 구속 (km/h)
+최고 구속:
+최고 구속: {Math.max(...selectedDateSessions.map((s) => s.maxVel))} km/h | RPE:{' '}
+                          {selectedDateSessions[0]?.rpe}
+최고구속
+최고구속 (Max Velocity) *
+최근 7일 투구수 (Acute)
+최근 7일 피칭:
+최근 7일간의 총 투구수 (Acute Workload)
+최근 등록된 통증 위치
+최근 최고 / 평균 구속
+최근 투구 일지 (Pitch Logs)
+최근 투구 전체 구종 분포
+최소 6자 이상
+최적 적정 구간 (Sweet Spot)
+최적 적정 존 (Sweet Spot)
+최적의 부하 상태. 훈련 지속 가능.
+최종 확인 & 완료
+최컨트롤
+추천 훈련 용품 (전문가 검증)
+출력일: ${new Date().toLocaleDateString('ko-KR')} | Bullpen Log System
+취소
+측정 구속 (km/h)
+측정 일자
+카메라 및 마이크 권한이 필요하거나 기기에서 카메라를 찾을 수 없습니다.
+카메라 촬영 각도
+카메라 켜기
+카메라를 켜서 투구 모션을 촬영하세요.
+카운트
+카테고리
+캐치볼 / 롱토스 (Catch Ball)
+캘린더 열기
+캘린더에서 일정 관리
+커뮤니티
+커브
+커브 (Curveball)
+커브') || typeKey.includes('curve
+커브', value: totalCurveballs, color: '#10B981
+커브ball (Curveball)
+커터
+커터 (Cutter)
+커터') || typeKey.includes('cutter
+커터/스플리터
+커터/스플리터', value: totalCutters, color: '#8B5CF6
+컨디셔닝
+컨디셔닝', color: 'bg-[#AF52DE]/20 text-[#AF52DE] border-[#AF52DE]/30
+컨디셔닝', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30
+컨디션:
+타겟: ${e.targetArea}
+타겟: {ex.targetArea}
+타자 정보
+탈퇴 사유 (다중 선택 가능)
+탈퇴 전 주의사항
+탈퇴 처리 중 오류가 발생했습니다.
+탈퇴 확인을 위해 아래 입력창에
+탈퇴합니다
+테스터 관찰 메모
+토
+통증 {latestRom.painScore}/10
+통증 {log.painScore}점 ({log.painLocation || '부위 미기재'})
+통증 부위 (예: 우측 팔꿈치 내측 UCL)
+통증 부위 / 메모
+통증 상태 기타 내용을 직접 입력해주세요.
+통증 상태 또는 주의사항을 직접 입력해주세요.
+통증 없음
+통증 없음 (정상 수치)
+통증 없음 (정상)
+통증 없음 (최상의 피칭 컨디션)
+통증 여부
+통증 점수
+통증 주요 위치
+통증 주요 위치 설명
+통증 히트맵 매핑
+투구 / 보직
+투구 로그 통합 시스템
+투구 메커니즘 5단계 프레임 북마크
+투구 메커니즘 분석을 위해 영상이 녹화/저장됩니다.
+투구 바이오매커니즘 및 지표 계산을 위한 정확한 측정값을 입력해 주세요.
+투구 밸런스, 하체 지면반발력 체감, 피로도 등을 자유롭게 남겨보세요.
+투구 부하 스파이크 현상 감지. 불펜 훈련 수량을 30% 감축해야 합니다.
+투구 부하 평가:
+투구 부하가 한계에 다다르고 있습니다. 다음 불펜 세션 투구수를 25~30구 이하로 제한하고, 직구 및 체인지업 위주의 저부하 피칭을 수행하세요.
+투구 분석, 부하 조절 및 맞춤형 피칭 케어를 시작하기 위해 정밀 인적사항 및 선수 스펙을 작성하세요.
+투구 속도 (km/h vs mph)
+투구 손
+투구 손 (Throwing Arm)
+투구 시퀀스 기록 저장
+투구 영상 {dayVideos.length}개
+투구 영상 저장
+투구 영상 저장 및 분석
+투구 영상 촬영 & 저장
+투구 영상 파일 선택 (.mp4, .webm, .mov)
+투구 자극 부족으로 투구 동작 시 필요 인대와 근육의 내성이 약화됩니다.
+투구 코킹 단계(Late Cocking)에서 충분한 회전 각도를 제공합니다.
+투구 폼을 저장하고 시점별/날짜별 영상을 2분할 화면으로 비교하여 릴리스 포인트 및 팔각도 변화를 분석하세요.
+투구 후 경미한 어깨/팔꿈치 피로감
+투구 훈련, 통증, 회복법 질문하기...
+투구량이 부족하여 인대 및 근육의 고강도 투구 적응력이 저하될 수 있습니다. 규칙적인 캐치볼과 불펜 투구량을 단계적으로 늘려주세요.
+투구수 관리 & 피로도 모니터링 (ACWR)
+투구수 관리 및 ACWR 위험 방지
+투수
+투수 바이오매커니즘 &
+투수 보직 (Role)
+투심 / 싱커
+투심 직구
+투심 직구 (2-Seam)
+특이사항 & 코칭 메모
+특이사항 없음
+파울
+파일 업로드
+파일 찾아보기
+팔 보호 & 보강 운동 (Arm Care / Plyo Ball)
+팔 통증
+팔꿈치 UCL 관절 (Elbow)
+팔꿈치 굴곡 (Elbow Flexion)
+팔꿈치 굴곡 (°)
+팔꿈치 굴곡/신전
+팔꿈치 내측 (UCL 근처)
+팔꿈치 내측 (UCL) 관절 통증
+팔꿈치 내측 UCL 집중 관리 필요
+팔꿈치 신전 (Elbow Extension)
+팔꿈치 신전 (°)
+팔꿈치가 완전히 펴지는 각도입니다. 삼두근 수축 결핍 없음.
+평균 구속
+평균 구속 (km/h)
+평균: {latestSession?.avgVel || 142} km/h (유지중)
+포심 직구
+포심 직구 (4-Seam)
+포심 직구 (Fastball)
+포심 직구', '슬라이더', '커브
+포심 직구', '투심 직구', '슬라이더', '체인지업', '커브', '커터', '스플리터/포크', '너클커브
+포심 직구', value: totalFastballs, color: '#3B82F6
+포심 패스트볼
+포심 패스트볼', '슬라이더
+포심') || typeKey.includes('직구') || typeKey.includes('fastball
+표시된 날짜에 저장된 투구 영상이 있습니다.
+푸시 알림
+프레임 #{frameIndex} ({fps} FPS)
+프레임 분석
+프로 (Pro)
+프로 등급 결제했는데 반영이 안됩니다
+프로 플랜으로 업그레이드하기 →
+프로그램 메뉴
+프로필 & 신체 정보 수정하기
+프로필 관리
+프로필 및 계정 설정
+프로필 사진 변경
+프로필 이미지
+플라이오 볼 / 보강 (Plyo Ball)
+피로도
+피로도 지수: {latestSession?.fatigue || 4}/10
+피안타
+피칭
+피칭 기록
+피칭 메커니즘 메모 & 체크포인트
+피칭 바이오매커니즘 및 피로도 분석을 위한 선수 정보 작성
+피칭 영상 열기 시 자동 재생
+피칭 후 팔꿈치/어깨 통증 및 뻐근함 발생 여부
+피칭: {sess.sessionType}
+하체 폭발력 & 피칭 메커니즘
+한계 ${p.pitchCap}구
+한국어
+해당 유저에게 시스템 관리자 권한을 부여합니다.
+햅틱 피드백
+헛스윙 스트라이크
+헤드라인 총평
+현장에서 즉시 녹화하기
+현재 {pitcher.name} 선수의 ACWR ({pitcher.currentAcwr}), 최근 피칭수, ROM 및 통증 내역을 종합하여 주간 훈련 로드맵과 보강 운동을 자동 생성합니다.
+현재 등급
+현재 부하 지수 (ACWR)
+현재 저장된 모든 영상 및 기록을 서버에 저장하여 다른 기기에서도 볼 수 있게 합니다.
+현재 최고 구속 (Max Velocity km/h) *
+현재 팔/어깨 통증 및 컨디션 상태
+현재 프레임으로 업데이트
+현재 프레임을 해당 구간으로 설정하거나 이동할 수 있습니다.
+홍길동
+화
+확인 중...' : '인증하기
+회원 정보 보기
+회원 탈퇴
+회원 탈퇴 (Delete)
+회원가입
+훈련 기록 저장하기
+훈련 날짜
+훈련 분류
+훈련 빈도 기타 내용을 직접 입력해주세요.
+훈련 빈도 및 세션 수치를 직접 입력해주세요.
+훈련 빈도:
+훈련 스케줄 계획, 과거 피칭/웨이트 기록
+훈련 스케줄 등록하기
+훈련 일정 및 분석 완료 알림
+훈련 일정, 피칭/운동 기록
+훈련 제목
+훈련 제목을 입력해주세요.
+훈련 캘린더
+훈련 캘린더 & 일정 요약
+훈련 캘린더에서 새 일정을 등록해보세요.
+휴식 (Rest)
+휴식', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30
+🎥 투구 영상 ({selectedDateVideos.length}개)
+🎯 롱토스 & 캐치볼 (Long Toss)
+🏃‍♂️ 러닝 & 컨디셔닝 (Conditioning)
+🏋️‍♂️ 수행 웨이트 볼륨: {log.weightVolumeKg.toLocaleString()} kg
+🏋️‍♂️ 웨이트 볼륨: {selectedDateLog.weightVolumeKg.toLocaleString()} kg
+🏋️‍♂️ 웨이트 트레이닝 (Weight)
+💡 직구 구사 비율
+💤 휴식 & 멘탈 (Rest)
+💾 모든 기록 저장하기
+💾 모든 피칭, 훈련 스케줄, 가동범위 및 영상 기록이 안전하게 저장되었습니다!
+💾 서버에 영상 저장 (계정 동기화)
+💾 서버에 영상 저장하기
+💾 업로드한 영상 저장하기
+💾 영상 저장하기
+💾 영상 저장하기 ({date} 날짜 기록)
+💾 영상 촬영 / 저장하기
+💾 측정 기록 저장하기
+💾 피칭 기록 저장하기
+📅 해당 일자 예정 훈련 ({selectedDateSchedules.filter((s) => !s.completed).length})
+📋 완료된 기록 요약
+📋 전술 & 수비 훈련 (Tactical)
+📝 {selectedDate} 훈련 기록 남기기
+🔴 고위험' : calcVal >= 1.3 ? '🟠 주의' : calcVal < 0.8 ? '🔵 저부하' : '🟢 최적 존
+🗓️ 날짜 변경
+🧊 리커버리 & 보강운동 (Recovery)

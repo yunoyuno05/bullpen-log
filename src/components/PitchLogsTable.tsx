@@ -1,3 +1,5 @@
+import { useUnits } from '../lib/units';
+import i18n from '../lib/i18n';
 import React, { useState } from 'react';
 import { Pitcher, PitchSession } from '../types';
 import { BaseballIcon } from './BaseballIcon';
@@ -9,6 +11,9 @@ import {
   AlertTriangle,
   Plus
 } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface PitchLogsTableProps {
   pitcher: Pitcher;
@@ -23,6 +28,8 @@ export const PitchLogsTable: React.FC<PitchLogsTableProps> = ({
   onDeleteSession,
   onOpenLogger,
 }) => {
+  const { formatSpeed, formatWeight, speedUnit, weightUnit } = useUnits();
+
   const pitcherSessions = sessions.filter((s) => s.pitcherId === pitcher.id);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,8 +117,8 @@ export const PitchLogsTable: React.FC<PitchLogsTableProps> = ({
             <td>${s.date}</td>
             <td><span class="badge">${s.type}</span></td>
             <td><strong>${s.totalPitches}구</strong></td>
-            <td>${s.maxVel} km/h</td>
-            <td>${s.avgVel} km/h</td>
+            <td>${formatSpeed(s.maxVel)}</td>
+            <td>${formatSpeed(s.avgVel)}</td>
             <td>${s.rpe}/10</td>
             <td>${s.fatigue}/10</td>
             <td>${s.armSoreness ? '<span class="pain">⚠️ 통증있음</span>' : '<span class="ok">정상</span>'}</td>
@@ -135,7 +142,7 @@ export const PitchLogsTable: React.FC<PitchLogsTableProps> = ({
   };
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-5">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
@@ -270,7 +277,7 @@ export const PitchLogsTable: React.FC<PitchLogsTableProps> = ({
                     </div>
                   </td>
                   <td className="p-4 text-white">
-                    <span className="text-amber-400 font-bold">{session.maxVel}</span> / {session.avgVel} km/h
+                    <span className="text-amber-400 font-bold">{session.maxVel}</span> / {formatSpeed(session.avgVel)}
                   </td>
                   <td className="p-4">
                     RPE <strong className="text-white">{session.rpe}</strong> (피로 {session.fatigue}/10)

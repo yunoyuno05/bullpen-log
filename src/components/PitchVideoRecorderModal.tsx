@@ -1,3 +1,4 @@
+import i18n from '../lib/i18n';
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PitchVideo } from '../types';
@@ -20,6 +21,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface PitchVideoRecorderModalProps {
   isOpen: boolean;

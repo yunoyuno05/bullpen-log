@@ -1,7 +1,12 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, CheckCircle2, Globe } from 'lucide-react';
 import { UserAccount, SubscriptionTier } from '../types';
+
+
+const t = i18n.t.bind(i18n);
 
 interface OnboardingFlowProps {
   user: UserAccount;
@@ -9,6 +14,7 @@ interface OnboardingFlowProps {
 }
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete }) => {
+  
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedLang, setSelectedLang] = useState('ko');
 
@@ -45,7 +51,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 onClick={() => setSelectedLang('ko')}
                 className={`w-full flex items-center justify-between px-6 py-4 rounded-xl border-2 transition-all ${selectedLang === 'ko' ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}
               >
-                <span className="text-lg font-medium text-white">한국어</span>
+                <span className="text-lg font-medium text-white">{t('한국어')}</span>
                 {selectedLang === 'ko' && <CheckCircle2 className="w-6 h-6 text-blue-500" />}
               </button>
               
@@ -53,7 +59,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 onClick={() => setSelectedLang('en')}
                 className={`w-full flex items-center justify-between px-6 py-4 rounded-xl border-2 transition-all ${selectedLang === 'en' ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}
               >
-                <span className="text-lg font-medium text-white">English</span>
+                <span className="text-lg font-medium text-white">{t('English')}</span>
                 {selectedLang === 'en' && <CheckCircle2 className="w-6 h-6 text-blue-500" />}
               </button>
               
@@ -61,7 +67,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 onClick={() => setSelectedLang('ja')}
                 className={`w-full flex items-center justify-between px-6 py-4 rounded-xl border-2 transition-all ${selectedLang === 'ja' ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}
               >
-                <span className="text-lg font-medium text-white">日本語</span>
+                <span className="text-lg font-medium text-white">{t('日本語')}</span>
                 {selectedLang === 'ja' && <CheckCircle2 className="w-6 h-6 text-blue-500" />}
               </button>
             </div>

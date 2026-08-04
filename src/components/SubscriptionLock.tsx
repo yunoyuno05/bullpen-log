@@ -1,6 +1,10 @@
+import i18n from '../lib/i18n';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Lock } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface SubscriptionLockProps {
   requiredTier: 'BEGINNER' | 'AMATEUR' | 'PRO';
@@ -9,7 +13,7 @@ interface SubscriptionLockProps {
 }
 
 export const SubscriptionLock: React.FC<SubscriptionLockProps> = ({ requiredTier, children, currentTier }) => {
-  const { t } = useTranslation();
+  
   
   const tiers = ['FREE', 'BEGINNER', 'AMATEUR', 'PRO'];
   const currentIndex = tiers.indexOf(currentTier);

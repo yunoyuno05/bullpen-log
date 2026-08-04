@@ -1,3 +1,5 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Pitcher, ROMRecord } from '../types';
@@ -12,6 +14,9 @@ import {
   Layers,
   Sparkles
 } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface ROMTrackerProps {
   pitcher: Pitcher;
@@ -73,7 +78,7 @@ export const ROMTracker: React.FC<ROMTrackerProps> = ({
   const isGirdDeficit = latestRom.shoulderIntRotation < 45;
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-5">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
@@ -220,8 +225,8 @@ export const ROMTracker: React.FC<ROMTrackerProps> = ({
             <thead className="bg-white/5 border-b border-white/10 text-gray-400 uppercase">
               <tr>
                 <th className="p-3">측정 일자</th>
-                <th className="p-3">어깨 내회전</th>
-                <th className="p-3">어깨 외회전</th>
+                <th className="p-3">{t('어깨 내회전')}</th>
+                <th className="p-3">{t('어깨 외회전')}</th>
                 <th className="p-3">팔꿈치 굴곡/신전</th>
                 <th className="p-3">통증 점수</th>
                 <th className="p-3">통증 부위 / 메모</th>

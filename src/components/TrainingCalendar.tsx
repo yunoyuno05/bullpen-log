@@ -1,3 +1,6 @@
+import { useUnits } from '../lib/units';
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import {
   Pitcher,
@@ -40,6 +43,9 @@ import {
 } from 'lucide-react';
 import { CalendarVideoTab } from './CalendarVideoTab';
 
+
+const t = i18n.t.bind(i18n);
+
 interface TrainingCalendarProps {
   pitcher: Pitcher;
   sessions: PitchSession[];
@@ -81,6 +87,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   currentUserEmail,
   onSaveAllRecords,
 }) => {
+  const { formatSpeed, formatWeight, speedUnit, weightUnit } = useUnits();
   const todayObj = new Date();
   const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
@@ -302,11 +309,11 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
   };
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-4">
       {/* Top Header & Navigation Segmented Control */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/10 pb-6">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-[#34C759]/20 text-[#34C759] border border-[#34C759]/30 tracking-wider">
               ATHLETE TRAINER HUB
             </span>
@@ -329,7 +336,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             }`}
           >
             <CalendarIcon className="w-4 h-4" />
-            <span>메인 캘린더</span>
+            <span>{t('메인 캘린더')}</span>
           </button>
 
           <button
@@ -339,9 +346,9 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             }`}
           >
             <Video className="w-4 h-4" />
-            <span>투구 영상 저장</span>
+            <span>{t('투구 영상 저장')}</span>
             {pitcherVideos.length > 0 && (
-              <span className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+              <span className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-black ${
                 activeSubTab === 'calendar-video' ? 'bg-black/20 text-black' : 'bg-emerald-500/20 text-emerald-400'
               }`}>
                 {pitcherVideos.length}
@@ -358,7 +365,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             <Clock className="w-4 h-4" />
             <span>일정 계획</span>
             {pitcherSchedules.filter((s) => !s.completed).length > 0 && (
-              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500 text-black font-black">
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-500 text-black font-black">
                 {pitcherSchedules.filter((s) => !s.completed).length}
               </span>
             )}
@@ -381,7 +388,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             }`}
           >
             <Flame className="w-4 h-4 text-amber-500" />
-            <span>게임로그 시퀀스</span>
+            <span>{t('게임로그 시퀀스')}</span>
           </button>
 
           <button
@@ -391,7 +398,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             }`}
           >
             <Target className="w-4 h-4 text-cyan-400" />
-            <span>목표 로드맵</span>
+            <span>{t('목표 로드맵')}</span>
           </button>
         </div>
       </div>
@@ -400,21 +407,21 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
       {/* SUBTAB 1: MAIN CALENDAR TAB */}
       {/* ========================================================= */}
       {activeSubTab === 'main' && (
-        <div className="space-y-8">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left 2 Cols: Monthly Calendar Grid */}
-            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-5 sm:p-7 shadow-2xl space-y-6">
+            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-3 sm:p-4 shadow-2xl space-y-4">
               {/* Year & Month Navigation Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="w-6 h-6 text-emerald-400" />
-                  <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-1.5">
+                  <CalendarIcon className="w-5 h-5 text-emerald-400" />
+                  <div className="flex items-center gap-1.5">
                     {/* Year Dropdown Select */}
                     <div className="relative">
                       <select
                         value={currentYear}
                         onChange={(e) => setCurrentYear(Number(e.target.value))}
-                        className="bg-black/60 border border-white/20 text-white text-lg sm:text-2xl font-black rounded-xl pl-3 pr-8 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
+                        className="bg-black/60 border border-white/20 text-white text-base sm:text-lg font-black rounded-xl pl-3 pr-8 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
                       >
                         {Array.from({ length: 21 }, (_, i) => todayObj.getFullYear() - 10 + i).map((y) => (
                           <option key={y} value={y} className="bg-[#1c1c1e] text-white">
@@ -430,7 +437,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       <select
                         value={currentMonth}
                         onChange={(e) => setCurrentMonth(Number(e.target.value))}
-                        className="bg-black/60 border border-white/20 text-white text-lg sm:text-2xl font-black rounded-xl pl-3 pr-8 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
+                        className="bg-black/60 border border-white/20 text-white text-base sm:text-lg font-black rounded-xl pl-3 pr-8 py-1 appearance-none focus:outline-none focus:border-emerald-400 cursor-pointer"
                       >
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                           <option key={m} value={m} className="bg-[#1c1c1e] text-white">
@@ -518,10 +525,10 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
               </div>
 
               {/* Days Grid */}
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-1.5">
                 {calendarCells.map((dateStr, idx) => {
                   if (!dateStr) {
-                    return <div key={`empty-${idx}`} className="h-24 sm:h-28 rounded-2xl bg-white/[0.02]" />;
+                    return <div key={`empty-${idx}`} className="h-16 sm:h-20 rounded-2xl bg-white/[0.02]" />;
                   }
 
                   const dayNum = parseInt(dateStr.split('-')[2]);
@@ -543,7 +550,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                         setSelectedDate(dateStr);
                         setSchedDate(dateStr);
                       }}
-                      className={`h-24 sm:h-28 rounded-2xl p-2 border text-left transition-all relative flex flex-col justify-between cursor-pointer group ${
+                      className={`h-16 sm:h-20 rounded-2xl p-1 border text-left transition-all relative flex flex-col justify-between cursor-pointer group ${
                         isSelected
                           ? 'bg-white/15 border-white shadow-lg ring-2 ring-white/50 z-10'
                           : isToday
@@ -576,15 +583,15 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       <div className="space-y-1 w-full overflow-hidden">
                         {/* Pitch Video Badge */}
                         {dayVideos.length > 0 && (
-                          <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 truncate flex items-center gap-1">
-                            <Video className="w-3 h-3 text-emerald-400 shrink-0" />
+                          <div className="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 truncate flex items-center gap-1">
+                            <Video className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
                             <span>투구 영상 {dayVideos.length}개</span>
                           </div>
                         )}
 
                         {/* Upcoming Schedules Badge */}
                         {upcomingCount > 0 && (
-                          <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30 truncate flex items-center gap-1">
+                          <div className="text-[9px] px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30 truncate flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                             <span>일정 {upcomingCount}건</span>
                           </div>
@@ -592,8 +599,8 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
 
                         {/* Completed Records Badge */}
                         {(completedSchedCount > 0 || daySessions.length > 0 || (dayLog && dayLog.diary)) && (
-                          <div className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 truncate flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <div className="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 truncate flex items-center gap-1">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
                             <span>
                               기록 {completedSchedCount + daySessions.length + (dayLog?.diary ? 1 : 0)}건
                             </span>
@@ -602,7 +609,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
 
                         {/* Soreness warning badge */}
                         {dayLog && dayLog.painScore > 0 && (
-                          <div className="text-[10px] px-1 py-0.2 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 truncate">
+                          <div className="text-[9px] px-1 py-0.2 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 truncate">
                             ⚠️ 통증 {dayLog.painScore}
                           </div>
                         )}
@@ -614,15 +621,15 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             </div>
 
             {/* Right 1 Col: Selected Date Quick Overview Card */}
-            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl flex flex-col justify-between space-y-6">
-              <div className="space-y-5">
+            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div>
                     <span className="text-xs text-gray-400 font-bold">선택한 날짜 요약</span>
                     <h3 className="text-xl font-extrabold text-white">{selectedDate}</h3>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     <button
                       onClick={() => {
                         setSchedDate(selectedDate);
@@ -631,7 +638,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       className="px-3 py-1.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-bold border border-blue-500/40 transition cursor-pointer flex items-center gap-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>일정 추가</span>
+                      <span>{t('일정 추가')}</span>
                     </button>
 
                     <button
@@ -639,7 +646,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold border border-emerald-500/40 transition cursor-pointer flex items-center gap-1"
                     >
                       <FileText className="w-3.5 h-3.5" />
-                      <span>기록 입력</span>
+                      <span>{t('기록 입력')}</span>
                     </button>
                   </div>
                 </div>
@@ -647,7 +654,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                 {/* 1. Schedule Summary section */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black uppercase text-blue-400 tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-[9px] font-black uppercase text-blue-400 tracking-wider flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
                       <span>📅 해당 일자 예정 훈련 ({selectedDateSchedules.filter((s) => !s.completed).length})</span>
                     </h4>
@@ -669,7 +676,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                               className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-1.5 hover:bg-white/10 transition"
                             >
                               <div className="flex items-center justify-between">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${badge.color}`}>
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${badge.color}`}>
                                   {badge.label}
                                 </span>
                                 <span className="text-[11px] text-gray-400">{sch.time || '시간 미지정'}</span>
@@ -687,7 +694,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
 
                 {/* 2. Record Summary section */}
                 <div className="space-y-2 pt-2 border-t border-white/10">
-                  <h4 className="text-xs font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-[9px] font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>📋 완료된 기록 요약</span>
                   </h4>
@@ -722,7 +729,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                         </span>
                         <button
                           onClick={() => setActiveSubTab('calendar-video')}
-                          className="text-[10px] font-extrabold text-emerald-400 hover:underline cursor-pointer"
+                          className="text-[9px] font-extrabold text-emerald-400 hover:underline cursor-pointer"
                         >
                           영상 탭 이동 ▶
                         </button>
@@ -742,7 +749,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                             >
                               <span className="font-bold text-white truncate max-w-[150px]">{v.title}</span>
                               <span className="text-emerald-400 font-mono font-bold flex items-center gap-1">
-                                {v.velocity}km/h <Play className="w-3 h-3 fill-emerald-400" />
+                                {formatSpeed(v.velocity)} <Play className="w-2.5 h-2.5 fill-emerald-400" />
                               </span>
                             </div>
                           ))}
@@ -803,11 +810,11 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
       {/* SUBTAB 2: SCHEDULE PLANNING TAB */}
       {/* ========================================================= */}
       {activeSubTab === 'schedule' && (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* Header Banner with Auto-Archive Toggle Switch */}
           <div className="bg-[#1c1c1e]/90 border border-white/15 rounded-[28px] p-6 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 backdrop-blur-2xl">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Clock className="w-5 h-5 text-blue-400" />
                 <h2 className="text-xl font-extrabold text-white">야구 & 웨이트 훈련 스케줄 계획 및 세분화</h2>
               </div>
@@ -820,7 +827,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             <div className="flex items-center gap-3 bg-black/40 border border-white/10 p-3 rounded-2xl backdrop-blur-md">
               <div className="text-right">
                 <div className="text-xs font-bold text-white">지나간 일정 자동 기록 전환</div>
-                <div className="text-[10px] text-gray-400">날짜가 지나면 자동으로 기록으로 백업</div>
+                <div className="text-[9px] text-gray-400">날짜가 지나면 자동으로 기록으로 백업</div>
               </div>
 
               <button
@@ -845,7 +852,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
               onSubmit={handleCreateSchedule}
               className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4"
             >
-              <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-1.5 border-b border-white/10 pb-3">
                 <Plus className="w-5 h-5 text-blue-400" />
                 <h3 className="text-base font-extrabold text-white">새 훈련 일정 추가</h3>
               </div>
@@ -937,7 +944,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                 <label className="text-xs font-bold text-gray-300">세부 종목 / 세트 / 노트</label>
                 <textarea
                   rows={3}
-                  placeholder="예: 하프 스쿼트 120kg 5x5, 데드리프트 140kg 3x5, 어깨 밴드 보강 3세트"
+                  placeholder="예: 하프 스쿼트 {formatWeight(120)} 5x5, 데드리프트 {formatWeight(140)} 3x5, 어깨 밴드 보강 3세트"
                   value={schedDetails}
                   onChange={(e) => setSchedDetails(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-white/40 resize-none"
@@ -954,15 +961,15 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             </form>
 
             {/* Right 2 Cols: Schedule List with Filters */}
-            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div>
                   <h3 className="text-lg font-black text-white">등록된 훈련 스케줄 목록</h3>
                   <p className="text-xs text-gray-400">체크박스를 눌러 완료 여부를 토글할 수 있습니다.</p>
                 </div>
 
                 {/* Filter Selector */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <SlidersHorizontal className="w-4 h-4 text-gray-400" />
                   <select
                     value={schedFilterCategory}
@@ -997,7 +1004,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                       return (
                         <div
                           key={sch.id}
-                          className={`p-4 border rounded-2xl transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                          className={`p-4 border rounded-2xl transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                             sch.completed
                               ? 'bg-white/5 border-emerald-500/30 opacity-80'
                               : isPast
@@ -1018,8 +1025,8 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                             </button>
 
                             <div className="space-y-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${badge.color}`}>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${badge.color}`}>
                                   {badge.label}
                                 </span>
 
@@ -1027,13 +1034,13 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                                 {sch.time && <span className="text-xs text-gray-400">⏰ {sch.time}</span>}
 
                                 {sch.intensity && (
-                                  <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/10 text-gray-300">
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-white/10 text-gray-300">
                                     강도: {sch.intensity}
                                   </span>
                                 )}
 
                                 {isPast && !sch.completed && (
-                                  <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
                                     지나간 일정
                                   </span>
                                 )}
@@ -1051,7 +1058,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                             <button
                               onClick={() => onDeleteSchedule(sch.id)}
                               className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
@@ -1074,9 +1081,9 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
       {/* SUBTAB 3: RECORD & HISTORY TAB */}
       {/* ========================================================= */}
       {activeSubTab === 'history' && (
-        <div className="space-y-8">
+        <div className="space-y-4">
           <div className="bg-[#1c1c1e]/90 border border-white/15 rounded-[28px] p-6 shadow-2xl space-y-2 backdrop-blur-2xl">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <FileText className="w-5 h-5 text-emerald-400" />
               <h2 className="text-xl font-extrabold text-white">과거 훈련 기록 및 피드백 일지 입력</h2>
             </div>
@@ -1087,7 +1094,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left 1 Col: Record Input Form for Selected Date */}
-            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-5">
+            <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4">
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-base font-extrabold text-white">📝 {selectedDate} 훈련 기록 남기기</h3>
                 <input
@@ -1206,7 +1213,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             </div>
 
             {/* Right 2 Cols: Timeline of Recorded History */}
-            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-6">
+            <div className="lg:col-span-2 bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4">
               <h3 className="text-lg font-black text-white border-b border-white/10 pb-4">
                 과거 기록 이력 타임라인
               </h3>
@@ -1227,9 +1234,9 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                         className="p-5 bg-white/5 border border-white/10 hover:border-white/20 rounded-2xl space-y-3 transition"
                       >
                         <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <span className="text-sm font-extrabold text-white">📅 {log.date}</span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/10 text-emerald-300">
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-white/10 text-emerald-300">
                               {log.trainingType}
                             </span>
                           </div>
@@ -1291,7 +1298,7 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
             onSubmit={handleCreateSequence}
             className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 shadow-2xl space-y-4"
           >
-            <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+            <div className="flex items-center gap-1.5 border-b border-white/10 pb-3">
               <Flame className="w-5 h-5 text-amber-500" />
               <h3 className="text-base font-extrabold text-white">볼카운트 시퀀스 추가</h3>
             </div>
@@ -1422,10 +1429,10 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                         </td>
                         <td className="py-3 px-3 font-mono text-amber-400 font-bold">{seq.ballCount}</td>
                         <td className="py-3 px-3 font-bold text-white">
-                          {seq.pitchType} ({seq.velocity}km/h)
+                          {seq.pitchType} ({formatSpeed(seq.velocity)})
                         </td>
                         <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/10 text-white border border-white/10">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-white/10 text-white border border-white/10">
                             {seq.result}
                           </span>
                         </td>
@@ -1443,10 +1450,10 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
       {/* SUBTAB 5: GOAL ROADMAP */}
       {/* ========================================================= */}
       {activeSubTab === 'roadmap' && (
-        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 sm:p-8 shadow-2xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 sm:p-8 shadow-2xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-6">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Target className="w-5 h-5 text-cyan-400" />
                 <h2 className="text-xl sm:text-2xl font-black text-white">선수 목표 트레이닝 로드맵</h2>
               </div>
@@ -1455,15 +1462,15 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
               </p>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center">
-                <div className="text-[10px] text-gray-400 uppercase font-bold">목표 구속</div>
-                <div className="text-lg font-black text-emerald-400">{goalRoadmap.targetVelocity} km/h</div>
+                <div className="text-[9px] text-gray-400 uppercase font-bold">목표 구속</div>
+                <div className="text-lg font-black text-emerald-400">{formatSpeed(goalRoadmap.targetVelocity)}</div>
               </div>
 
               <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center">
-                <div className="text-[10px] text-gray-400 uppercase font-bold">목표 체중</div>
-                <div className="text-lg font-black text-blue-400">{goalRoadmap.targetWeight} kg</div>
+                <div className="text-[9px] text-gray-400 uppercase font-bold">목표 체중</div>
+                <div className="text-lg font-black text-blue-400">{formatWeight(goalRoadmap.targetWeight)}</div>
               </div>
             </div>
           </div>
@@ -1480,13 +1487,13 @@ export const TrainingCalendar: React.FC<TrainingCalendarProps> = ({
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-gray-400 uppercase">PHASE 0{idx + 1}</span>
+                  <span className="text-[9px] font-black text-gray-400 uppercase">PHASE 0{idx + 1}</span>
                   {ph.isCompleted ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                       달성 완료
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">
                       진행 중
                     </span>
                   )}

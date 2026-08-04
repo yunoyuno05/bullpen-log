@@ -1,3 +1,5 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useRef, useEffect } from 'react';
 import { Pitcher, UserAccount } from '../types';
 import {
@@ -25,6 +27,9 @@ import {
 } from 'lucide-react';
 import { BaseballIcon } from './BaseballIcon';
 import { motion, AnimatePresence } from 'motion/react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface NavbarProps {
   pitchers: Pitcher[];
@@ -76,6 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Close menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+  
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
@@ -85,13 +91,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const handleSelectTab = (tabId: string) => {
+  
     setActiveTab(tabId);
     setIsMenuOpen(false);
   };
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#1c1c1e]/85 backdrop-blur-2xl border-b border-white/10 px-3 sm:px-8 py-2 sm:py-3 text-white shadow-xl">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-5xl mx-auto flex items-center justify-between">
         {/* Left Brand Logo */}
         <div
           onClick={() => handleSelectTab(currentUser ? 'dashboard' : 'hero')}
@@ -153,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="bg-white hover:bg-gray-200 text-black px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
                 >
                   <LogIn className="w-3.5 h-3.5" />
-                  <span>로그인</span>
+                  <span>{t('로그인')}</span>
                 </button>
 
                 <button
@@ -165,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 >
                   <UserPlus className="w-3.5 h-3.5" />
-                  <span>회원가입</span>
+                  <span>{t('회원가입')}</span>
                 </button>
               </div>
             )}
@@ -271,7 +278,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         className="w-full bg-white text-black py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-sm"
                       >
                         <LogIn className="w-3.5 h-3.5" />
-                        <span>로그인</span>
+                        <span>{t('로그인')}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -281,7 +288,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer active:scale-95"
                       >
                         <UserPlus className="w-3.5 h-3.5" />
-                        <span>회원가입</span>
+                        <span>{t('회원가입')}</span>
                       </button>
                     </div>
                   )}

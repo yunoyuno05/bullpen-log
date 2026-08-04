@@ -1,3 +1,4 @@
+import i18n from '../lib/i18n';
 import React, { useState } from 'react';
 import { UserAccount, AthleteAssessment } from '../types';
 import { calculateAge } from '../lib/utils';
@@ -21,6 +22,9 @@ import {
   Edit3
 } from 'lucide-react';
 import { motion } from 'motion/react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface SignUpPageProps {
   onReturnHome: () => void;

@@ -1,3 +1,5 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
@@ -6,9 +8,13 @@ import { Users, FileText, Headset, ShieldAlert, X, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 
+
+const t = i18n.t.bind(i18n);
+
 type AdminTab = 'users' | 'posts' | 'support';
 
 export const AdminPanel: React.FC = () => {
+  
   const { user, isAdmin } = useAppStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
@@ -110,7 +116,7 @@ export const AdminPanel: React.FC = () => {
                     <tr key={u.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-medium text-white">{u.name || '알 수 없음'}</div>
-                        {u.isAdmin && <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full mt-1 inline-block">관리자</span>}
+                        {u.isAdmin && <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full mt-1 inline-block">{t('관리자')}</span>}
                       </td>
                       <td className="px-6 py-4 text-gray-300">{u.email}</td>
                       <td className="px-6 py-4">

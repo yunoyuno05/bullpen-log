@@ -1,3 +1,4 @@
+import i18n from '../lib/i18n';
 import React, { useState } from 'react';
 import { Pitcher, PitchSession, ROMRecord, AIReportData, AIChatMessage } from '../types';
 import {
@@ -20,6 +21,9 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../lib/store';
 import { SubscriptionLock } from './SubscriptionLock';
+
+
+const t = i18n.t.bind(i18n);
 
 interface AICareReportProps {
   pitcher: Pitcher;
@@ -248,7 +252,7 @@ export const AICareReport: React.FC<AICareReportProps> = ({
   };
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-5">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
@@ -323,7 +327,7 @@ export const AICareReport: React.FC<AICareReportProps> = ({
           )}
 
           {report && (
-            <div id="printable-ai-report" className="bg-gradient-to-b from-gray-900 via-black to-gray-950 border border-red-500/30 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl relative">
+            <div id="printable-ai-report" className="bg-gradient-to-b from-gray-900 via-black to-gray-950 border border-red-500/30 rounded-3xl p-6 md:p-8 space-y-5 shadow-2xl relative">
               {/* Report Document Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
                 <div>

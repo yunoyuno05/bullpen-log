@@ -1,3 +1,5 @@
+import { useUnits } from '../lib/units';
+import i18n from '../lib/i18n';
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { UserAccount } from '../types';
@@ -6,6 +8,10 @@ import { BaseballIcon } from './BaseballIcon';
 import { Palette, Mail, Calendar, Award, LogOut, X, CheckCircle2, Edit3, Save, RotateCcw, Loader2, Camera, Trash2, Ruler, Weight, Activity, Cake } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../lib/store';
+import { useTranslation } from "react-i18next";
+
+
+const t = i18n.t.bind(i18n);
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -22,7 +28,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onLogout,
   onUpdateProfile,
 }) => {
+    
   const { theme, setTheme } = useAppStore();
+  const { formatSpeed, formatWeight, speedUnit, weightUnit } = useUnits();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -264,7 +272,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         <span>체중 (몸무게)</span>
                       </div>
                       <div className="font-extrabold text-white text-xs sm:text-sm">
-                        {user.weight ? `${user.weight} kg` : '85 kg'}
+                        {user.weight ? `${formatWeight(user.weight)}` : '{formatWeight(85)}'}
                       </div>
                     </div>
 
@@ -284,7 +292,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         <span>최고 구속</span>
                       </div>
                       <div className="font-extrabold text-amber-300 text-xs sm:text-sm">
-                        {user.maxVelocity ? `${user.maxVelocity} km/h` : '151.5 km/h'}
+                        {user.maxVelocity ? `${formatSpeed(user.maxVelocity)}` : '151.{formatSpeed(5)}'}
                       </div>
                     </div>
 
@@ -592,7 +600,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 className="w-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 font-bold py-2.5 rounded-full text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>로그아웃</span>
+                <span>{t('로그아웃')}</span>
               </button>
             </div>
           </motion.div>

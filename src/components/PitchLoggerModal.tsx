@@ -1,8 +1,12 @@
+import i18n from '../lib/i18n';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Pitcher, PitchSession, PitchSessionType } from '../types';
 import { BaseballIcon } from './BaseballIcon';
 import { AlertTriangle, Plus, Minus, Flame, Check } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface PitchLoggerModalProps {
   pitcher: Pitcher;

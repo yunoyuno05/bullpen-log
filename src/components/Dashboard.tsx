@@ -1,3 +1,5 @@
+import { useUnits } from '../lib/units';
+import i18n from '../lib/i18n';
 import React, { useState } from 'react';
 import { Pitcher, PitchSession, ROMRecord, TrainingScheduleItem, DailyLog, PitchVideo } from '../types';
 import { BaseballIcon } from './BaseballIcon';
@@ -38,6 +40,9 @@ import {
   Legend
 } from 'recharts';
 
+
+const t = i18n.t.bind(i18n);
+
 interface DashboardProps {
   pitcher: Pitcher;
   sessions: PitchSession[];
@@ -59,6 +64,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   setActiveTab,
   onOpenLogger,
 }) => {
+  const { formatSpeed, formatWeight, speedUnit, weightUnit } = useUnits();
+
   const pitcherSessions = sessions.filter((s) => s.pitcherId === pitcher.id);
   const pitcherRom = romRecords.filter((r) => r.pitcherId === pitcher.id);
   const latestRom = pitcherRom[0];
@@ -162,7 +169,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const AcwrIcon = acwrBadge.icon;
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-5">
       {/* Top Banner & Profile Overview (Apple Fitness Style Widget) */}
       <div className="bg-[#1c1c1e]/80 border border-white/10 rounded-[28px] p-6 md:p-8 backdrop-blur-2xl relative overflow-hidden shadow-2xl">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
@@ -197,7 +204,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {pitcher.team} • 만 {pitcher.age}세 • {pitcher.heightWeight}
               </p>
               <div className="mt-2 flex items-center gap-4 text-xs font-mono text-gray-300">
-                <span>최고 구속: <strong className="text-white">{pitcher.maxVelocity} km/h</strong></span>
+                <span>최고 구속: <strong className="text-white">{formatSpeed(pitcher.maxVelocity)}</strong></span>
                 <span>최근 7일 피칭: <strong className="text-[#34C759]">{totalPitchesLast7Days}구</strong></span>
               </div>
             </div>
@@ -523,7 +530,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           <p className="text-xs text-gray-200 line-clamp-2">"{selectedDateLog.diary}"</p>
                         )}
                         {selectedDateLog.weightVolumeKg > 0 && (
-                          <p className="text-[11px] text-amber-300 font-mono">웨이트 볼륨: {selectedDateLog.weightVolumeKg}kg</p>
+                          <p className="text-[11px] text-amber-300 font-mono">웨이트 볼륨: {formatWeight(selectedDateLog.weightVolumeKg)}</p>
                         )}
                       </div>
                     )}
@@ -534,7 +541,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold">
                             피칭: {sess.sessionType}
                           </span>
-                          <span className="text-white font-mono font-bold">{sess.totalPitches}구 ({sess.maxVel}km/h)</span>
+                          <span className="text-white font-mono font-bold">{sess.totalPitches}구 ({formatSpeed(sess.maxVel)})</span>
                         </div>
                         <p className="text-[11px] text-gray-300 line-clamp-1">{sess.notes || '특이사항 없음'}</p>
                       </div>
@@ -764,7 +771,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="text-[10px] text-gray-400">총 투구수</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-amber-300 font-bold text-sm">{session.maxVel} km/h</div>
+                    <div className="text-amber-300 font-bold text-sm">{formatSpeed(session.maxVel)}</div>
                     <div className="text-[10px] text-gray-400">최고구속</div>
                   </div>
                   <div className="text-right">

@@ -1,3 +1,4 @@
+import i18n from '../lib/i18n';
 import React, { useState, useRef, useEffect } from 'react';
 import { PitchVideo } from '../types';
 import {
@@ -21,6 +22,9 @@ import {
   Bookmark,
   Share2
 } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface FrameVideoPlayerProps {
   video: PitchVideo;

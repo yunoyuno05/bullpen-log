@@ -1,8 +1,13 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { useAppStore } from '../lib/store';
 import { Palette, LogOut, Globe, User, Edit3, Trash2, AlertTriangle, X, Save, CheckCircle2, Bell, Volume2, Ruler, PlayCircle, Wifi, Smartphone, Video } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { UserAccount } from '../types';
+
+
+const t = i18n.t.bind(i18n);
 
 interface SettingsTabProps {
   currentUser: UserAccount | null;
@@ -11,7 +16,8 @@ interface SettingsTabProps {
 }
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({ currentUser, onLogout, onOpenProfile }) => {
-  const { theme, setTheme, language, setLanguage } = useAppStore();
+  
+  const { theme, setTheme, language, setLanguage, speedUnit: storeSpeedUnit, setSpeedUnit, weightUnit: storeWeightUnit, setWeightUnit, user, setUser } = useAppStore();
   
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
@@ -27,7 +33,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ currentUser, onLogout,
   // New Environment Settings
   const [pushEnabled, setPushEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [unit, setUnit] = useState<'metric'|'imperial'>('metric');
+  const [localSpeedUnit, setLocalSpeedUnit] = useState<'kmh'|'mph'>(storeSpeedUnit);
+  const [localWeightUnit, setLocalWeightUnit] = useState<'kg'|'lbs'>(storeWeightUnit);
   const [autoPlay, setAutoPlay] = useState(true);
   const [dataSaver, setDataSaver] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
@@ -44,10 +51,46 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ currentUser, onLogout,
 
   const handleSaveSettings = () => {
     setIsSavingSettings(true);
+    
+    // Update store
+    setSpeedUnit(localSpeedUnit);
+    setWeightUnit(localWeightUnit);
+    
+    // Save to local storage
+    if (user) {
+      const updatedUser = { 
+        ...user, 
+        themePref: theme, 
+        langPref: language, 
+        speedUnit: localSpeedUnit, 
+        weightUnit: localWeightUnit 
+      };
+      setUser(updatedUser);
+      localStorage.setItem('bullpen_user_account', JSON.stringify(updatedUser));
+    } else {
+      const saved = localStorage.getItem('bullpen_user_account');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const updatedUser = {
+            ...parsed,
+            themePref: theme,
+            langPref: language,
+            speedUnit: localSpeedUnit,
+            weightUnit: localWeightUnit
+          };
+          localStorage.setItem('bullpen_user_account', JSON.stringify(updatedUser));
+        } catch (e) {}
+      }
+    }
+
     setTimeout(() => {
       setIsSavingSettings(false);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      setTimeout(() => {
+        setSaveSuccess(false);
+        window.location.reload();
+      }, 500);
     }, 600);
   };
 
@@ -87,245 +130,264 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ currentUser, onLogout,
   return (
     <div className="pt-24 pb-16 px-4 md:px-8 max-w-3xl mx-auto min-h-screen text-white space-y-6">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white tracking-tight mb-2">설정</h2>
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-2">{t('설정')}</h2>
         <p className="text-gray-400">앱 기본 환경과 프로필을 관리하세요.</p>
       </div>
 
       <div className="space-y-6">
         {/* Profile Settings Section */}
-        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[20px] p-4">
+          <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
             <User className="w-5 h-5 text-blue-400" />
-            <h3 className="text-lg font-bold text-white">프로필 및 계정 설정</h3>
+            <h3 className="text-base font-bold text-white">{t('프로필 및 계정 설정')}</h3>
           </div>
           
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-bold text-white mb-1">{currentUser?.name || '사용자'}</div>
-              <div className="text-sm text-gray-400">{currentUser?.email}</div>
+              <div className="font-bold text-white text-sm mb-1">{currentUser?.name || '사용자'}</div>
+              <div className="text-xs text-gray-400">{currentUser?.email}</div>
             </div>
             <button 
               onClick={onOpenProfile}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
             >
-              <Edit3 className="w-4 h-4" />
-              프로필 관리
-            </button>
+              <Edit3 className="w-3.5 h-3.5" />
+              {t('프로필 관리')}</button>
           </div>
         </div>
 
-        {/* Display Settings Section */}
-        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-            <Palette className="w-5 h-5 text-purple-400" />
-            <h3 className="text-lg font-bold text-white">앱 테마 (디스플레이)</h3>
+        {/* Theme and Language Side-by-Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Display Settings Section */}
+          <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[20px] p-4">
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
+              <Palette className="w-5 h-5 text-purple-400" />
+              <h3 className="text-base font-bold text-white">{t('앱 테마')}</h3>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={() => setTheme('light')}
+                className={`p-3 rounded-xl border text-center transition-all ${theme === 'light' ? 'bg-white text-black border-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+              >
+                <div className="text-sm font-bold mb-0.5">Light</div>
+              </button>
+              <button 
+                onClick={() => setTheme('dark')}
+                className={`p-3 rounded-xl border text-center transition-all ${theme === 'dark' ? 'bg-black text-white border-white/50 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-gray-950 border-white/10 text-gray-300 hover:bg-white/10'}`}
+              >
+                <div className="text-sm font-bold mb-0.5">Dark</div>
+              </button>
+              <button 
+                onClick={() => setTheme('baseball-classic')}
+                className={`p-3 rounded-xl border text-center transition-all ${theme === 'baseball-classic' ? 'bg-[#F4F1EA] text-[#2B2B2B] border-[#b51c1c] shadow-lg' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+              >
+                <div className="text-sm font-bold mb-0.5">Classic</div>
+              </button>
+              <button 
+                onClick={() => setTheme('high-contrast')}
+                className={`p-3 rounded-xl border text-center transition-all ${theme === 'high-contrast' ? 'bg-black text-yellow-400 border-yellow-400 shadow-lg' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
+              >
+                <div className="text-sm font-bold mb-0.5">Contrast</div>
+              </button>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button 
-              onClick={() => setTheme('light')}
-              className={`p-4 rounded-xl border text-center transition-all ${theme === 'light' ? 'bg-white text-black border-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
-            >
-              <div className="font-bold mb-1">Light</div>
-              <div className="text-[10px] opacity-70">밝은 테마</div>
-            </button>
-            <button 
-              onClick={() => setTheme('dark')}
-              className={`p-4 rounded-xl border text-center transition-all ${theme === 'dark' ? 'bg-black text-white border-white/50 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-gray-950 border-white/10 text-gray-300 hover:bg-white/10'}`}
-            >
-              <div className="font-bold mb-1">Dark</div>
-              <div className="text-[10px] opacity-70">어두운 테마</div>
-            </button>
-            <button 
-              onClick={() => setTheme('baseball-classic')}
-              className={`p-4 rounded-xl border text-center transition-all ${theme === 'baseball-classic' ? 'bg-[#F4F1EA] text-[#2B2B2B] border-[#b51c1c] shadow-lg' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
-            >
-              <div className="font-bold mb-1">Classic</div>
-              <div className="text-[10px] opacity-70">야구 클래식</div>
-            </button>
-            <button 
-              onClick={() => setTheme('high-contrast')}
-              className={`p-4 rounded-xl border text-center transition-all ${theme === 'high-contrast' ? 'bg-black text-yellow-400 border-yellow-400 shadow-lg' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}
-            >
-              <div className="font-bold mb-1">High-Contrast</div>
-              <div className="text-[10px] opacity-70">고대비 테마</div>
-            </button>
-          </div>
-        </div>
 
-        {/* Language Settings Section */}
-        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-            <Globe className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white">언어 설정 (Language)</h3>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3">
-            <button 
-              onClick={() => setLanguage('ko')}
-              className={`p-3 rounded-xl border text-center font-medium transition-all ${language === 'ko' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
-            >
-              한국어
-            </button>
-            <button 
-              onClick={() => setLanguage('en')}
-              className={`p-3 rounded-xl border text-center font-medium transition-all ${language === 'en' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
-            >
-              English
-            </button>
-            <button 
-              onClick={() => setLanguage('ja')}
-              className={`p-3 rounded-xl border text-center font-medium transition-all ${language === 'ja' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
-            >
-              日本語
-            </button>
+          {/* Language Settings Section */}
+          <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[20px] p-4">
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
+              <Globe className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-base font-bold text-white">{t('언어 설정')}</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2">
+              <button 
+                onClick={() => setLanguage('ko')}
+                className={`p-2.5 rounded-xl border text-sm text-center font-medium transition-all ${language === 'ko' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+              >
+                {t('한국어')}</button>
+              <button 
+                onClick={() => setLanguage('en')}
+                className={`p-2.5 rounded-xl border text-sm text-center font-medium transition-all ${language === 'en' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+              >
+                {t('English')}</button>
+              <button 
+                onClick={() => setLanguage('ja')}
+                className={`p-2.5 rounded-xl border text-sm text-center font-medium transition-all ${language === 'ja' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+              >
+                {t('日本語')}</button>
+            </div>
           </div>
         </div>
 
         {/* Environment Settings Section */}
-        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+        <div className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[20px] p-4">
+          <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
             <Ruler className="w-5 h-5 text-blue-400" />
-            <h3 className="text-lg font-bold text-white">앱 환경 설정</h3>
+            <h3 className="text-base font-bold text-white">{t('앱 환경 설정')}</h3>
           </div>
           
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             {/* Unit Settings */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <Ruler className="w-5 h-5 text-gray-400" />
+                <Ruler className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">측정 단위</div>
-                  <div className="text-xs text-gray-400">구속 및 체격 단위 (km/h & cm vs mph & inch)</div>
+                  <div className="text-sm font-bold text-white">{t('구속 단위')}</div>
+                  <div className="text-[11px] text-gray-400">{t('투구 속도 (km/h vs mph)')}</div>
                 </div>
               </div>
               <div className="flex bg-black/50 rounded-lg p-1">
                 <button
-                  onClick={() => setUnit('metric')}
-                  className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${unit === 'metric' ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-white'}`}
+                  onClick={() => setLocalSpeedUnit('kmh')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-colors ${localSpeedUnit === 'kmh' ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-white'}`}
                 >
-                  미터법 (Metric)
+                  km/h
                 </button>
                 <button
-                  onClick={() => setUnit('imperial')}
-                  className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${unit === 'imperial' ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-white'}`}
+                  onClick={() => setLocalSpeedUnit('mph')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-colors ${localSpeedUnit === 'mph' ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-white'}`}
                 >
-                  야드파운드 (Imperial)
+                  mph
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
+              <div className="flex items-center gap-3">
+                <Ruler className="w-4 h-4 text-gray-400" />
+                <div>
+                  <div className="text-sm font-bold text-white">{t('무게 단위')}</div>
+                  <div className="text-[11px] text-gray-400">{t('선수 체중 및 웨이트 (kg vs lbs)')}</div>
+                </div>
+              </div>
+              <div className="flex bg-black/50 rounded-lg p-1">
+                <button
+                  onClick={() => setLocalWeightUnit('kg')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-colors ${localWeightUnit === 'kg' ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-white'}`}
+                >
+                  kg
+                </button>
+                <button
+                  onClick={() => setLocalWeightUnit('lbs')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-colors ${localWeightUnit === 'lbs' ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-white'}`}
+                >
+                  lbs
                 </button>
               </div>
             </div>
 
             {/* Notifications */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-gray-400" />
+                <Bell className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">푸시 알림</div>
-                  <div className="text-xs text-gray-400">훈련 일정 및 분석 완료 알림 받기</div>
+                  <div className="text-sm font-bold text-white">{t('푸시 알림')}</div>
+                  <div className="text-[11px] text-gray-400">{t('훈련 일정 및 분석 완료 알림')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={pushEnabled} onChange={(e) => setPushEnabled(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
             </div>
             
             {/* Sound */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <Volume2 className="w-5 h-5 text-gray-400" />
+                <Volume2 className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">사운드 효과</div>
-                  <div className="text-xs text-gray-400">앱 내 상호작용 사운드 및 피드백 음향</div>
+                  <div className="text-sm font-bold text-white">{t('사운드 효과')}</div>
+                  <div className="text-[11px] text-gray-400">{t('앱 내 상호작용 사운드')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
             </div>
 
             {/* Auto Play */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <PlayCircle className="w-5 h-5 text-gray-400" />
+                <PlayCircle className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">영상 자동 재생</div>
-                  <div className="text-xs text-gray-400">피칭 영상 열기 시 자동 재생 여부</div>
+                  <div className="text-sm font-bold text-white">{t('영상 자동 재생')}</div>
+                  <div className="text-[11px] text-gray-400">{t('피칭 영상 열기 시 자동 재생')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={autoPlay} onChange={(e) => setAutoPlay(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
             </div>
 
             {/* Haptic Feedback */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <Smartphone className="w-5 h-5 text-gray-400" />
+                <Smartphone className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">햅틱 피드백</div>
-                  <div className="text-xs text-gray-400">버튼 터치 시 진동 효과 사용 (모바일)</div>
+                  <div className="text-sm font-bold text-white">{t('햅틱 피드백')}</div>
+                  <div className="text-[11px] text-gray-400">{t('버튼 터치 시 진동 효과')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={hapticEnabled} onChange={(e) => setHapticEnabled(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
             </div>
 
             {/* High Quality Upload */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <Video className="w-5 h-5 text-gray-400" />
+                <Video className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">고화질 영상 업로드</div>
-                  <div className="text-xs text-gray-400">피칭 영상 업로드 시 원본 화질 유지</div>
+                  <div className="text-sm font-bold text-white">{t('고화질 영상 업로드')}</div>
+                  <div className="text-[11px] text-gray-400">{t('업로드 시 원본 화질 유지')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={highQualityUpload} onChange={(e) => setHighQualityUpload(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
             </div>
 
             {/* Data Saver */}
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
               <div className="flex items-center gap-3">
-                <Wifi className="w-5 h-5 text-gray-400" />
+                <Wifi className="w-4 h-4 text-gray-400" />
                 <div>
-                  <div className="text-sm font-bold text-white">데이터 절약 모드</div>
-                  <div className="text-xs text-gray-400">모바일 데이터 사용 시 저해상도로 재생</div>
+                  <div className="text-sm font-bold text-white">{t('데이터 절약 모드')}</div>
+                  <div className="text-[11px] text-gray-400">{t('모바일 데이터 시 저해상도 재생')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={dataSaver} onChange={(e) => setDataSaver(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
             </div>
           </div>
         </div>
 
         {/* Save Settings Button - Separated */}
-        <div className="pt-6">
+        <div className="pt-4">
           <button 
             onClick={handleSaveSettings}
             disabled={isSavingSettings}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white p-3.5 rounded-xl text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
           >
             {isSavingSettings ? (
-              <span className="flex items-center gap-2">저장 중...</span>
+              <span className="flex items-center gap-2">{t('저장 중...')}</span>
             ) : saveSuccess ? (
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> 저장 완료</span>
+              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {t('저장 완료')}</span>
             ) : (
-              <span className="flex items-center gap-2"><Save className="w-5 h-5" /> 모든 환경 설정 저장</span>
+              <span className="flex items-center gap-2"><Save className="w-4 h-4" /> {t('모든 환경 설정 저장')}</span>
             )}
           </button>
         </div>
         
         {/* Account Actions - Clear but compact buttons */}
-        <div className="pt-16 pb-8 flex justify-center">
+        <div className="pt-8 pb-8 flex justify-center">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <button 
               onClick={onLogout}
@@ -355,7 +417,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ currentUser, onLogout,
                   <div className="w-10 h-10 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-500">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">회원 탈퇴</h3>
+                  <h3 className="text-xl font-bold text-white">{t('회원 탈퇴')}</h3>
                 </div>
                 <button onClick={() => setIsDeleteModalOpen(false)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
                   <X className="w-5 h-5" />

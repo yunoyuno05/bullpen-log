@@ -1,3 +1,5 @@
+import i18n from './lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAppStore } from './lib/store';
@@ -36,7 +38,11 @@ import { SettingsTab } from './components/SettingsTab';
 
 import { Twitter, Instagram, Mail, CheckCircle2, Save } from 'lucide-react';
 
+
+const t = i18n.t.bind(i18n);
+
 export function loadAccountData(user: UserAccount) {
+  
   if (!user || !user.email) {
     return null;
   }
@@ -164,6 +170,7 @@ export function loadAccountData(user: UserAccount) {
 }
 
 export default function App() {
+  
   // User Account state
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     const saved = localStorage.getItem('bullpen_user_account');
@@ -187,6 +194,7 @@ export default function App() {
 
   useEffect(() => {
     const handleOpenPricing = () => {
+  
       if (currentUser) {
         setOnboardingUser(currentUser);
         setShowOnboarding(true);
@@ -1254,7 +1262,7 @@ export default function App() {
           >
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 animate-pulse" />
             <div className="flex flex-col">
-              <span className="text-xs font-black text-emerald-300">저장 완료</span>
+              <span className="text-xs font-black text-emerald-300">{t('저장 완료')}</span>
               <span className="text-xs font-bold text-white">{saveToastMessage}</span>
             </div>
           </motion.div>

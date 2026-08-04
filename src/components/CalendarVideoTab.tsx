@@ -1,3 +1,5 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Pitcher, PitchVideo } from '../types';
@@ -19,6 +21,9 @@ import {
   X,
   Info
 } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface CalendarVideoTabProps {
   pitcher: Pitcher;
@@ -99,6 +104,7 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
   };
 
   const handleNextMonth = () => {
+  
     if (calMonth === 12) {
       setCalYear((prev) => prev + 1);
       setCalMonth(1);
@@ -116,7 +122,7 @@ export const CalendarVideoTab: React.FC<CalendarVideoTabProps> = ({
             <Video className="w-4 h-4" />
             <span>투구 영상 저장 및 분석</span>
           </div>
-          <h2 className="text-2xl font-black tracking-tight">투구 영상 저장</h2>
+          <h2 className="text-2xl font-black tracking-tight">{t('투구 영상 저장')}</h2>
           <p className="text-gray-400 text-xs mt-1">
             날짜별로 저장된 투구 메커니즘 영상을 프레임 단위로 재생하여 릴리스 포인트 및 팔각도를 점검하세요.
           </p>

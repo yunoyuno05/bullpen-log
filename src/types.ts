@@ -45,6 +45,8 @@ export interface UserAccount {
   isAdmin?: boolean;
   themePref?: ThemeType;
   langPref?: LanguageType;
+  speedUnit?: 'kmh' | 'mph';
+  weightUnit?: 'kg' | 'lbs';
 }
 
 export interface Post {

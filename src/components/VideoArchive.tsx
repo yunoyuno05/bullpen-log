@@ -1,3 +1,5 @@
+import { useUnits } from '../lib/units';
+import i18n from '../lib/i18n';
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Pitcher, PitchVideo } from '../types';
@@ -18,6 +20,9 @@ import {
   Upload
 } from 'lucide-react';
 
+
+const t = i18n.t.bind(i18n);
+
 interface VideoArchiveProps {
   pitcher: Pitcher;
   videos: PitchVideo[];
@@ -33,6 +38,8 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
   currentUserEmail,
   onSaveAllRecords,
 }) => {
+  const { formatSpeed, formatWeight, speedUnit, weightUnit } = useUnits();
+
   const pitcherVideos = videos.filter((v) => v.pitcherId === pitcher.id);
 
   // Dual Video Selection
@@ -136,7 +143,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
   };
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto text-white space-y-8">
+    <div className="pt-20 pb-12 px-4 md:px-8 max-w-5xl mx-auto text-white space-y-5">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
@@ -234,7 +241,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               >
                 {pitcherVideos.map((v) => (
                   <option key={v.id} value={v.id} className="bg-gray-900 text-white">
-                    {v.date} - {v.title} ({v.velocity}km/h)
+                    {v.date} - {v.title} ({formatSpeed(v.velocity)})
                   </option>
                 ))}
               </select>
@@ -261,7 +268,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               )}
               {leftVideo && (
                 <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-mono border border-white/20">
-                  {leftVideo.pitchType} ({leftVideo.velocity} km/h) • {leftVideo.cameraAngle}
+                  {leftVideo.pitchType} ({formatSpeed(leftVideo.velocity)}) • {leftVideo.cameraAngle}
                 </div>
               )}
             </div>
@@ -286,7 +293,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               >
                 {pitcherVideos.map((v) => (
                   <option key={v.id} value={v.id} className="bg-gray-900 text-white">
-                    {v.date} - {v.title} ({v.velocity}km/h)
+                    {v.date} - {v.title} ({formatSpeed(v.velocity)})
                   </option>
                 ))}
               </select>
@@ -313,7 +320,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               )}
               {rightVideo && (
                 <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-mono border border-white/20">
-                  {rightVideo.pitchType} ({rightVideo.velocity} km/h) • {rightVideo.cameraAngle}
+                  {rightVideo.pitchType} ({formatSpeed(rightVideo.velocity)}) • {rightVideo.cameraAngle}
                 </div>
               )}
             </div>
@@ -347,7 +354,7 @@ export const VideoArchive: React.FC<VideoArchiveProps> = ({
               <div>
                 <div className="flex items-center justify-between text-xs text-gray-400 font-mono mb-1">
                   <span>{v.date}</span>
-                  <span className="text-amber-400 font-bold">{v.velocity} km/h</span>
+                  <span className="text-amber-400 font-bold">{formatSpeed(v.velocity)}</span>
                 </div>
                 <h4 className="font-bold text-sm text-white line-clamp-1">{v.title}</h4>
                 <p className="text-xs text-gray-400 mt-1 line-clamp-2">{v.notes}</p>

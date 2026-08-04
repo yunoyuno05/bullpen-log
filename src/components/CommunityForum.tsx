@@ -1,6 +1,11 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, Heart, Share2, Plus, ArrowLeft, MoreHorizontal } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface Post {
   id: string;
@@ -49,6 +54,7 @@ const mockPosts: Post[] = [
 ];
 
 export const CommunityForum: React.FC = () => {
+  
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isWriting, setIsWriting] = useState(false);
@@ -98,9 +104,9 @@ export const CommunityForum: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-16 px-4 md:px-8 max-w-4xl mx-auto min-h-screen relative text-white">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-white tracking-tight">커뮤니티</h2>
+    <div className="pt-24 pb-16 px-4 md:px-8 max-w-3xl mx-auto min-h-screen relative text-white">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl font-bold text-white tracking-tight">{t('커뮤니티')}</h2>
         <div className="flex items-center gap-2">
           <span className="bg-white/10 text-white px-3 py-1 rounded-full text-sm font-medium">전체 글</span>
           <span className="text-gray-500 px-3 py-1 text-sm font-medium hover:text-white cursor-pointer transition-colors">인기 글</span>
@@ -114,13 +120,13 @@ export const CommunityForum: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-4 pb-20"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20"
           >
             {posts.map(post => (
               <div 
                 key={post.id} 
                 onClick={() => setSelectedPost(post)}
-                className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-5 hover:border-white/20 transition-all cursor-pointer group"
+                className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[20px] p-4 hover:border-white/20 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -242,7 +248,7 @@ export const CommunityForum: React.FC = () => {
                 </div>
               </div>
               
-              <h1 className="text-2xl font-bold text-white mb-4">{selectedPost.title}</h1>
+              <h1 className="text-xl font-bold text-white mb-4">{selectedPost.title}</h1>
               <p className="text-gray-300 whitespace-pre-wrap leading-relaxed mb-6">{selectedPost.content}</p>
               
               <div className="flex items-center gap-6 text-gray-400 pb-2">

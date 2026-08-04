@@ -1,6 +1,11 @@
+import i18n from '../lib/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ChevronDown, Send } from 'lucide-react';
+
+
+const t = i18n.t.bind(i18n);
 
 interface Ticket {
   id: string;
@@ -33,6 +38,7 @@ const mockTickets: Ticket[] = [
 ];
 
 export const SupportTicket: React.FC = () => {
+  
   const [activeTab, setActiveTab] = useState<'my' | 'new'>('my');
   const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
   const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
@@ -64,21 +70,19 @@ export const SupportTicket: React.FC = () => {
 
   return (
     <div className="pt-24 pb-16 px-4 md:px-8 max-w-3xl mx-auto min-h-screen text-white space-y-6">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">고객 지원</h2>
+      <div className="mb-5">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-4">{t('고객 지원')}</h2>
         <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
           <button
             onClick={() => setActiveTab('my')}
-            className={`flex-1 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'my' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'my' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
-            내 문의 내역
-          </button>
+            {t('내 문의 내역')}</button>
           <button
             onClick={() => setActiveTab('new')}
-            className={`flex-1 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'new' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'new' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
-            새 문의하기
-          </button>
+            {t('새 문의하기')}</button>
         </div>
       </div>
 
@@ -87,17 +91,17 @@ export const SupportTicket: React.FC = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-6"
+        className="bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/10 rounded-[24px] p-5"
       >
         {activeTab === 'my' && (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {tickets.length === 0 ? (
               <div className="text-center text-gray-500 py-12">등록된 문의 내역이 없습니다.</div>
             ) : (
               tickets.map(ticket => (
                 <div key={ticket.id} className="border border-white/10 rounded-xl overflow-hidden bg-white/5">
                   <div 
-                    className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
                     onClick={() => setExpandedTicketId(expandedTicketId === ticket.id ? null : ticket.id)}
                   >
                     <div className="flex-1">
