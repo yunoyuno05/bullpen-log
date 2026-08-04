@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const navItems = [
+  let navItems = [
     { id: 'dashboard', label: '라이브 대시보드', icon: LayoutDashboard, desc: '선수 종합 통계 & 통합 모니터링' },
     { id: 'calendar', label: '훈련 캘린더', icon: Calendar, desc: '훈련 스케줄 계획, 과거 피칭/웨이트 기록' },
     { id: 'acwr', label: '부하 지수 (ACWR) 분석', icon: TrendingUp, desc: '7일/28일 과부하 및 부상 위험 경보' },
@@ -63,9 +63,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'ai-report', label: 'AI 맞춤 케어 리포트', icon: Sparkles, desc: 'AI 불펜 코치 주간 리포트 & 맞춤 코칭', isAi: true },
     { id: 'logs', label: '피칭 일지 데이터', icon: FileText, desc: '구질별 상세 기록 & 불펜 히스토리' },
     { id: 'community', label: '커뮤니티', icon: MessageCircle, desc: '선수/코치 간 정보 공유' },
-    { id: 'support', label: '고객지원', icon: Headset, desc: '1:1 문의 및 FAQ' },
-    { id: 'admin', label: '관리자', icon: ShieldAlert, desc: '시스템 관리 패널' }
+    { id: 'support', label: '고객지원', icon: Headset, desc: '1:1 문의 및 FAQ' }
   ];
+
+  if (currentUser?.isAdmin) {
+    navItems.push({ id: 'admin', label: '관리자', icon: ShieldAlert, desc: '시스템 관리 패널' });
+  }
 
   const currentNav = navItems.find((item) => item.id === activeTab) || navItems[0];
 

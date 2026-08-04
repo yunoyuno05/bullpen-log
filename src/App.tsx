@@ -27,6 +27,7 @@ import { AuthModal } from './components/AuthModal';
 import { SignUpPage } from './components/SignUpPage';
 import { UserProfileModal } from './components/UserProfileModal';
 import { BaseballIcon } from './components/BaseballIcon';
+import { AdminPanel } from './components/AdminPanel';
 import { Twitter, Instagram, Mail, CheckCircle2, Save } from 'lucide-react';
 
 export function loadAccountData(user: UserAccount) {
@@ -328,6 +329,7 @@ export default function App() {
             age: metadata.age || 24,
             birthdate: metadata.birthdate || '2000-01-15',
             avatarUrl: metadata.avatarUrl || '',
+            isAdmin: sbUser.email === 'cheatpt@gmail.com',
           };
           setCurrentUser(syncedUser);
         }
@@ -357,6 +359,7 @@ export default function App() {
           age: metadata.age || 24,
           birthdate: metadata.birthdate || '2000-01-15',
           avatarUrl: metadata.avatarUrl || '',
+          isAdmin: sbUser.email === 'cheatpt@gmail.com',
         };
         setCurrentUser(syncedUser);
       }
@@ -1288,17 +1291,13 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'admin' && (
+            {activeTab === 'admin' && currentUser?.isAdmin && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center justify-center h-[70vh]"
               >
-                <div className="text-center space-y-4 max-w-md mx-auto bg-white/5 border border-white/10 p-8 rounded-3xl">
-                  <h2 className="text-2xl font-bold text-white">⚙️ 관리자 패널</h2>
-                  <p className="text-gray-400">/hidden-master-panel 경로로 직접 이동하여 접근하세요.</p>
-                </div>
+                <AdminPanel />
               </motion.div>
             )}
 
